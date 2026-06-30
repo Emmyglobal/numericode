@@ -1,4 +1,5 @@
 import { sql } from '@vercel/postgres'
+import { randomUUID } from 'node:crypto'
 import { ensureSchema } from '../_lib/db'
 import {
   assertSameOrigin,
@@ -65,8 +66,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   const isValid = user ? verifyPassword(body.password, user.password_hash) : false
 
   await sql`
-    INSERT INTO auth_attempts (email, ip_address, success)
-    VALUES (${email}, ${ipAddress}, ${isValid})
+    INSERT INTO auth_attempts (id, email, ip_address, success)
+    VALUES (${randomUUID()}, ${email}, ${ipAddress}, ${isValid})
   `
 
   if (!user || !isValid) {
@@ -80,8 +81,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
 
   await sql`
-    INSERT INTO sessions (user_id, token_hash, expires_at)
-    VALUES (${user.id}, ${hashToken(token)}, ${expiresAt.toISOString()})
+    INSERT INTO sessions (id, user_id, token_hash, expires_at)
+    VALUES (${randomUUID()}, ${user.id}, ${hashToken(token)}, ${expiresAt.toISOString()})
   `
 
   setSessionCookie(res, token, expiresAt)

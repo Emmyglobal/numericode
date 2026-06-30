@@ -2,6 +2,7 @@ import { createUser, ensureSchema } from '../_lib/db'
 import { assertSameOrigin, json, parseBody, requireMethod, setSessionCookie, type ApiRequest, type ApiResponse } from '../_lib/http'
 import { createSessionToken, hashToken, safeUser } from '../_lib/security'
 import { sql } from '@vercel/postgres'
+import { randomUUID } from 'node:crypto'
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (!requireMethod(req, res, 'POST') || !assertSameOrigin(req, res)) return
@@ -40,8 +41,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
 
     await sql`
-      INSERT INTO sessions (user_id, token_hash, expires_at)
-      VALUES (${user.id}, ${hashToken(token)}, ${expiresAt.toISOString()})
+      INSERT INTO sessions (id, user_id, token_hash, expires_at)
+      VALUES (${randomUUID()}, ${user.id}, ${hashToken(token)}, ${expiresAt.toISOString()})
     `
 
     setSessionCookie(res, token, expiresAt)

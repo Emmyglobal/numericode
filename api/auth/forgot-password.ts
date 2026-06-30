@@ -1,4 +1,5 @@
 import { sql } from '@vercel/postgres'
+import { randomUUID } from 'node:crypto'
 import { ensureSchema } from '../_lib/db'
 import { sendPasswordResetEmail } from '../_lib/email'
 import {
@@ -32,8 +33,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
   if (user.rows[0]) {
     await sql`
-      INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
-      VALUES (${user.rows[0].id}, ${hashToken(token)}, ${expiresAt.toISOString()})
+      INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at)
+      VALUES (${randomUUID()}, ${user.rows[0].id}, ${hashToken(token)}, ${expiresAt.toISOString()})
     `
     await sendPasswordResetEmail({ email, token })
   }

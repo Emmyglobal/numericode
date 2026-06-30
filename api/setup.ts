@@ -38,34 +38,49 @@ function getSetupAccounts(bodyAccounts?: SeedAccountInput[]) {
 }
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
-  if (!requireMethod(req, res, 'POST') || !assertSameOrigin(req, res)) return
+  try {
+    if (!requireMethod(req, res, 'POST') || !assertSameOrigin(req, res)) return
 
-  const setupSecret = process.env.SETUP_SECRET
-  const providedSecret = Array.isArray(req.headers['x-setup-secret'])
-    ? req.headers['x-setup-secret'][0]
-    : req.headers['x-setup-secret']
+    const setupSecret = process.env.SETUP_SECRET
+    const providedSecret = Array.isArray(req.headers['x-setup-secret'])
+      ? req.headers['x-setup-secret'][0]
+      : req.headers['x-setup-secret']
 
-  if (!setupSecret || providedSecret !== setupSecret) {
-    json(res, 403, { error: 'Setup is locked.' })
-    return
-  }
-
-  const body = parseBody<{ accounts?: SeedAccountInput[] }>(req)
-  const accounts = getSetupAccounts(body.accounts)
-
-  await ensureSchema()
-
-  for (const account of accounts) {
-    if (account.password.length < 10) {
-      json(res, 400, { error: `${account.email} password must be at least 10 characters.` })
+    if (!setupSecret || providedSecret !== setupSecret) {
+      json(res, 403, { error: 'Setup is locked.' })
       return
     }
 
-    await seedAccount(account)
-  }
+    const body = parseBody<{ accounts?: SeedAccountInput[] }>(req)
+    const accounts = getSetupAccounts(body.accounts)
 
-  json(res, 200, {
-    ok: true,
-    seededAccounts: accounts.map((account) => ({ email: account.email, role: account.role })),
-  })
+    if (accounts.length === 0) {
+      json(res, 400, {
+        error:
+          'No setup accounts found. Add FIRST_ADMIN_EMAIL/FIRST_ADMIN_PASSWORD and FIRST_TRAINER_EMAIL/FIRST_TRAINER_PASSWORD in Vercel.',
+      })
+      return
+    }
+
+    await ensureSchema()
+
+    for (const account of accounts) {
+      if (account.password.length < 10) {
+        json(res, 400, { error: `${account.email} password must be at least 10 characters.` })
+        return
+      }
+
+      await seedAccount(account)
+    }
+
+    json(res, 200, {
+      ok: true,
+      seededAccounts: accounts.map((account) => ({ email: account.email, role: account.role })),
+    })
+  } catch (error) {
+    json(res, 500, {
+      error: 'Setup failed.',
+      detail: error instanceof Error ? error.message : 'Unknown server error.',
+    })
+  }
 }
