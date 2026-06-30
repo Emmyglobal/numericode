@@ -15,14 +15,14 @@ export function ContactSection() {
     }
 
     form.reset()
-    setStatus('Message captured in mock mode. A real backend can be connected later.')
+    setStatus('Thanks. Your message is ready for the NumeriCode team to review.')
   }
 
   return (
     <section className="section contact-section" id="contact">
       <SectionHeading
         title="Contact NumeriCode"
-        description="Send a question about courses, live classes, or getting started."
+        description="Ask about courses, onboarding, class schedules, or the best starting point."
       />
       <div className="contact-grid">
         <form className="form-card" aria-label="Contact form" onSubmit={handleSubmit}>
@@ -54,7 +54,7 @@ export function ContactSection() {
         <aside className="contact-info">
           <article>
             <h3>Email</h3>
-            <p>hello@numericode.dev</p>
+            <p>Use the contact form for course and onboarding questions.</p>
           </article>
           <article>
             <h3>Response time</h3>
@@ -62,7 +62,7 @@ export function ContactSection() {
           </article>
           <article>
             <h3>Live class tools</h3>
-            <p>Students join through Zoom or Google Meet links.</p>
+            <p>Students receive class details and resources from the dashboard.</p>
           </article>
         </aside>
       </div>

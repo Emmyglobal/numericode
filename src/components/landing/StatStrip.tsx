@@ -1,8 +1,8 @@
 const stats = [
-  { value: '10+', label: 'Courses' },
-  { value: '500+', label: 'Students' },
-  { value: '50+', label: 'Live classes' },
+  { value: '6', label: 'Launch courses' },
   { value: '2', label: 'Learning tracks' },
+  { value: 'Live', label: 'Instructor support' },
+  { value: 'Free', label: 'MVP access' },
 ]
 
 export function StatStrip() {

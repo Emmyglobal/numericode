@@ -53,7 +53,7 @@ export const courseSeeds: CourseSeed[] = [
         },
       ],
       schedule: [
-        { date: 'Jul 2', time: '10:00 AM', topic: 'Live algebra clinic', status: 'Live now' },
+        { date: 'Jul 2', time: '10:00 AM', topic: 'Live algebra clinic', status: 'Upcoming' },
         { date: 'Jul 5', time: '4:00 PM', topic: 'Equation practice lab', status: 'Upcoming' },
       ],
       resources: [
@@ -145,6 +145,126 @@ export const courseSeeds: CourseSeed[] = [
         name: 'Emmanuel Nwafor',
         role: 'Mathematics Instructor',
         bio: 'Emmanuel breaks advanced mathematics into approachable patterns and shows how each idea supports technical problem solving.',
+      },
+    },
+  },
+  {
+    slug: 'web-development-starter',
+    title: 'Web Development Starter',
+    subject: 'Programming',
+    level: 'Beginner',
+    instructor: 'Emmanuel Nwafor',
+    lessons: 16,
+    duration: '6 weeks',
+    description:
+      'Build your first responsive websites with HTML, CSS, JavaScript, Git basics, and guided portfolio practice.',
+    metadata: {
+      icon: 'JS',
+      tone: 'code',
+      outcomes: [
+        'Structure pages with semantic HTML',
+        'Style responsive layouts with modern CSS',
+        'Add interactivity with beginner-friendly JavaScript',
+        'Publish a simple portfolio project with Git workflow basics',
+      ],
+      modules: [
+        { title: 'Website Foundations', lessons: ['HTML structure', 'Forms and accessibility', 'CSS selectors'] },
+        { title: 'Responsive Interfaces', lessons: ['Flexbox layouts', 'CSS grid basics', 'Mobile-first styling'] },
+        { title: 'Interactive Projects', lessons: ['JavaScript events', 'DOM updates', 'Portfolio launch review'] },
+      ],
+      schedule: [
+        { date: 'Jul 6', time: '11:00 AM', topic: 'HTML and CSS foundations', status: 'Upcoming' },
+        { date: 'Jul 11', time: '11:00 AM', topic: 'Responsive portfolio lab', status: 'Upcoming' },
+      ],
+      resources: [
+        { title: 'Starter project checklist', type: 'PDF' },
+        { title: 'Portfolio template repository', type: 'Link' },
+        { title: 'Responsive layout replay', type: 'Video' },
+      ],
+      instructor: {
+        name: 'Emmanuel Nwafor',
+        role: 'Frontend and Programming Instructor',
+        bio: 'Emmanuel guides students from blank files to usable projects with steady explanations and practical review.',
+      },
+    },
+  },
+  {
+    slug: 'statistics-for-data-thinking',
+    title: 'Statistics for Data Thinking',
+    subject: 'Mathematics',
+    level: 'Intermediate',
+    instructor: 'Emmanuel Nwafor',
+    lessons: 14,
+    duration: '5 weeks',
+    description:
+      'Understand averages, spread, probability, charts, and the statistical reasoning behind data-driven decisions.',
+    metadata: {
+      icon: '%',
+      tone: 'math',
+      outcomes: [
+        'Interpret mean, median, variance, and standard deviation',
+        'Read charts and explain what the data suggests',
+        'Use probability language accurately',
+        'Prepare for analytics, machine learning, and research projects',
+      ],
+      modules: [
+        { title: 'Describing Data', lessons: ['Averages and spread', 'Tables and charts', 'Outliers and bias'] },
+        { title: 'Probability Basics', lessons: ['Events and likelihood', 'Simple probability rules', 'Expected value'] },
+        { title: 'Data Interpretation', lessons: ['Comparing groups', 'Correlation language', 'Mini data report'] },
+      ],
+      schedule: [
+        { date: 'Jul 7', time: '5:00 PM', topic: 'Charts and summary statistics', status: 'Upcoming' },
+        { date: 'Jul 12', time: '5:00 PM', topic: 'Probability practice clinic', status: 'Upcoming' },
+      ],
+      resources: [
+        { title: 'Statistics formula sheet', type: 'PDF' },
+        { title: 'Practice dataset', type: 'Link' },
+        { title: 'Chart reading replay', type: 'Video' },
+      ],
+      instructor: {
+        name: 'Emmanuel Nwafor',
+        role: 'Mathematics Instructor',
+        bio: 'Emmanuel helps learners move from memorizing formulas to explaining data with confidence.',
+      },
+    },
+  },
+  {
+    slug: 'javascript-problem-solving',
+    title: 'JavaScript Problem Solving',
+    subject: 'Programming',
+    level: 'Intermediate',
+    instructor: 'Emmanuel Nwafor',
+    lessons: 18,
+    duration: '7 weeks',
+    description:
+      'Strengthen programming logic with arrays, objects, functions, debugging, and algorithm-style exercises in JavaScript.',
+    metadata: {
+      icon: '{}',
+      tone: 'code',
+      outcomes: [
+        'Break problems into smaller programming steps',
+        'Use arrays, objects, and functions confidently',
+        'Trace bugs with console output and test cases',
+        'Prepare for frontend frameworks and technical interviews',
+      ],
+      modules: [
+        { title: 'Core JavaScript Logic', lessons: ['Functions and scope', 'Arrays and iteration', 'Objects and records'] },
+        { title: 'Problem Patterns', lessons: ['Counting and grouping', 'Searching and filtering', 'String challenges'] },
+        { title: 'Debugging and Projects', lessons: ['Reading errors', 'Test cases', 'Logic challenge project'] },
+      ],
+      schedule: [
+        { date: 'Jul 10', time: '3:00 PM', topic: 'Array methods workshop', status: 'Upcoming' },
+        { date: 'Jul 15', time: '3:00 PM', topic: 'Debugging challenge lab', status: 'Upcoming' },
+      ],
+      resources: [
+        { title: 'JavaScript drills pack', type: 'PDF' },
+        { title: 'Challenge repository', type: 'Link' },
+        { title: 'Debugging replay', type: 'Video' },
+      ],
+      instructor: {
+        name: 'Emmanuel Nwafor',
+        role: 'Programming Instructor',
+        bio: 'Emmanuel teaches coding logic through deliberate practice, review, and project-based examples.',
       },
     },
   },

@@ -93,7 +93,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
     setSessionCookie(res, token, expiresAt)
     json(res, 200, { user: safeUser(user) })
-  } catch {
+  } catch (error) {
+    console.error('Login failed', error)
     json(res, 503, {
       error: 'Unable to log in. Check POSTGRES_URL and database integration in Vercel Project Settings.',
     })

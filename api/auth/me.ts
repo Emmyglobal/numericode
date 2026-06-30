@@ -6,7 +6,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
     const user = await getAuthenticatedUser(req)
     json(res, 200, { user })
-  } catch {
+  } catch (error) {
+    console.error('Session check failed', error)
     json(res, 500, { error: 'Unable to verify your session.' })
   }
 }

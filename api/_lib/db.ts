@@ -10,7 +10,7 @@ export async function ensureSchema() {
 
   await sql`
     CREATE TABLE IF NOT EXISTS courses (
-      id UUID PRIMARY KEY,
+      id TEXT PRIMARY KEY,
       slug TEXT NOT NULL UNIQUE,
       title TEXT NOT NULL,
       subject TEXT NOT NULL CHECK (subject IN ('Mathematics', 'Programming')),
@@ -42,9 +42,9 @@ export async function ensureSchema() {
 
   await sql`
     CREATE TABLE IF NOT EXISTS course_enrollments (
-      id UUID PRIMARY KEY,
-      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      course_id TEXT NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
       progress INTEGER NOT NULL DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
       enrolled_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       UNIQUE (user_id, course_id)
@@ -71,7 +71,7 @@ export async function ensureAuthSchema() {
 
   await sql`
     CREATE TABLE IF NOT EXISTS users (
-      id UUID PRIMARY KEY,
+      id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
       role TEXT NOT NULL CHECK (role IN ('student', 'trainer', 'admin')),
@@ -83,8 +83,8 @@ export async function ensureAuthSchema() {
 
   await sql`
     CREATE TABLE IF NOT EXISTS sessions (
-      id UUID PRIMARY KEY,
-      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       token_hash TEXT NOT NULL UNIQUE,
       expires_at TIMESTAMPTZ NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -93,8 +93,8 @@ export async function ensureAuthSchema() {
 
   await sql`
     CREATE TABLE IF NOT EXISTS password_reset_tokens (
-      id UUID PRIMARY KEY,
-      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       token_hash TEXT NOT NULL UNIQUE,
       expires_at TIMESTAMPTZ NOT NULL,
       used_at TIMESTAMPTZ,
@@ -104,13 +104,27 @@ export async function ensureAuthSchema() {
 
   await sql`
     CREATE TABLE IF NOT EXISTS auth_attempts (
-      id UUID PRIMARY KEY,
+      id TEXT PRIMARY KEY,
       email TEXT NOT NULL,
       ip_address TEXT NOT NULL,
       success BOOLEAN NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `
+
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS name TEXT`
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT`
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'student'`
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT`
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+
+  await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS token_hash TEXT`
+  await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ`
+  await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+
+  await sql`CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users (email)`
+  await sql`CREATE UNIQUE INDEX IF NOT EXISTS sessions_token_hash_unique ON sessions (token_hash)`
 }
 
 export async function createUser(input: {

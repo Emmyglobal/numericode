@@ -5,7 +5,7 @@ import { hashToken, safeUser, type PublicUser, type UserRole } from './security'
 export type ApiRequest = {
   method?: string
   body?: unknown
-  headers: Record<string, string | string[] | undefined>
+  headers?: Record<string, string | string[] | undefined>
   socket?: { remoteAddress?: string }
 }
 
@@ -18,6 +18,7 @@ export type ApiResponse = {
 const cookieName = 'numericode_session'
 
 export function json(res: ApiResponse, statusCode: number, body: unknown) {
+  res.setHeader('Content-Type', 'application/json')
   res.status(statusCode).json(body)
 }
 
@@ -31,12 +32,21 @@ export function requireMethod(req: ApiRequest, res: ApiResponse, method: string)
 }
 
 export function parseBody<T extends Record<string, unknown>>(req: ApiRequest) {
+  if (typeof req.body === 'string') {
+    try {
+      return JSON.parse(req.body) as T
+    } catch {
+      return {} as T
+    }
+  }
+
   return (typeof req.body === 'object' && req.body ? req.body : {}) as T
 }
 
 export function assertSameOrigin(req: ApiRequest, res: ApiResponse) {
-  const origin = Array.isArray(req.headers.origin) ? req.headers.origin[0] : req.headers.origin
-  const host = Array.isArray(req.headers.host) ? req.headers.host[0] : req.headers.host
+  const headers = req.headers ?? {}
+  const origin = Array.isArray(headers.origin) ? headers.origin[0] : headers.origin
+  const host = Array.isArray(headers.host) ? headers.host[0] : headers.host
 
   if (!origin || !host) {
     return true
@@ -57,7 +67,7 @@ export function assertSameOrigin(req: ApiRequest, res: ApiResponse) {
 }
 
 export function getClientIp(req: ApiRequest) {
-  const forwardedFor = req.headers['x-forwarded-for']
+  const forwardedFor = req.headers?.['x-forwarded-for']
   const value = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor
   return value?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown'
 }
@@ -77,7 +87,7 @@ function parseCookieHeader(header: string | string[] | undefined) {
 }
 
 export function getSessionToken(req: ApiRequest) {
-  return parseCookieHeader(req.headers.cookie).get(cookieName)
+  return parseCookieHeader(req.headers?.cookie).get(cookieName)
 }
 
 export function setSessionCookie(res: ApiResponse, token: string, expiresAt: Date) {

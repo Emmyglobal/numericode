@@ -42,9 +42,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (!requireMethod(req, res, 'POST') || !assertSameOrigin(req, res)) return
 
     const setupSecret = process.env.SETUP_SECRET
-    const providedSecret = Array.isArray(req.headers['x-setup-secret'])
-      ? req.headers['x-setup-secret'][0]
-      : req.headers['x-setup-secret']
+    const setupSecretHeader = req.headers?.['x-setup-secret']
+    const providedSecret = Array.isArray(setupSecretHeader) ? setupSecretHeader[0] : setupSecretHeader
 
     if (!setupSecret || providedSecret !== setupSecret) {
       json(res, 403, { error: 'Setup is locked.' })

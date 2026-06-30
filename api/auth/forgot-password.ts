@@ -32,6 +32,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
     const token = createResetToken()
     const expiresAt = new Date(Date.now() + 1000 * 60 * 20)
+    let emailWasSent = Boolean(process.env.RESEND_API_KEY && process.env.AUTH_EMAIL_FROM)
 
     if (user.rows[0]) {
       await sql`
@@ -45,14 +46,17 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at)
         VALUES (${randomUUID()}, ${user.rows[0].id}, ${hashToken(token)}, ${expiresAt.toISOString()})
       `
-      await sendPasswordResetEmail({ email, token })
+      emailWasSent = await sendPasswordResetEmail({ email, token })
     }
 
     json(res, 200, {
-      message: 'If the email exists, a reset token has been generated.',
+      message: emailWasSent
+        ? 'If the email exists, a reset token has been sent.'
+        : 'Password reset email delivery is not configured yet. Contact NumeriCode support to reset your password.',
       resetToken: process.env.NODE_ENV === 'production' ? undefined : token,
     })
-  } catch {
+  } catch (error) {
+    console.error('Forgot password failed', error)
     json(res, 503, { error: 'Unable to generate a password reset token. Check POSTGRES_URL in Vercel.' })
   }
 }

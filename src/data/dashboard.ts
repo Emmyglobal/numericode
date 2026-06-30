@@ -6,7 +6,7 @@ export const dashboardStats = [
 ]
 
 export const liveClasses = [
-  { course: 'Algebra Foundations', date: 'Today', time: '10:00 AM', status: 'Live now' },
+  { course: 'Algebra Foundations', date: 'Jul 2', time: '10:00 AM', status: 'Upcoming' },
   { course: 'Python from Zero', date: 'Jul 3', time: '2:00 PM', status: 'Upcoming' },
   { course: 'Calculus I', date: 'Jul 4', time: '4:30 PM', status: 'Upcoming' },
 ]

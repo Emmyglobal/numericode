@@ -3,19 +3,28 @@ import { SectionHeading } from '../ui/SectionHeading'
 const faqs = [
   {
     question: 'Is NumeriCode free for the MVP?',
-    answer: 'Yes. The MVP experience is free while the platform is being validated and polished.',
+    answer:
+      'Yes. Student access is free during the MVP launch while courses, live support, and dashboard workflows are being refined.',
   },
   {
-    question: 'How do live classes work?',
-    answer: 'Students see upcoming sessions in the dashboard and join through Zoom or Google Meet links.',
+    question: 'What happens after I register?',
+    answer:
+      'Your student dashboard opens immediately with enrolled courses, upcoming class information, assignments, resources, and announcements.',
   },
   {
     question: 'Can beginners start with no coding experience?',
-    answer: 'Yes. The beginner tracks start from foundations and build up through guided practice.',
+    answer:
+      'Yes. Algebra Foundations, Python from Zero, and Web Development Starter are designed for learners who need a careful first step.',
   },
   {
-    question: 'Are assignments and resources included?',
-    answer: 'Yes. Each course preview includes resources, and the dashboard includes assignment states.',
+    question: 'Are trainer and admin accounts public?',
+    answer:
+      'No. Public signup creates student accounts only. Trainer and admin accounts are provisioned through the protected setup process.',
+  },
+  {
+    question: 'What subjects are available at launch?',
+    answer:
+      'The launch catalogue focuses on Mathematics and Programming, including algebra, calculus, statistics, Python, web development, and JavaScript logic.',
   },
 ]
 

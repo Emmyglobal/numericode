@@ -3,15 +3,15 @@ import { SectionHeading } from '../ui/SectionHeading'
 const steps = [
   {
     title: 'Browse courses',
-    text: 'Explore our full catalogue and find the right course for your level',
+    text: 'Choose a Mathematics or Programming course with clear outcomes, modules, and resources.',
   },
   {
     title: 'Register free',
-    text: 'Create your account in seconds - no payment required for the MVP',
+    text: 'Create a student account and get immediate access to your learning dashboard.',
   },
   {
-    title: 'Learn live',
-    text: 'Join live classes on Zoom, watch replays, and track your progress',
+    title: 'Study with structure',
+    text: 'Follow lessons, attend scheduled sessions, use resources, and track your progress.',
   },
 ]
 
@@ -20,7 +20,7 @@ export function HowItWorks() {
     <section className="section steps-section">
       <SectionHeading
         title="How it works"
-        description="Three simple steps to start your learning journey"
+        description="A simple path from first visit to active learning"
       />
       <div className="steps">
         {steps.map((step, index) => (

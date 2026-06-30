@@ -68,7 +68,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     await sql`DELETE FROM sessions WHERE user_id = ${reset.rows[0].user_id}`
 
     json(res, 200, { ok: true })
-  } catch {
+  } catch (error) {
+    console.error('Reset password failed', error)
     json(res, 503, { error: 'Unable to reset password. Check POSTGRES_URL in Vercel.' })
   }
 }
