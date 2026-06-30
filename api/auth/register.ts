@@ -1,14 +1,14 @@
-import { createUser, enrollUserInPublishedCourses, ensureSchema } from '../_lib/db'
+import { createUser, ensureAuthSchema } from '../_lib/db'
 import { assertSameOrigin, json, parseBody, requireMethod, setSessionCookie, type ApiRequest, type ApiResponse } from '../_lib/http'
 import { getSql } from '../_lib/postgres'
 import { createSessionToken, hashToken, safeUser } from '../_lib/security'
 import { randomUUID } from 'node:crypto'
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
-  if (!requireMethod(req, res, 'POST') || !assertSameOrigin(req, res)) return
-
   try {
-    await ensureSchema()
+    if (!requireMethod(req, res, 'POST') || !assertSameOrigin(req, res)) return
+
+    await ensureAuthSchema()
     const body = parseBody<{
       name?: string
       email?: string
@@ -37,7 +37,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       password: body.password,
       role: 'student',
     })
-    await enrollUserInPublishedCourses(user.id)
 
     const token = createSessionToken()
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)

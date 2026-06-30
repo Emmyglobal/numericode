@@ -1,4 +1,4 @@
-import { ensureSchema } from './db'
+import { ensureAuthSchema } from './db'
 import { getSql } from './postgres'
 import { hashToken, safeUser, type PublicUser, type UserRole } from './security'
 
@@ -107,7 +107,7 @@ export function clearSessionCookie(res: ApiResponse) {
 }
 
 export async function getAuthenticatedUser(req: ApiRequest) {
-  await ensureSchema()
+  await ensureAuthSchema()
   const token = getSessionToken(req)
 
   if (!token) {

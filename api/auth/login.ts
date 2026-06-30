@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { enrollUserInPublishedCourses, ensureSchema } from '../_lib/db'
+import { enrollUserInPublishedCourses, ensureAuthSchema } from '../_lib/db'
 import {
   assertSameOrigin,
   getClientIp,
@@ -27,7 +27,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   try {
     if (!requireMethod(req, res, 'POST') || !assertSameOrigin(req, res)) return
 
-    await ensureSchema()
+    await ensureAuthSchema()
     const sql = await getSql()
     const body = parseBody<{ email?: string; password?: string; role?: UserRole }>(req)
     const email = normalizeEmail(body.email ?? '')

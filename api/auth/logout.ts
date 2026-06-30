@@ -7,7 +7,7 @@ import {
   type ApiRequest,
   type ApiResponse,
 } from '../_lib/http'
-import { ensureSchema } from '../_lib/db'
+import { ensureAuthSchema } from '../_lib/db'
 import { getSql } from '../_lib/postgres'
 import { hashToken } from '../_lib/security'
 
@@ -15,7 +15,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   try {
     if (!requireMethod(req, res, 'POST') || !assertSameOrigin(req, res)) return
 
-    await ensureSchema()
+    await ensureAuthSchema()
     const sql = await getSql()
     const token = getSessionToken(req)
 
