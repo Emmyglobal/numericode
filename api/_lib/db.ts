@@ -65,6 +65,20 @@ export async function ensureSchema() {
     )
   `
 
+  await sql`ALTER TABLE courses ADD COLUMN IF NOT EXISTS slug TEXT`
+  await sql`ALTER TABLE courses ADD COLUMN IF NOT EXISTS title TEXT`
+  await sql`ALTER TABLE courses ADD COLUMN IF NOT EXISTS subject TEXT`
+  await sql`ALTER TABLE courses ADD COLUMN IF NOT EXISTS level TEXT`
+  await sql`ALTER TABLE courses ADD COLUMN IF NOT EXISTS instructor TEXT`
+  await sql`ALTER TABLE courses ADD COLUMN IF NOT EXISTS lessons INTEGER`
+  await sql`ALTER TABLE courses ADD COLUMN IF NOT EXISTS duration TEXT`
+  await sql`ALTER TABLE courses ADD COLUMN IF NOT EXISTS description TEXT`
+  await sql`ALTER TABLE courses ADD COLUMN IF NOT EXISTS metadata JSONB NOT NULL DEFAULT '{}'::jsonb`
+  await sql`ALTER TABLE courses ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT TRUE`
+  await sql`ALTER TABLE courses ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+  await sql`ALTER TABLE courses ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+  await sql`CREATE UNIQUE INDEX IF NOT EXISTS courses_slug_unique ON courses (slug)`
+
   await sql`
     CREATE TABLE IF NOT EXISTS course_enrollments (
       id UUID PRIMARY KEY,
@@ -76,7 +90,19 @@ export async function ensureSchema() {
     )
   `
 
-  await seedCourses()
+  await sql`ALTER TABLE course_enrollments ADD COLUMN IF NOT EXISTS progress INTEGER NOT NULL DEFAULT 0`
+  await sql`ALTER TABLE course_enrollments ADD COLUMN IF NOT EXISTS enrolled_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+  await sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS course_enrollments_user_course_unique
+    ON course_enrollments (user_id, course_id)
+  `
+
+  try {
+    await seedCourses()
+  } catch {
+    // Course seeding should not prevent auth from working. The courses API will
+    // surface its own error if the database needs a manual migration.
+  }
 }
 
 export async function createUser(input: {
@@ -144,16 +170,21 @@ export async function seedCourses() {
 }
 
 export async function enrollUserInPublishedCourses(userId: string) {
-  const courses = await sql<{ id: string }>`
-    SELECT id FROM courses WHERE is_published = TRUE
-  `
-
-  for (const course of courses.rows) {
-    await sql`
-      INSERT INTO course_enrollments (id, user_id, course_id)
-      VALUES (${randomUUID()}, ${userId}, ${course.id})
-      ON CONFLICT (user_id, course_id) DO NOTHING
+  try {
+    const courses = await sql<{ id: string }>`
+      SELECT id FROM courses WHERE is_published = TRUE
     `
+
+    for (const course of courses.rows) {
+      await sql`
+        INSERT INTO course_enrollments (id, user_id, course_id)
+        VALUES (${randomUUID()}, ${userId}, ${course.id})
+        ON CONFLICT (user_id, course_id) DO NOTHING
+      `
+    }
+  } catch {
+    // A student account should still be usable even if course enrollment needs
+    // deployment/database attention.
   }
 }
 
