@@ -1,4 +1,3 @@
-import { sql } from '@vercel/postgres'
 import { randomUUID } from 'node:crypto'
 import { ensureSchema } from '../_lib/db'
 import { sendPasswordResetEmail } from '../_lib/email'
@@ -10,6 +9,7 @@ import {
   type ApiRequest,
   type ApiResponse,
 } from '../_lib/http'
+import { getSql } from '../_lib/postgres'
 import { createResetToken, hashToken, normalizeEmail } from '../_lib/security'
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
@@ -17,6 +17,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (!requireMethod(req, res, 'POST') || !assertSameOrigin(req, res)) return
 
     await ensureSchema()
+    const sql = await getSql()
     const body = parseBody<{ email?: string }>(req)
     const email = normalizeEmail(body.email ?? '')
 
@@ -52,6 +53,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       resetToken: process.env.NODE_ENV === 'production' ? undefined : token,
     })
   } catch {
-    json(res, 500, { error: 'Unable to generate a password reset token.' })
+    json(res, 503, { error: 'Unable to generate a password reset token. Check POSTGRES_URL in Vercel.' })
   }
 }

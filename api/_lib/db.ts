@@ -1,9 +1,11 @@
-import { sql } from '@vercel/postgres'
 import { randomUUID } from 'node:crypto'
 import { courseSeeds } from './course-data'
+import { getSql } from './postgres'
 import { hashPassword, normalizeEmail, type UserRole } from './security'
 
 export async function ensureSchema() {
+  const sql = await getSql()
+
   await sql`
     CREATE TABLE IF NOT EXISTS users (
       id UUID PRIMARY KEY,
@@ -111,6 +113,7 @@ export async function createUser(input: {
   password: string
   role: UserRole
 }) {
+  const sql = await getSql()
   const email = normalizeEmail(input.email)
   const passwordHash = hashPassword(input.password)
 
@@ -129,6 +132,8 @@ export async function createUser(input: {
 }
 
 export async function seedCourses() {
+  const sql = await getSql()
+
   for (const course of courseSeeds) {
     await sql`
       INSERT INTO courses (
@@ -171,6 +176,7 @@ export async function seedCourses() {
 
 export async function enrollUserInPublishedCourses(userId: string) {
   try {
+    const sql = await getSql()
     const courses = await sql<{ id: string }>`
       SELECT id FROM courses WHERE is_published = TRUE
     `
@@ -194,6 +200,7 @@ export async function seedAccount(input: {
   password: string
   role: UserRole
 }) {
+  const sql = await getSql()
   const email = normalizeEmail(input.email)
   const passwordHash = hashPassword(input.password)
 

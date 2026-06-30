@@ -1,4 +1,3 @@
-import { sql } from '@vercel/postgres'
 import {
   assertSameOrigin,
   clearSessionCookie,
@@ -9,6 +8,7 @@ import {
   type ApiResponse,
 } from '../_lib/http'
 import { ensureSchema } from '../_lib/db'
+import { getSql } from '../_lib/postgres'
 import { hashToken } from '../_lib/security'
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
@@ -16,6 +16,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (!requireMethod(req, res, 'POST') || !assertSameOrigin(req, res)) return
 
     await ensureSchema()
+    const sql = await getSql()
     const token = getSessionToken(req)
 
     if (token) {

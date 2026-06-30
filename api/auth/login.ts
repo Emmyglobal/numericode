@@ -1,4 +1,3 @@
-import { sql } from '@vercel/postgres'
 import { randomUUID } from 'node:crypto'
 import { enrollUserInPublishedCourses, ensureSchema } from '../_lib/db'
 import {
@@ -11,6 +10,7 @@ import {
   type ApiRequest,
   type ApiResponse,
 } from '../_lib/http'
+import { getSql } from '../_lib/postgres'
 import {
   createSessionToken,
   hashToken,
@@ -28,6 +28,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (!requireMethod(req, res, 'POST') || !assertSameOrigin(req, res)) return
 
     await ensureSchema()
+    const sql = await getSql()
     const body = parseBody<{ email?: string; password?: string; role?: UserRole }>(req)
     const email = normalizeEmail(body.email ?? '')
     const ipAddress = getClientIp(req)
@@ -93,6 +94,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     setSessionCookie(res, token, expiresAt)
     json(res, 200, { user: safeUser(user) })
   } catch {
-    json(res, 500, { error: 'Unable to log in. Check the database connection and try again.' })
+    json(res, 503, {
+      error: 'Unable to log in. Check POSTGRES_URL and database integration in Vercel Project Settings.',
+    })
   }
 }

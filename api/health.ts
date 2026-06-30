@@ -1,14 +1,19 @@
-import { sql } from '@vercel/postgres'
-import { json, requireMethod, type ApiRequest, type ApiResponse } from './_lib/http'
+type HealthRequest = {
+  method?: string
+}
+
+type HealthResponse = {
+  status: (code: number) => HealthResponse
+  json: (body: unknown) => void
+  setHeader: (name: string, value: string) => void
+}
 
 function isPresent(value: string | undefined) {
   return Boolean(value && value.trim().length > 0)
 }
 
-export default async function handler(req: ApiRequest, res: ApiResponse) {
-  if (!requireMethod(req, res, 'GET')) return
-
-  const env = {
+function envStatus() {
+  return {
     postgresUrl: isPresent(process.env.POSTGRES_URL),
     setupSecret: isPresent(process.env.SETUP_SECRET),
     firstAdminEmail: isPresent(process.env.FIRST_ADMIN_EMAIL),
@@ -18,17 +23,40 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     appUrl: isPresent(process.env.APP_URL),
     resendApiKey: isPresent(process.env.RESEND_API_KEY),
     authEmailFrom: isPresent(process.env.AUTH_EMAIL_FROM),
+    nodeEnv: process.env.NODE_ENV ?? null,
+  }
+}
+
+export default async function handler(req: HealthRequest, res: HealthResponse) {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+
+  if (req.method !== 'GET') {
+    res.status(405).json({ ok: false, error: `Method ${req.method} is not allowed.` })
+    return
+  }
+
+  const env = envStatus()
+
+  if (!env.postgresUrl) {
+    res.status(200).json({
+      ok: false,
+      database: 'not_configured',
+      env,
+      nextStep: 'Add POSTGRES_URL in Vercel Project Settings, then redeploy.',
+    })
+    return
   }
 
   try {
-    await sql`SELECT 1`
-    json(res, 200, {
+    const postgres = await import('@vercel/postgres')
+    await postgres.sql`SELECT 1`
+    res.status(200).json({
       ok: true,
       database: 'connected',
       env,
     })
   } catch (error) {
-    json(res, 500, {
+    res.status(200).json({
       ok: false,
       database: 'unavailable',
       env,

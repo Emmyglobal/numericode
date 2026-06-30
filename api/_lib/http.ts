@@ -1,5 +1,5 @@
-import { sql } from '@vercel/postgres'
 import { ensureSchema } from './db'
+import { getSql } from './postgres'
 import { hashToken, safeUser, type PublicUser, type UserRole } from './security'
 
 export type ApiRequest = {
@@ -115,6 +115,7 @@ export async function getAuthenticatedUser(req: ApiRequest) {
   }
 
   const tokenHash = hashToken(token)
+  const sql = await getSql()
   const result = await sql<PublicUser>`
     SELECT users.id, users.name, users.email, users.role
     FROM sessions

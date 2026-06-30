@@ -1,4 +1,3 @@
-import { sql } from '@vercel/postgres'
 import { ensureSchema } from '../_lib/db'
 import {
   assertSameOrigin,
@@ -8,6 +7,7 @@ import {
   type ApiRequest,
   type ApiResponse,
 } from '../_lib/http'
+import { getSql } from '../_lib/postgres'
 import { hashPassword, hashToken, normalizeEmail } from '../_lib/security'
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
@@ -15,6 +15,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (!requireMethod(req, res, 'POST') || !assertSameOrigin(req, res)) return
 
     await ensureSchema()
+    const sql = await getSql()
     const body = parseBody<{
       email?: string
       token?: string
@@ -68,6 +69,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
     json(res, 200, { ok: true })
   } catch {
-    json(res, 500, { error: 'Unable to reset password.' })
+    json(res, 503, { error: 'Unable to reset password. Check POSTGRES_URL in Vercel.' })
   }
 }

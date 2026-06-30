@@ -1,5 +1,5 @@
-import { sql } from '@vercel/postgres'
 import { ensureSchema } from './db'
+import { getSql } from './postgres'
 
 type CourseRow = {
   id: string
@@ -58,6 +58,7 @@ export function toCoursePayload(row: CourseRow) {
 
 export async function getPublishedCourses() {
   await ensureSchema()
+  const sql = await getSql()
   const result = await sql<CourseRow>`
     SELECT id, slug, title, subject, level, instructor, lessons, duration, description, metadata
     FROM courses
@@ -70,6 +71,7 @@ export async function getPublishedCourses() {
 
 export async function getStudentCourses(userId: string) {
   await ensureSchema()
+  const sql = await getSql()
   const result = await sql<CourseRow>`
     SELECT
       courses.id,
