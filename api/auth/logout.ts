@@ -12,15 +12,20 @@ import { ensureSchema } from '../_lib/db'
 import { hashToken } from '../_lib/security'
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
-  if (!requireMethod(req, res, 'POST') || !assertSameOrigin(req, res)) return
+  try {
+    if (!requireMethod(req, res, 'POST') || !assertSameOrigin(req, res)) return
 
-  await ensureSchema()
-  const token = getSessionToken(req)
+    await ensureSchema()
+    const token = getSessionToken(req)
 
-  if (token) {
-    await sql`DELETE FROM sessions WHERE token_hash = ${hashToken(token)}`
+    if (token) {
+      await sql`DELETE FROM sessions WHERE token_hash = ${hashToken(token)}`
+    }
+
+    clearSessionCookie(res)
+    json(res, 200, { ok: true })
+  } catch {
+    clearSessionCookie(res)
+    json(res, 200, { ok: true })
   }
-
-  clearSessionCookie(res)
-  json(res, 200, { ok: true })
 }

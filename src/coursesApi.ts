@@ -6,12 +6,30 @@ type CoursesResponse = {
   error?: string
 }
 
+async function readJsonResponse(response: Response) {
+  const text = await response.text()
+
+  if (!text) {
+    return {} as CoursesResponse
+  }
+
+  try {
+    return JSON.parse(text) as CoursesResponse
+  } catch {
+    return {
+      error: response.ok
+        ? 'The server returned an invalid courses response.'
+        : text.slice(0, 180) || 'The server returned an invalid courses response.',
+    }
+  }
+}
+
 async function requestCourses(path: string) {
   const response = await fetch(path, {
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
   })
-  const payload = (await response.json()) as CoursesResponse
+  const payload = await readJsonResponse(response)
 
   if (!response.ok) {
     throw new Error(payload.error || 'Unable to load courses.')

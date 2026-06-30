@@ -14,6 +14,25 @@ type AuthResponse = {
   error?: string
 }
 
+async function readJsonResponse(response: Response) {
+  const text = await response.text()
+
+  if (!text) {
+    return {} as AuthResponse
+  }
+
+  try {
+    return JSON.parse(text) as AuthResponse
+  } catch {
+    return {
+      user: null,
+      error: response.ok
+        ? 'The server returned an invalid response.'
+        : text.slice(0, 180) || 'The server returned an invalid response.',
+    }
+  }
+}
+
 async function requestAuth(path: string, options: RequestInit = {}) {
   const response = await fetch(path, {
     credentials: 'include',
@@ -23,7 +42,7 @@ async function requestAuth(path: string, options: RequestInit = {}) {
     },
     ...options,
   })
-  const payload = (await response.json()) as AuthResponse
+  const payload = await readJsonResponse(response)
 
   if (!response.ok) {
     throw new Error(payload.error || 'Authentication request failed.')
