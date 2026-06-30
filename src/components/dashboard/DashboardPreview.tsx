@@ -1,16 +1,44 @@
+import { useEffect, useMemo, useState } from 'react'
+import type { AuthUser } from '../../auth'
+import { getMyCourses } from '../../coursesApi'
 import { announcements, assignments, dashboardStats, liveClasses, resources } from '../../data/dashboard'
-import { courses } from '../../data/courses'
+import { courses as fallbackCourses } from '../../data/courses'
+import type { Course } from '../../types/course'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 import { SectionHeading } from '../ui/SectionHeading'
 
 type DashboardPreviewProps = {
+  currentUser: AuthUser
   isDarkMode: boolean
   onToggleTheme: (enabled: boolean) => void
 }
 
-export function DashboardPreview({ isDarkMode, onToggleTheme }: DashboardPreviewProps) {
-  const activeCourse = courses[0]
+export function DashboardPreview({ currentUser, isDarkMode, onToggleTheme }: DashboardPreviewProps) {
+  const [studentCourses, setStudentCourses] = useState<Course[]>(fallbackCourses)
+  const [courseLoadError, setCourseLoadError] = useState('')
+  const activeCourse = studentCourses[0] ?? fallbackCourses[0]
+  const stats = useMemo(
+    () =>
+      dashboardStats.map((stat) =>
+        stat.label === 'Enrolled courses'
+          ? { ...stat, value: String(studentCourses.length) }
+          : stat,
+      ),
+    [studentCourses.length],
+  )
+
+  useEffect(() => {
+    getMyCourses()
+      .then((courses) => {
+        setStudentCourses(courses.length > 0 ? courses : fallbackCourses)
+        setCourseLoadError('')
+      })
+      .catch(() => {
+        setStudentCourses(fallbackCourses)
+        setCourseLoadError('Using local course previews until your database courses are available.')
+      })
+  }, [])
 
   return (
     <section className="section dashboard-section" id="dashboard">
@@ -32,14 +60,14 @@ export function DashboardPreview({ isDarkMode, onToggleTheme }: DashboardPreview
         <div className="dashboard-main">
           <div className="dashboard-welcome">
             <div>
-              <span>Good morning, Emmanuel</span>
+              <span>Good morning, {currentUser.name}</span>
               <h3>Continue your learning journey</h3>
             </div>
             <Button href="#/courses">Resume course</Button>
           </div>
 
           <div className="dashboard-stats">
-            {dashboardStats.map((stat) => (
+            {stats.map((stat) => (
               <article key={stat.label}>
                 <strong>{stat.value}</strong>
                 <span>{stat.label}</span>
@@ -52,6 +80,7 @@ export function DashboardPreview({ isDarkMode, onToggleTheme }: DashboardPreview
               <Badge tone={activeCourse.subject.toLowerCase()}>{activeCourse.subject}</Badge>
               <h3>{activeCourse.title}</h3>
               <p>Next lesson: Simplifying expressions</p>
+              {courseLoadError && <small>{courseLoadError}</small>}
               <div className="progress-track" aria-label="Course progress">
                 <span style={{ width: '48%' }} />
               </div>
@@ -118,7 +147,7 @@ export function DashboardPreview({ isDarkMode, onToggleTheme }: DashboardPreview
             <article className="dashboard-panel profile-panel">
               <h3>Profile</h3>
               <div className="avatar">EN</div>
-              <strong>Emmanuel Nwafor</strong>
+              <strong>{currentUser.name}</strong>
               <span>Student / Beginner track</span>
               <label>
                 Dark mode preference

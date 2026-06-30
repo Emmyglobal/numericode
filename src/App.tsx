@@ -133,7 +133,13 @@ function App() {
         {route === 'dashboard' && (
           renderProtectedRoute(
             'student',
-            <DashboardPage isDarkMode={isDarkMode} onToggleTheme={setIsDarkMode} />,
+            currentUser ? (
+              <DashboardPage
+                currentUser={currentUser}
+                isDarkMode={isDarkMode}
+                onToggleTheme={setIsDarkMode}
+              />
+            ) : null,
           )
         )}
         {route === 'admin' && renderProtectedRoute('admin', <AdminPage />)}

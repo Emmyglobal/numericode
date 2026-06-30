@@ -23,7 +23,7 @@ export function HeroSection() {
           pace, guided by real instructors who care.
         </p>
         <div className="hero-actions">
-          <Button className="hero-button" href="#/auth">
+          <Button className="hero-button" href="#/auth/register">
             Get started free
           </Button>
           <Button className="hero-button" href="#/courses">

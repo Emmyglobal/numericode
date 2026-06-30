@@ -64,7 +64,7 @@ export function SiteHeader({
         ) : (
           <>
             <Button href="#/auth">Log in</Button>
-            <Button href="#/auth" variant="primary">
+            <Button href="#/auth/register" variant="primary">
               Get started
             </Button>
           </>

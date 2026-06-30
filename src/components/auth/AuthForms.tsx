@@ -19,6 +19,15 @@ type AuthFormsProps = {
   onAuthSuccess?: (user: AuthUser) => void
 }
 
+function getInitialMode(): AuthMode {
+  const hash = window.location.hash.toLowerCase()
+
+  if (hash.includes('/register')) return 'register'
+  if (hash.includes('/forgot')) return 'forgot'
+  if (hash.includes('/reset')) return 'reset'
+  return 'login'
+}
+
 const roleOptions: { label: string; value: UserRole; description: string }[] = [
   {
     label: 'Student',
@@ -49,7 +58,7 @@ function readFormData(form: HTMLFormElement) {
 }
 
 export function AuthForms({ message, requiredRole, onAuthSuccess }: AuthFormsProps) {
-  const [mode, setMode] = useState<AuthMode>('login')
+  const [mode, setMode] = useState<AuthMode>(getInitialMode)
   const [role, setRole] = useState<UserRole>(requiredRole ?? 'student')
   const [status, setStatus] = useState(message ?? '')
   const [error, setError] = useState('')
@@ -155,6 +164,7 @@ export function AuthForms({ message, requiredRole, onAuthSuccess }: AuthFormsPro
                 key={value}
                 onClick={() => {
                   setMode(value as AuthMode)
+                  window.location.hash = `#/auth/${value === 'login' ? '' : value}`.replace(/\/$/, '')
                   setError('')
                   setStatus('')
                 }}
@@ -227,7 +237,13 @@ export function AuthForms({ message, requiredRole, onAuthSuccess }: AuthFormsPro
           {(mode === 'login' || mode === 'register' || mode === 'reset') && (
             <label>
               Password
-              <input name="password" placeholder="Minimum 8 characters" required type="password" />
+              <input
+                minLength={10}
+                name="password"
+                placeholder="Minimum 10 characters"
+                required
+                type="password"
+              />
             </label>
           )}
 

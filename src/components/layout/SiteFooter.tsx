@@ -33,7 +33,7 @@ export function SiteFooter() {
       <section className="footer-cta">
         <h2>Ready to start learning?</h2>
         <p>Join hundreds of students already learning Mathematics and Programming with NumeriCode</p>
-        <Button className="cta-button" href="#/auth">
+        <Button className="cta-button" href="#/auth/register">
           Create free account
         </Button>
       </section>

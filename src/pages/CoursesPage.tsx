@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { CourseCatalog } from '../components/courses/CourseCatalog'
 import { CourseDetail } from '../components/courses/CourseDetail'
 import { CourseFilters } from '../components/courses/CourseFilters'
 import { Badge } from '../components/ui/Badge'
-import { courses } from '../data/courses'
+import { courses as fallbackCourses } from '../data/courses'
+import { getPublishedCourses } from '../coursesApi'
 import type { Course, CourseSubject } from '../types/course'
 
 type SubjectFilter = 'All' | CourseSubject
@@ -11,7 +12,17 @@ type SubjectFilter = 'All' | CourseSubject
 export function CoursesPage() {
   const [query, setQuery] = useState('')
   const [subject, setSubject] = useState<SubjectFilter>('All')
-  const [selectedCourse, setSelectedCourse] = useState<Course>(courses[0])
+  const [courses, setCourses] = useState<Course[]>(fallbackCourses)
+  const [selectedCourse, setSelectedCourse] = useState<Course>(fallbackCourses[0])
+
+  useEffect(() => {
+    getPublishedCourses().then((loadedCourses) => {
+      setCourses(loadedCourses)
+      setSelectedCourse((currentCourse) => {
+        return loadedCourses.find((course) => course.id === currentCourse.id) ?? loadedCourses[0]
+      })
+    })
+  }, [])
 
   const filteredCourses = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
@@ -23,7 +34,7 @@ export function CoursesPage() {
         .toLowerCase()
       return matchesSubject && searchableText.includes(normalizedQuery)
     })
-  }, [query, subject])
+  }, [courses, query, subject])
 
   const handleSelectCourse = (course: Course) => {
     setSelectedCourse(course)

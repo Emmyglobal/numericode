@@ -1,4 +1,4 @@
-import { createUser, ensureSchema } from '../_lib/db'
+import { createUser, enrollUserInPublishedCourses, ensureSchema } from '../_lib/db'
 import { assertSameOrigin, json, parseBody, requireMethod, setSessionCookie, type ApiRequest, type ApiResponse } from '../_lib/http'
 import { createSessionToken, hashToken, safeUser } from '../_lib/security'
 import { sql } from '@vercel/postgres'
@@ -37,6 +37,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       password: body.password,
       role: 'student',
     })
+    await enrollUserInPublishedCourses(user.id)
+
     const token = createSessionToken()
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
 

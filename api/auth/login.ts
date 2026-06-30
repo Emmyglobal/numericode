@@ -1,6 +1,6 @@
 import { sql } from '@vercel/postgres'
 import { randomUUID } from 'node:crypto'
-import { ensureSchema } from '../_lib/db'
+import { enrollUserInPublishedCourses, ensureSchema } from '../_lib/db'
 import {
   assertSameOrigin,
   getClientIp,
@@ -73,6 +73,10 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (!user || !isValid) {
     json(res, 401, { error: 'Invalid email, password, or account type.' })
     return
+  }
+
+  if (user.role === 'student') {
+    await enrollUserInPublishedCourses(user.id)
   }
 
   await sql`DELETE FROM sessions WHERE user_id = ${user.id} AND expires_at <= NOW()`

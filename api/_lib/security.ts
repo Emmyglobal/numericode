@@ -41,7 +41,7 @@ export function hashToken(token: string) {
 }
 
 export function createResetToken() {
-  return randomBytes(4).toString('hex').toUpperCase()
+  return randomBytes(16).toString('hex').toUpperCase()
 }
 
 export function safeUser(user: {

@@ -1,5 +1,6 @@
 import { sql } from '@vercel/postgres'
 import { randomUUID } from 'node:crypto'
+import { courseSeeds } from './course-data'
 import { hashPassword, normalizeEmail, type UserRole } from './security'
 
 export async function ensureSchema() {
@@ -45,6 +46,37 @@ export async function ensureSchema() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS courses (
+      id UUID PRIMARY KEY,
+      slug TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      subject TEXT NOT NULL CHECK (subject IN ('Mathematics', 'Programming')),
+      level TEXT NOT NULL CHECK (level IN ('Beginner', 'Intermediate')),
+      instructor TEXT NOT NULL,
+      lessons INTEGER NOT NULL CHECK (lessons > 0),
+      duration TEXT NOT NULL,
+      description TEXT NOT NULL,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      is_published BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS course_enrollments (
+      id UUID PRIMARY KEY,
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+      progress INTEGER NOT NULL DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
+      enrolled_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (user_id, course_id)
+    )
+  `
+
+  await seedCourses()
 }
 
 export async function createUser(input: {
@@ -68,6 +100,61 @@ export async function createUser(input: {
   `
 
   return result.rows[0]
+}
+
+export async function seedCourses() {
+  for (const course of courseSeeds) {
+    await sql`
+      INSERT INTO courses (
+        id,
+        slug,
+        title,
+        subject,
+        level,
+        instructor,
+        lessons,
+        duration,
+        description,
+        metadata
+      )
+      VALUES (
+        ${randomUUID()},
+        ${course.slug},
+        ${course.title},
+        ${course.subject},
+        ${course.level},
+        ${course.instructor},
+        ${course.lessons},
+        ${course.duration},
+        ${course.description},
+        ${JSON.stringify(course.metadata)}::jsonb
+      )
+      ON CONFLICT (slug) DO UPDATE SET
+        title = EXCLUDED.title,
+        subject = EXCLUDED.subject,
+        level = EXCLUDED.level,
+        instructor = EXCLUDED.instructor,
+        lessons = EXCLUDED.lessons,
+        duration = EXCLUDED.duration,
+        description = EXCLUDED.description,
+        metadata = EXCLUDED.metadata,
+        updated_at = NOW()
+    `
+  }
+}
+
+export async function enrollUserInPublishedCourses(userId: string) {
+  const courses = await sql<{ id: string }>`
+    SELECT id FROM courses WHERE is_published = TRUE
+  `
+
+  for (const course of courses.rows) {
+    await sql`
+      INSERT INTO course_enrollments (id, user_id, course_id)
+      VALUES (${randomUUID()}, ${userId}, ${course.id})
+      ON CONFLICT (user_id, course_id) DO NOTHING
+    `
+  }
 }
 
 export async function seedAccount(input: {
