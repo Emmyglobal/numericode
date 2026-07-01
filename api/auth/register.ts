@@ -103,13 +103,39 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       return
     }
 
-    json(res, 500, { error: 'Unable to create account.' })
+    json(res, 500, {
+      error: 'Unable to create account.',
+      detail: getPublicErrorDetail(error),
+    })
   }
 }
 
 function isDuplicateEmailError(error: unknown) {
-  if (!(error instanceof Error)) return false
+  const code = getErrorCode(error)
+  const message = error instanceof Error ? error.message.toLowerCase() : ''
+  return (
+    code === '23505' ||
+    message.includes('duplicate') ||
+    message.includes('unique') ||
+    message.includes('users_email_key')
+  )
+}
 
-  const message = error.message.toLowerCase()
-  return message.includes('duplicate') || message.includes('unique') || message.includes('users_email_key')
+function getErrorCode(error: unknown) {
+  if (typeof error !== 'object' || error === null || !('code' in error)) {
+    return ''
+  }
+
+  const code = (error as { code?: unknown }).code
+  return typeof code === 'string' ? code : ''
+}
+
+function getPublicErrorDetail(error: unknown) {
+  const code = getErrorCode(error)
+
+  if (code) {
+    return `Database error code: ${code}`
+  }
+
+  return error instanceof Error ? error.message : 'Unknown server error.'
 }

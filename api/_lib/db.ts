@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto'
-import { courseSeeds } from './course-data'
 import { getSql } from './postgres'
 import { hashPassword, normalizeEmail, type UserRole } from './security'
 
@@ -153,6 +152,7 @@ export async function createUser(input: {
 
 export async function seedCourses() {
   const sql = await getSql()
+  const { courseSeeds } = await import('./course-data')
 
   for (const course of courseSeeds) {
     await sql`

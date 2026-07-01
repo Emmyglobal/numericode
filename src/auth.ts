@@ -12,6 +12,7 @@ type AuthResponse = {
   resetToken?: string
   message?: string
   error?: string
+  detail?: string
 }
 
 async function readJsonResponse(response: Response) {
@@ -45,7 +46,9 @@ async function requestAuth(path: string, options: RequestInit = {}) {
   const payload = await readJsonResponse(response)
 
   if (!response.ok) {
-    throw new Error(payload.error || 'Authentication request failed.')
+    throw new Error(
+      [payload.error || 'Authentication request failed.', payload.detail].filter(Boolean).join(' '),
+    )
   }
 
   return payload
