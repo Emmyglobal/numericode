@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /trainer
+Disallow: /admin
+Sitemap: https://numericode.com/sitemap.xml

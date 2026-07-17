@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Primary SEO -->
+    <title>NumeriCode — Mathematics &amp; Code, Taught Live</title>
+    <meta name="description" content="Learn Mathematics and Programming through live instructor-led classes. Free online courses for students of all levels." />
+    <meta name="keywords"    content="mathematics, programming, online school, live classes, coding, EdTech, Nigeria" />
+    <meta name="author"      content="Nwafor Ugochukwu Emmanuel" />
+    <meta name="theme-color" content="#1E3A5F" />
+    <meta name="robots"      content="index, follow" />
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type"        content="website" />
+    <meta property="og:title"       content="NumeriCode — Mathematics &amp; Code, Taught Live" />
+    <meta property="og:description" content="Free live online classes in Mathematics and Programming. Join 500+ students learning with expert instructors." />
+    <meta property="og:site_name"   content="NumeriCode" />
+    <meta property="og:locale"      content="en_NG" />
+
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:title"       content="NumeriCode — Mathematics &amp; Code, Taught Live" />
+    <meta name="twitter:description" content="Free live online classes in Mathematics and Programming." />
+
+    <!-- Performance: preconnect to Google Fonts CDN -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Fonts: Inter + Fira Code -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap"
+      />
+    </noscript>
+
+    <!-- Dark mode flash prevention — must execute before body renders -->
+    <script>
+      try {
+        var s = localStorage.getItem('numericode-ui')
+        if (s && JSON.parse(s).state && JSON.parse(s).state.theme === 'dark') {
+          document.documentElement.classList.add('dark')
+        }
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
