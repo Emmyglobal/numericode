@@ -42,6 +42,8 @@ export interface TrainerAssignment {
   dueDate: string
   totalSubmissions: number
   pendingReview: number
+  totalMarks: number
+  passingScore: number
   createdAt: string
 }
 

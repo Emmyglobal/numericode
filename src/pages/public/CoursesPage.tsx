@@ -15,19 +15,24 @@ const subjectFilters = [
   { value: 'mathematics',  label: 'Mathematics'  },
   { value: 'programming',  label: 'Programming'  },
 ]
+const accessFilters = [
+  { value: '', label: 'All Access' }, { value: 'free', label: 'Free' }, { value: 'premium', label: 'Premium' },
+] as const
 
 export default function CoursesPage() {
   usePageTitle('Browse Courses')
   const [search,  setSearch]  = useState('')
   const [subject, setSubject] = useState('')
+  const [accessLevel, setAccessLevel] = useState<'free' | 'premium' | ''>('')
   const debouncedSearch = useDebounce(search)
-  const handleClearFilters = () => { setSearch(''); setSubject('') }
+  const handleClearFilters = () => { setSearch(''); setSubject(''); setAccessLevel('') }
 
   const { data: courses, isLoading } = useQuery({
-    queryKey: ['courses', { subject, q: debouncedSearch }],
+    queryKey: ['courses', { subject, q: debouncedSearch, accessLevel }],
     queryFn:  () => coursesService.getAll({
       subject: subject || undefined,
       q: debouncedSearch || undefined,
+      accessLevel: accessLevel || undefined,
     }),
   })
 
@@ -82,6 +87,9 @@ export default function CoursesPage() {
                   {f.label}
                 </button>
               ))}
+            </div>
+            <div role="group" aria-label="Filter by access" className="flex gap-2">
+              {accessFilters.map(filter => <button key={filter.value} onClick={() => setAccessLevel(filter.value)} aria-pressed={accessLevel === filter.value} className={cn('px-3 py-2 rounded-full text-sm font-medium transition-all', accessLevel === filter.value ? 'bg-brand-navy text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700')}>{filter.label}</button>)}
             </div>
 
             {/* Live result count */}

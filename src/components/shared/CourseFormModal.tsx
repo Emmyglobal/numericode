@@ -10,6 +10,10 @@ export interface CourseFormValues {
   level: 'beginner' | 'intermediate' | 'advanced'
   outcomes: string[]
   instructorId?: string
+  accessLevel: 'free' | 'premium'
+  priceCents: number
+  currency: string
+  premiumEnabled: boolean
 }
 
 interface TrainerOption { id: string; name: string; email: string }
@@ -26,7 +30,7 @@ interface CourseFormModalProps {
 }
 
 const defaultValues: CourseFormValues = {
-  title: '', description: '', subject: 'mathematics', level: 'beginner', outcomes: [], instructorId: '',
+  title: '', description: '', subject: 'mathematics', level: 'beginner', outcomes: [], instructorId: '', accessLevel: 'free', priceCents: 0, currency: 'NGN', premiumEnabled: true,
 }
 
 export function CourseFormModal({
@@ -127,6 +131,11 @@ export function CourseFormModal({
               </select>
             </div>
           </div>
+
+          {trainers && <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5"><label htmlFor="course-access" className="text-sm font-semibold text-gray-700 dark:text-gray-200">Access</label><select id="course-access" value={values.accessLevel} onChange={event => setValues(value => ({ ...value, accessLevel: event.target.value as 'free' | 'premium' }))} className="h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-brand-blue"><option value="free">Free</option><option value="premium">Premium</option></select></div>
+            <Input label="Price (minor units)" type="number" min="0" value={values.priceCents} disabled={values.accessLevel === 'free'} onChange={event => setValues(value => ({ ...value, priceCents: Number(event.target.value) || 0 }))} />
+          </div>}
 
           {trainers && (
             <div className="flex flex-col gap-1.5">

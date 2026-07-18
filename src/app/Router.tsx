@@ -36,6 +36,7 @@ const TrainerStudents    = lazy(() => import('@/pages/trainer/TrainerStudentsPag
 const TrainerSessions    = lazy(() => import('@/pages/trainer/TrainerSessionsPage'))
 const TrainerAssignments = lazy(() => import('@/pages/trainer/TrainerAssignmentsPage'))
 const TrainerProfile     = lazy(() => import('@/pages/trainer/TrainerProfilePage'))
+const TrainerBoards      = lazy(() => import('@/pages/trainer/TrainerBoardsPage'))
 // Admin pages
 const AdminOverview      = lazy(() => import('@/pages/admin/AdminOverviewPage'))
 const AdminUsers         = lazy(() => import('@/pages/admin/AdminUsersPage'))
@@ -129,6 +130,7 @@ export function AppRouter() {
             <Route path="/trainer/students"    element={<TrainerStudents />} />
             <Route path="/trainer/sessions"    element={<TrainerSessions />} />
             <Route path="/trainer/assignments" element={<TrainerAssignments />} />
+            <Route path="/trainer/boards"      element={<TrainerBoards />} />
             <Route path="/trainer/profile"     element={<TrainerProfile />} />
           </Route>
         </Route>

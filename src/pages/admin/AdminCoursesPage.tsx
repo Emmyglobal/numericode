@@ -21,6 +21,7 @@ export default function AdminCoursesPage() {
   const queryClient = useQueryClient()
   const [modalOpen, setModalOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  const [accessDrafts, setAccessDrafts] = useState<Record<string, { accessLevel: 'free' | 'premium'; priceCents: number; premiumEnabled: boolean }>>({})
 
   const { data: courses, isLoading } = useQuery({
     queryKey: ['admin', 'courses'],
@@ -58,6 +59,10 @@ export default function AdminCoursesPage() {
       )
     },
   })
+  const accessMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: { accessLevel: 'free' | 'premium'; priceCents: number; premiumEnabled: boolean } }) => api.patch(`/admin/courses/${id}/access`, payload),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'courses'] }); setSuccessMessage('Course access and premium pricing updated.') },
+  })
   const reviewRequestMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: 'approved' | 'rejected' }) => api.patch(`/admin/course-requests/${id}`, { status }),
     onSuccess: () => {
@@ -87,7 +92,7 @@ export default function AdminCoursesPage() {
       : <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <table className="w-full" aria-label="Course list">
             <thead className="bg-gray-50 dark:bg-gray-800">
-              <tr>{['Course','Instructor','Subject','Level','Status','Students','Created','Actions'].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide first:rounded-tl-xl last:rounded-tr-xl">{h}</th>)}</tr>
+              <tr>{['Course','Instructor','Subject','Level','Access','Status','Students','Created','Actions'].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide first:rounded-tl-xl last:rounded-tr-xl">{h}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {courses.map(c=>(
@@ -96,6 +101,7 @@ export default function AdminCoursesPage() {
                   <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{c.instructor}</td>
                   <td className="px-4 py-3"><Badge variant={c.subject}>{c.subject}</Badge></td>
                   <td className="px-4 py-3"><Badge variant={c.level}>{c.level}</Badge></td>
+                  <td className="px-4 py-3"><div className="flex flex-col gap-1"><select aria-label={`Access level for ${c.title}`} value={(accessDrafts[c.id] ?? c).accessLevel} onChange={event => setAccessDrafts(drafts => ({ ...drafts, [c.id]: { ...(drafts[c.id] ?? c), accessLevel: event.target.value as 'free' | 'premium' } }))} className="rounded border border-gray-200 bg-white px-1 py-1 text-xs dark:border-gray-700 dark:bg-gray-800"><option value="free">Free</option><option value="premium">Premium</option></select>{(accessDrafts[c.id] ?? c).accessLevel === 'premium' && <input aria-label={`Price for ${c.title}`} type="number" min="0" value={(accessDrafts[c.id] ?? c).priceCents} onChange={event => setAccessDrafts(drafts => ({ ...drafts, [c.id]: { ...(drafts[c.id] ?? c), priceCents: Number(event.target.value) || 0 } }))} className="w-20 rounded border border-gray-200 bg-white px-1 py-1 text-xs dark:border-gray-700 dark:bg-gray-800" />}</div></td>
                   <td className="px-4 py-3"><Badge variant={c.status==='published'?'submitted':c.status==='draft'?'pending':'past'}>{c.status}</Badge></td>
                   <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{c.enrolledCount}</td>
                   <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">{formatDate(c.createdAt)}</td>
@@ -116,6 +122,7 @@ export default function AdminCoursesPage() {
                           Archive
                         </Button>
                       )}
+                      <Button variant="secondary" size="sm" loading={accessMutation.isPending} onClick={() => accessMutation.mutate({ id: c.id, payload: accessDrafts[c.id] ?? { accessLevel: c.accessLevel, priceCents: c.priceCents, premiumEnabled: c.premiumEnabled } })}>Save Access</Button>
                     </div>
                   </td>
                 </tr>

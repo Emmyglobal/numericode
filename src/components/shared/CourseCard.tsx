@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { Link } from 'react-router-dom'
-import { BookOpen, Users } from 'lucide-react'
+import { BookOpen, Crown, Users } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { ProgressBar } from '@/components/ui/ProgressBar'
@@ -18,6 +18,9 @@ function CourseCard_Base({ course, linkBase = '/courses' }: { course: Course | E
         <div className="absolute top-3 left-3 flex gap-2">
           <Badge variant={course.subject}>{course.subject === 'mathematics' ? 'Mathematics' : 'Programming'}</Badge>
           <Badge variant={course.level}>{course.level}</Badge>
+          <span className={course.accessLevel === 'premium' ? 'inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-xs font-semibold text-amber-950' : 'rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-gray-700'}>
+            {course.accessLevel === 'premium' && <Crown className="h-3 w-3" aria-hidden="true" />}{course.accessLevel === 'premium' ? 'Premium' : 'Free'}
+          </span>
         </div>
       </div>
       <div className="flex flex-col flex-1 p-4 gap-3">

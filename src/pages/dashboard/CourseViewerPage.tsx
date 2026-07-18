@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { formatDuration } from '@/utils/formatDuration'
 import { cn } from '@/utils/classNames'
+import { LearningBoard } from '@/components/shared/LearningBoard'
 import type { EnrolledCourse, Lesson } from '@/features/courses/types'
 
 export default function CourseViewerPage() {
@@ -146,6 +147,8 @@ export default function CourseViewerPage() {
               next live class session.
             </p>
           </div>
+
+          {activeLesson && <LearningBoard lessonId={activeLesson.id} />}
 
           {/* Resources */}
           {(activeLesson?.resources?.length ?? 0) > 0 && (

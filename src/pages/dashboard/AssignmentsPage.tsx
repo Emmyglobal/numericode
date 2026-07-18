@@ -1,5 +1,5 @@
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { ClipboardList } from 'lucide-react'
 import { dashboardService } from '@/services/dashboard.service'
@@ -19,11 +19,16 @@ const borderColor: Record<string, string> = {
   pending:   'border-l-orange-500',
   overdue:   'border-l-red-600',
   submitted: 'border-l-green-600',
+  under_review: 'border-l-blue-500',
+  passed: 'border-l-green-600',
+  failed: 'border-l-red-600',
 }
 
 export default function AssignmentsPage() {
   usePageTitle('Assignments')
   const [tab, setTab] = useState<Tab>('pending')
+  const [submissionContent, setSubmissionContent] = useState<Record<string, string>>({})
+  const queryClient = useQueryClient()
 
   const { data: assignments, isLoading } = useQuery({
     queryKey: ['assignments'],
@@ -31,8 +36,10 @@ export default function AssignmentsPage() {
   })
 
   const filtered = assignments?.filter(a =>
-    tab === 'pending' ? a.status !== 'submitted' : a.status === 'submitted'
+    tab === 'pending' ? !['submitted', 'passed', 'failed', 'graded'].includes(a.status) : ['submitted', 'passed', 'failed', 'graded'].includes(a.status)
   ) ?? []
+  const gradeBook = useQuery({ queryKey: ['gradebook'], queryFn: () => dashboardService.getGradeBook() as Promise<Array<{ courseId: string; courseTitle: string; assignmentScore: number; attendanceScore: number; finalPercentage: number; letterGrade: string; completed: boolean }>> })
+  const submitMutation = useMutation({ mutationFn: ({ id, content }: { id: string; content: string }) => dashboardService.submitAssignment(id, content), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['assignments'] }) })
 
   return (
     <div>
@@ -92,19 +99,16 @@ export default function AssignmentsPage() {
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <Badge variant={a.status}>{a.status}</Badge>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    aria-label={`View ${a.title}`}
-                  >
-                    View
-                  </Button>
+                  {a.score !== null && <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">{a.score}/{a.totalMarks}</span>}
+                  {a.status !== 'passed' && a.status !== 'failed' && <Button variant="secondary" size="sm" onClick={() => submitMutation.mutate({ id: a.id, content: submissionContent[a.id] ?? '' })} loading={submitMutation.isPending} aria-label={`Submit ${a.title}`}>Submit</Button>}
                 </div>
+                <div className="w-full"><label className="sr-only" htmlFor={`submission-${a.id}`}>Submission notes for {a.title}</label><textarea id={`submission-${a.id}`} value={submissionContent[a.id] ?? ''} onChange={event => setSubmissionContent(contents => ({ ...contents, [a.id]: event.target.value }))} placeholder="Add your response or submission link" className="mt-2 w-full rounded border border-gray-200 bg-white p-2 text-sm dark:border-gray-700 dark:bg-gray-800" />{a.feedback && <p className="mt-2 text-sm text-gray-600 dark:text-gray-300"><strong>Trainer feedback:</strong> {a.feedback}</p>}</div>
               </li>
             ))}
           </ul>
         )}
       </div>
+      <section className="mt-8" aria-labelledby="gradebook-title"><h2 id="gradebook-title" className="mb-3 text-lg font-bold text-gray-900 dark:text-white">Grade Book</h2><div className="grid gap-3 sm:grid-cols-2">{gradeBook.data?.map(grade => <div key={grade.courseId} className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-surface-dark"><p className="font-medium text-gray-900 dark:text-white">{grade.courseTitle}</p><p className="mt-2 text-sm text-gray-600 dark:text-gray-300">Final: <strong>{grade.finalPercentage}% ({grade.letterGrade})</strong> · Assignments: {grade.assignmentScore}% · Attendance: {grade.attendanceScore}%</p><p className="mt-1 text-xs text-gray-500">{grade.completed ? 'Certificate eligible' : 'Complete the course requirements to unlock your certificate.'}</p></div>)}</div></section>
     </div>
   )
 }

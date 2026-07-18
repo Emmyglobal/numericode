@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ClipboardList } from 'lucide-react'
+import { useState } from 'react'
 import { api } from '@/lib/axios'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -10,34 +11,16 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { formatDate } from '@/utils/formatDate'
 import type { TrainerAssignment } from '@/features/trainer/types'
 
+type Submission = { id: string; studentName: string; studentEmail: string; status: string; submittedAt?: string; content: string | null; score: number | null; feedback: string | null; totalMarks: number; passingScore: number }
 export default function TrainerAssignmentsPage() {
   usePageTitle('Assignments — Trainer')
-  const { data: assignments, isLoading } = useQuery({
-    queryKey: ['trainer','assignments'],
-    queryFn: async () => { const r = await api.get<{data:TrainerAssignment[]}>('/trainer/assignments'); return r.data.data }
-  })
-  return (
-    <div>
-      <PageHeader title="Assignments" subtitle="Review student submissions across all your courses"/>
-      {isLoading ? <div className="space-y-3">{[...Array(3)].map((_,i)=><Skeleton key={i} className="h-20"/>)}</div>
-      : !assignments?.length ? <EmptyState icon={<ClipboardList className="w-16 h-16"/>} title="No assignments yet" description="Create assignments in your courses to see them here."/>
-      : <div className="space-y-3">
-          {assignments.map(a=>(
-            <div key={a.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark p-5">
-              <div className="min-w-0">
-                <p className="text-xs text-teal font-medium mb-1">{a.courseTitle}</p>
-                <p className="font-medium text-gray-900 dark:text-white">{a.title}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Due <time dateTime={a.dueDate}>{formatDate(a.dueDate)}</time> · {a.totalSubmissions} submissions</p>
-              </div>
-              <div className="flex items-center gap-3 shrink-0">
-                {a.pendingReview > 0
-                  ? <Badge variant="pending">{a.pendingReview} to review</Badge>
-                  : <Badge variant="submitted">All reviewed</Badge>}
-                <Button variant="secondary" size="sm" aria-label={`Review ${a.title}`}>Review</Button>
-              </div>
-            </div>
-          ))}
-        </div>}
-    </div>
-  )
+  const queryClient = useQueryClient(); const [assignmentId, setAssignmentId] = useState<string | null>(null); const [grades, setGrades] = useState<Record<string, { score: string; feedback: string }>>({})
+  const { data: assignments, isLoading } = useQuery({ queryKey: ['trainer', 'assignments'], queryFn: async () => (await api.get<{ data: TrainerAssignment[] }>('/trainer/assignments')).data.data })
+  const { data: submissions, isLoading: submissionsLoading } = useQuery({ queryKey: ['trainer', 'submissions', assignmentId], queryFn: async () => (await api.get<{ data: Submission[] }>(`/trainer/assignments/${assignmentId}/submissions`)).data.data, enabled: Boolean(assignmentId) })
+  const gradeMutation = useMutation({ mutationFn: ({ id, payload }: { id: string; payload: object }) => api.patch(`/trainer/submissions/${id}`, payload), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['trainer', 'submissions', assignmentId] }); queryClient.invalidateQueries({ queryKey: ['trainer', 'assignments'] }) } })
+  const selected = assignments?.find(assignment => assignment.id === assignmentId)
+  return <div><PageHeader title="Assignments" subtitle="Review student submissions, provide feedback, and publish grades." />
+    {isLoading ? <div className="space-y-3">{[...Array(3)].map((_, index) => <Skeleton key={index} className="h-20" />)}</div> : !assignments?.length ? <EmptyState icon={<ClipboardList className="h-16 w-16" />} title="No assignments yet" description="Create assignments in your courses to see them here." /> : <div className="space-y-3">{assignments.map(assignment => <div key={assignment.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-surface-dark"><div><p className="mb-1 text-xs font-medium text-teal">{assignment.courseTitle}</p><p className="font-medium text-gray-900 dark:text-white">{assignment.title}</p><p className="mt-0.5 text-xs text-gray-500">Due {formatDate(assignment.dueDate)} · {assignment.totalSubmissions} submissions · {assignment.totalMarks} marks</p></div><div className="flex items-center gap-3">{assignment.pendingReview > 0 ? <Badge variant="pending">{assignment.pendingReview} to review</Badge> : <Badge variant="submitted">All reviewed</Badge>}<Button variant="secondary" size="sm" onClick={() => setAssignmentId(assignment.id)}>Review</Button></div></div>)}</div>}
+    {assignmentId && <section className="mt-8 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-surface-dark"><div className="mb-4 flex items-center justify-between"><div><h2 className="font-bold text-gray-900 dark:text-white">{selected?.title} submissions</h2><p className="text-xs text-gray-500">Passing score: {selected?.passingScore}/{selected?.totalMarks}</p></div><Button variant="ghost" size="sm" onClick={() => setAssignmentId(null)}>Close</Button></div>{submissionsLoading ? <Skeleton className="h-20" /> : !submissions?.length ? <p className="text-sm text-gray-500">No student submissions yet.</p> : <div className="space-y-4">{submissions.map(submission => { const grade = grades[submission.id] ?? { score: submission.score?.toString() ?? '', feedback: submission.feedback ?? '' }; return <div key={submission.id} className="rounded-lg border border-gray-200 p-4 dark:border-gray-700"><div className="flex flex-wrap justify-between gap-2"><div><p className="font-medium text-gray-900 dark:text-white">{submission.studentName}</p><p className="text-xs text-gray-500">{submission.studentEmail} · {submission.status}</p></div>{submission.submittedAt && <time className="text-xs text-gray-500">{formatDate(submission.submittedAt)}</time>}</div><p className="my-3 rounded bg-gray-50 p-2 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300">{submission.content || 'No written response supplied.'}</p><div className="grid gap-2 sm:grid-cols-[9rem_1fr_auto_auto]"><input aria-label={`Score for ${submission.studentName}`} type="number" min="0" max={submission.totalMarks} value={grade.score} onChange={event => setGrades(current => ({ ...current, [submission.id]: { ...grade, score: event.target.value } }))} placeholder={`Score / ${submission.totalMarks}`} className="rounded border border-gray-200 bg-white px-2 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" /><input aria-label={`Feedback for ${submission.studentName}`} value={grade.feedback} onChange={event => setGrades(current => ({ ...current, [submission.id]: { ...grade, feedback: event.target.value } }))} placeholder="Feedback" className="rounded border border-gray-200 bg-white px-2 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" /><Button size="sm" variant="secondary" loading={gradeMutation.isPending} onClick={() => gradeMutation.mutate({ id: submission.id, payload: { score: Number(grade.score), feedback: grade.feedback, publish: false } })}>Save review</Button><Button size="sm" loading={gradeMutation.isPending} onClick={() => gradeMutation.mutate({ id: submission.id, payload: { score: Number(grade.score), feedback: grade.feedback, publish: true } })}>Publish</Button></div><Button className="mt-2" size="sm" variant="ghost" onClick={() => gradeMutation.mutate({ id: submission.id, payload: { score: Number(grade.score), feedback: grade.feedback, returnForCorrection: true } })}>Return for correction</Button></div> })}</div>}</section>}
+  </div>
 }

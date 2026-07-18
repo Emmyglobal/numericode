@@ -1,8 +1,9 @@
 import { useParams, Link } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { ChevronDown, ChevronRight, BookOpen, Video, Clock, CheckCircle, ExternalLink, Download } from 'lucide-react'
+import { ChevronDown, ChevronRight, BookOpen, Video, Clock, CheckCircle, ExternalLink, Crown } from 'lucide-react'
 import { useState, useId } from 'react'
 import { coursesService } from '@/services/courses.service'
+import { dashboardService } from '@/services/dashboard.service'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
@@ -65,6 +66,10 @@ export default function CourseDetailPage() {
     enabled:  !!id,
   })
   const requestMutation = useMutation({ mutationFn: () => coursesService.requestCourse(id!) })
+  const { data: subscription } = useQuery({
+    queryKey: ['subscription'], queryFn: () => dashboardService.getSubscription(), enabled: isAuthenticated && user?.role === 'student',
+  })
+  const checkoutMutation = useMutation({ mutationFn: () => dashboardService.createCheckoutIntent('paystack') })
 
   if (isLoading) return (
     <SectionWrapper>
@@ -92,6 +97,7 @@ export default function CourseDetailPage() {
           <div className="flex gap-2 mb-3">
             <Badge variant={course.subject as Subject}>{course.subject}</Badge>
             <Badge variant={course.level as Level}>{course.level}</Badge>
+            <span className={course.accessLevel === 'premium' ? 'inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-xs font-semibold text-amber-950' : 'rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-gray-700'}>{course.accessLevel === 'premium' && <Crown className="h-3 w-3" aria-hidden="true" />}{course.accessLevel === 'premium' ? 'Premium' : 'Free'}</span>
           </div>
           <h1 className="text-3xl lg:text-4xl font-bold mb-3">{course.title}</h1>
           <p className="text-blue-200 max-w-2xl">{course.description}</p>
@@ -160,11 +166,7 @@ export default function CourseDetailPage() {
                         <p className="font-medium text-gray-900 dark:text-white text-sm">{lc.title}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{formatDateTime(lc.date)} · {formatDuration(lc.duration)}</p>
                       </div>
-                      <a href={lc.meetUrl} target="_blank" rel="noreferrer" aria-label={`Join live class: ${lc.title} (opens in new tab)`}>
-                        <Button variant="secondary" size="sm">
-                          <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />Join
-                        </Button>
-                      </a>
+                      {lc.meetUrl ? <a href={lc.meetUrl} target="_blank" rel="noreferrer" aria-label={`Join live class: ${lc.title} (opens in new tab)`}><Button variant="secondary" size="sm"><ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />Join</Button></a> : <span className="text-xs text-gray-500">Available after enrolment</span>}
                     </li>
                   ))}
                 </ul>
@@ -179,12 +181,14 @@ export default function CourseDetailPage() {
                 <span className="text-7xl text-white/20 font-bold">{course.subject === 'mathematics' ? '∑' : '</>'}</span>
               </div>
               <div className="p-5 space-y-4">
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">Free</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">{course.accessLevel === 'premium' ? `${course.currency ?? 'NGN'} ${((course.priceCents ?? 0) / 100).toLocaleString()}` : 'Free'}</p>
                 {!isAuthenticated ? <Link to="/register"><Button size="lg" className="w-full">Get Started <ChevronRight className="w-5 h-5" aria-hidden="true" /></Button></Link>
-                : user?.role === 'student' ? <Button size="lg" loading={requestMutation.isPending} onClick={() => requestMutation.mutate()} className="w-full">{requestMutation.isSuccess ? 'Request Sent' : 'Request Enrolment'} <ChevronRight className="w-5 h-5" aria-hidden="true" /></Button>
+                : user?.role === 'student' && course.accessLevel === 'premium' && !subscription?.isActive ? <Button size="lg" loading={checkoutMutation.isPending} onClick={() => checkoutMutation.mutate()} className="w-full">Upgrade to Premium <Crown className="w-5 h-5" aria-hidden="true" /></Button>
+                : user?.role === 'student' ? <Button size="lg" loading={requestMutation.isPending} onClick={() => requestMutation.mutate()} className="w-full">{requestMutation.isSuccess ? 'Enrolled' : 'Start Learning'} <ChevronRight className="w-5 h-5" aria-hidden="true" /></Button>
                 : <p className="text-sm text-gray-500 dark:text-gray-400">Student accounts can request enrolment.</p>}
                 {requestMutation.isError && <p role="alert" className="text-xs text-red-600 dark:text-red-400">{(requestMutation.error as Error).message}</p>}
-                {requestMutation.isSuccess && <p className="text-xs text-green-700 dark:text-green-400">Your request was sent to the admin for approval.</p>}
+                {requestMutation.isSuccess && <p className="text-xs text-green-700 dark:text-green-400">You are enrolled and can start learning now.</p>}
+                {checkoutMutation.isSuccess && <p className="text-xs text-green-700 dark:text-green-400">Your payment checkout is ready. Premium access activates after provider confirmation.</p>}
                 <dl className="space-y-2 pt-2 text-sm">
                   {([['Lessons', course.lessonCount], ['Live Sessions', course.liveClasses.length], ['Level', course.level], ['Subject', course.subject]] as [string, string|number][]).map(([k, v]) => (
                     <div key={k} className="flex justify-between text-gray-600 dark:text-gray-400">

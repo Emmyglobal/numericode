@@ -16,6 +16,10 @@ export interface AdminCourse {
   instructor: string
   status: 'published' | 'draft' | 'archived'
   enrolledCount: number
+  accessLevel: 'free' | 'premium'
+  priceCents: number
+  currency: string
+  premiumEnabled: boolean
   createdAt: string
 }
 
