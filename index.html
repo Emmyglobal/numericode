@@ -7,23 +7,48 @@
 
     <!-- Primary SEO -->
     <title>NumeriCode — Mathematics &amp; Code, Taught Live</title>
-    <meta name="description" content="Learn Mathematics and Programming through live instructor-led classes. Free online courses for students of all levels." />
-    <meta name="keywords"    content="mathematics, programming, online school, live classes, coding, EdTech, Nigeria" />
-    <meta name="author"      content="Nwafor Ugochukwu Emmanuel" />
+    <meta
+      name="description"
+      content="Learn Mathematics and Programming through live instructor-led classes. Free online courses for students of all levels."
+    />
+    <meta
+      name="keywords"
+      content="mathematics, programming, online school, live classes, coding, EdTech, Nigeria"
+    />
+    <meta name="author" content="Nwafor Ugochukwu Emmanuel" />
     <meta name="theme-color" content="#1E3A5F" />
-    <meta name="robots"      content="index, follow" />
+    <meta name="robots" content="index, follow" />
 
     <!-- Open Graph / Social -->
-    <meta property="og:type"        content="website" />
-    <meta property="og:title"       content="NumeriCode — Mathematics &amp; Code, Taught Live" />
-    <meta property="og:description" content="Free live online classes in Mathematics and Programming. Join 500+ students learning with expert instructors." />
-    <meta property="og:site_name"   content="NumeriCode" />
-    <meta property="og:locale"      content="en_NG" />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="NumeriCode — Mathematics &amp; Code, Taught Live"
+    />
+    <meta
+      property="og:description"
+      content="Free live online classes in Mathematics and Programming. Join 500+ students learning with expert instructors."
+    />
+    <meta property="og:site_name" content="NumeriCode" />
+    <meta property="og:locale" content="en_NG" />
 
     <!-- Twitter / X Card -->
-    <meta name="twitter:card"        content="summary_large_image" />
-    <meta name="twitter:title"       content="NumeriCode — Mathematics &amp; Code, Taught Live" />
-    <meta name="twitter:description" content="Free live online classes in Mathematics and Programming." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="NumeriCode — Mathematics &amp; Code, Taught Live"
+    />
+    <meta
+      name="twitter:description"
+      content="Free live online classes in Mathematics and Programming."
+    />
+
+    <!-- Google AdSense -->
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8061135224509487"
+      crossorigin="anonymous"
+    ></script>
 
     <!-- Performance: preconnect to Google Fonts CDN -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -43,16 +68,17 @@
       />
     </noscript>
 
-    <!-- Dark mode flash prevention — must execute before body renders -->
+    <!-- Dark mode flash prevention -->
     <script>
       try {
-        var s = localStorage.getItem('numericode-ui')
+        var s = localStorage.getItem('numericode-ui');
         if (s && JSON.parse(s).state && JSON.parse(s).state.theme === 'dark') {
-          document.documentElement.classList.add('dark')
+          document.documentElement.classList.add('dark');
         }
       } catch (e) {}
     </script>
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
