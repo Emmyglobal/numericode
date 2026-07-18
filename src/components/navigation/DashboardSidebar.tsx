@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, BookOpen, Video, ClipboardList,
-  FolderOpen, Bell, UserCircle, LogOut, GraduationCap, X
+  FolderOpen, Bell, UserCircle, LogOut, GraduationCap, X, Award
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUIStore } from '@/store/uiStore'
@@ -15,6 +15,7 @@ const navItems = [
   { to: '/dashboard/assignments',   icon: ClipboardList,   label: 'Assignments'   },
   { to: '/dashboard/resources',     icon: FolderOpen,      label: 'Resources'     },
   { to: '/dashboard/announcements', icon: Bell,            label: 'Announcements' },
+  { to: '/dashboard/certificates',  icon: Award,           label: 'Certificates'  },
   { to: '/dashboard/profile',       icon: UserCircle,      label: 'Profile'       },
 ]
 

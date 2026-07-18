@@ -29,6 +29,7 @@ const AssignmentsPage   = lazy(() => import('@/pages/dashboard/AssignmentsPage')
 const ResourcesPage     = lazy(() => import('@/pages/dashboard/ResourcesPage'))
 const AnnouncementsPage = lazy(() => import('@/pages/dashboard/AnnouncementsPage'))
 const ProfilePage       = lazy(() => import('@/pages/dashboard/ProfilePage'))
+const CertificatesPage  = lazy(() => import('@/pages/dashboard/CertificatesPage'))
 // Trainer pages
 const TrainerOverview    = lazy(() => import('@/pages/trainer/TrainerOverviewPage'))
 const TrainerCourses     = lazy(() => import('@/pages/trainer/TrainerCoursesPage'))
@@ -119,6 +120,7 @@ export function AppRouter() {
             <Route path="/dashboard/resources"     element={<ResourcesPage />} />
             <Route path="/dashboard/announcements" element={<AnnouncementsPage />} />
             <Route path="/dashboard/profile"       element={<ProfilePage />} />
+            <Route path="/dashboard/certificates"  element={<CertificatesPage />} />
           </Route>
         </Route>
 

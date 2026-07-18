@@ -11,6 +11,7 @@ const titles: Record<string, string> = {
   '/dashboard/assignments':       'Assignments',
   '/dashboard/resources':         'Resources',
   '/dashboard/announcements':     'Announcements',
+  '/dashboard/certificates':      'Certificates',
   '/dashboard/profile':           'Profile',
 }
 

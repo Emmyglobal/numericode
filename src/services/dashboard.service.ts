@@ -16,4 +16,7 @@ export const dashboardService = {
   saveBoard: async (lessonId: string, boardData: unknown) => { const { data } = await api.put<ApiResponse<unknown>>(`/boards/lessons/${lessonId}`, { boardData }); return data.data },
   submitAssignment: async (assignmentId: string, content: string) => { const { data } = await api.post<ApiResponse<unknown>>(`/assignments/${assignmentId}/submission`, { content }); return data.data },
   getGradeBook: async () => { const { data } = await api.get<ApiResponse<unknown[]>>('/gradebook'); return data.data },
+  getCertificates: async () => { const { data } = await api.get<ApiResponse<unknown[]>>('/certificates/me'); return data.data },
+  generateCertificate: async (courseId: string) => { const { data } = await api.post<ApiResponse<unknown>>(`/certificates/courses/${courseId}/generate`); return data.data },
+  verifyCertificate: async (code: string) => { const { data } = await api.get<ApiResponse<unknown>>(`/certificates/verify/${code}`); return data.data },
 }
