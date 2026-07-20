@@ -2,8 +2,7 @@
 
 > **Where Mathematics Meets Code**
 >
-> A production-quality EdTech SaaS platform with three role-based portals — Student Dashboard, Trainer Portal, and Admin Panel — built across a full 9-phase software development lifecycle.
-
+> A production-quality  EdTech SaaS platform with three role-based portals — Student Dashboard, Trainer Portal, and Admin Panel — built across a full 9-phase software development lifecycle done.
 ---
 
 ## Quick Start
