@@ -20,6 +20,7 @@ const FaqPage           = lazy(() => import('@/pages/public/FaqPage'))
 const LoginPage         = lazy(() => import('@/pages/auth/LoginPage'))
 const RegisterPage      = lazy(() => import('@/pages/auth/RegisterPage'))
 const ForgotPage        = lazy(() => import('@/pages/auth/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('@/pages/auth/ResetPasswordPage'))
 // Student dashboard
 const DashboardPage     = lazy(() => import('@/pages/dashboard/DashboardPage'))
 const MyCoursesPage     = lazy(() => import('@/pages/dashboard/MyCoursesPage'))
@@ -108,6 +109,7 @@ export function AppRouter() {
             <Route path="/login"           element={<LoginPage />} />
             <Route path="/register"        element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPage />} />
+            <Route path="/reset-password"  element={<ResetPasswordPage />} />
           </Route>
         </Route>
 

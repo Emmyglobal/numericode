@@ -12,7 +12,15 @@ export const authService = {
     return data.data
   },
   forgotPassword: async (email: string) => {
-    const { data } = await api.post<ApiResponse<null>>('/auth/forgot-password', { email })
+    const { data } = await api.post<ApiResponse<{ message: string }>>('/auth/forgot-password', { email })
+    return data
+  },
+  resetPassword: async (p: { token: string; password: string }) => {
+    const { data } = await api.post<ApiResponse<{ message: string }>>('/auth/reset-password', p)
+    return data
+  },
+  changePassword: async (p: { currentPassword: string; newPassword: string }) => {
+    const { data } = await api.post<ApiResponse<{ message: string }>>('/auth/change-password', p)
     return data
   },
 }
