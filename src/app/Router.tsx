@@ -35,6 +35,8 @@ const TrainerOverview    = lazy(() => import('@/pages/trainer/TrainerOverviewPag
 const TrainerCourses     = lazy(() => import('@/pages/trainer/TrainerCoursesPage'))
 const TrainerStudents    = lazy(() => import('@/pages/trainer/TrainerStudentsPage'))
 const TrainerSessions    = lazy(() => import('@/pages/trainer/TrainerSessionsPage'))
+const TrainerNotes       = lazy(() => import('@/pages/trainer/TrainerNotesPage'))
+const TrainerResources   = lazy(() => import('@/pages/trainer/TrainerResourcesPage'))
 const TrainerAssignments = lazy(() => import('@/pages/trainer/TrainerAssignmentsPage'))
 const TrainerProfile     = lazy(() => import('@/pages/trainer/TrainerProfilePage'))
 const TrainerBoards      = lazy(() => import('@/pages/trainer/TrainerBoardsPage'))
@@ -131,6 +133,8 @@ export function AppRouter() {
             <Route path="/trainer/courses"     element={<TrainerCourses />} />
             <Route path="/trainer/students"    element={<TrainerStudents />} />
             <Route path="/trainer/sessions"    element={<TrainerSessions />} />
+            <Route path="/trainer/notes"       element={<TrainerNotes />} />
+            <Route path="/trainer/resources"   element={<TrainerResources />} />
             <Route path="/trainer/assignments" element={<TrainerAssignments />} />
             <Route path="/trainer/boards"      element={<TrainerBoards />} />
             <Route path="/trainer/profile"     element={<TrainerProfile />} />

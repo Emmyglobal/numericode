@@ -6,7 +6,9 @@ import { useScrollTop } from '@/hooks/useScrollTop'
 const titles: Record<string, string> = {
   '/trainer': 'Trainer Overview', '/trainer/courses': 'My Courses',
   '/trainer/students': 'Students', '/trainer/sessions': 'Live Sessions',
+  '/trainer/notes': 'Course Notes', '/trainer/resources': 'Resources',
   '/trainer/assignments': 'Assignments', '/trainer/profile': 'Profile',
+  '/trainer/boards': 'Lesson Boards',
 }
 
 export default function TrainerLayout() {
