@@ -5,6 +5,29 @@ export const coursesData: Course[] = [
     id: 'c1', subject: 'mathematics', level: 'beginner', lessonCount: 24,
     title: 'Foundation Mathematics', createdAt: '2024-01-10',
     description: 'Build a rock-solid foundation in arithmetic, fractions, algebra, and geometry. Perfect for students starting their maths journey.',
+    content: `# Foundation Mathematics
+
+Welcome to Foundation Mathematics! This course is designed to build a rock-solid foundation in arithmetic, fractions, algebra, and geometry.
+
+## What You'll Learn
+
+- **Numbers & Arithmetic**: Master the four basic operations, understand number systems, and build mental math skills
+- **Fractions & Decimals**: Learn to work with fractions, decimals, and percentages confidently
+- **Introduction to Algebra**: Discover variables, expressions, and how to solve simple equations
+
+## How to Use This Course
+
+1. Start with Module 1 and work through each lesson in order
+2. Complete the practice exercises after each lesson
+3. Bring your questions to the live Q&A sessions
+4. Use the Learning Board to work through problems step-by-step
+
+## Prerequisites
+
+- Basic knowledge of addition, subtraction, multiplication, and division
+- A willingness to learn and practice regularly
+
+Let's begin your mathematics journey!`,
     outcomes: ['Master arithmetic operations','Solve algebraic equations','Understand geometry basics','Work with fractions and decimals','Apply maths to real-world problems','Build problem-solving confidence'],
     instructor: { id: 'i1', name: 'Mr. Emmanuel Nwafor', bio: 'Mathematics educator with 10+ years teaching secondary and tertiary students across Nigeria. Passionate about making maths accessible to everyone.', credentials: ['B.Sc Mathematics – UNILAG', 'PGDE Education – UI', '10+ Years Teaching'] },
     modules: [
@@ -31,6 +54,31 @@ export const coursesData: Course[] = [
     id: 'c2', subject: 'programming', level: 'beginner', lessonCount: 30,
     title: 'JavaScript for Beginners', createdAt: '2024-02-01',
     description: 'Start your programming journey with JavaScript — the language of the web. Go from zero to building interactive web pages.',
+    content: `# JavaScript for Beginners
+
+Welcome to JavaScript for Beginners! This course will take you from zero programming experience to building interactive web pages.
+
+## What You'll Learn
+
+- **JavaScript Basics**: Variables, data types, operators, and expressions
+- **Control Flow**: If/else statements, loops, and logical thinking
+- **Functions**: Defining and using functions, arrow functions, and scope
+- **DOM Manipulation**: Interact with web pages dynamically
+
+## How to Use This Course
+
+1. Follow the lessons in order - each builds on the previous one
+2. Code along with the examples - programming is learned by doing
+3. Complete the assignments to reinforce your learning
+4. Join live sessions for Q&A and code reviews
+
+## Prerequisites
+
+- Basic computer skills
+- A web browser (Chrome, Firefox, or Edge recommended)
+- No prior programming experience needed!
+
+Let's start coding!`,
     outcomes: ['Understand variables and data types','Write functions and loops','Manipulate the DOM','Handle events and user input','Build simple web projects','Debug JavaScript code'],
     instructor: { id: 'i1', name: 'Mr. Emmanuel Nwafor', bio: 'Full-stack developer and educator. Has trained 200+ students in web development from scratch.', credentials: ['B.Sc Computer Science', 'Full-Stack Developer', '5+ Years Teaching'] },
     modules: [
@@ -56,6 +104,23 @@ export const coursesData: Course[] = [
     id: 'c3', subject: 'mathematics', level: 'intermediate', lessonCount: 28,
     title: 'Algebra & Equations', createdAt: '2024-03-05',
     description: 'Master algebraic thinking — from linear equations to quadratics, systems of equations, and real-world word problems.',
+    content: `# Algebra & Equations
+
+Welcome to Algebra & Equations! This course will help you master algebraic thinking and problem-solving.
+
+## What You'll Learn
+
+- **Linear Equations**: One-step, two-step, and multi-step equations
+- **Graphing**: Plotting linear functions and understanding slopes
+- **Quadratic Equations**: Factoring, the quadratic formula, and completing the square
+- **Systems of Equations**: Solving with substitution and elimination
+
+## Course Structure
+
+- Each module contains video lessons and practice problems
+- Work through examples step-by-step
+- Test your understanding with quizzes
+- Get help during live workshop sessions`,
     outcomes: ['Solve linear equations','Graph linear functions','Tackle quadratic equations','Work with inequalities','Solve systems of equations','Model real situations with algebra'],
     instructor: { id: 'i1', name: 'Mr. Emmanuel Nwafor', bio: 'Algebra specialist with a passion for showing students that algebra is everywhere in the real world.', credentials: ['M.Sc Applied Mathematics', 'Curriculum Designer'] },
     modules: [
@@ -77,6 +142,23 @@ export const coursesData: Course[] = [
     id: 'c4', subject: 'programming', level: 'intermediate', lessonCount: 35,
     title: 'Python Programming', createdAt: '2024-03-20',
     description: 'Learn Python — one of the world\'s most popular programming languages. Perfect for data, automation, and backend development.',
+    content: `# Python Programming
+
+Welcome to Python Programming! Python is one of the most versatile and beginner-friendly programming languages.
+
+## What You'll Learn
+
+- **Python Basics**: Syntax, data types, and control flow
+- **Data Structures**: Lists, dictionaries, tuples, and sets
+- **Functions & Classes**: Write reusable code with functions and OOP
+- **File I/O & APIs**: Read/write files and interact with web services
+
+## Getting Started
+
+1. Install Python 3.x on your computer
+2. Use VS Code or any text editor to write code
+3. Run your programs and see results immediately
+4. Build projects as you learn`,
     outcomes: ['Write clean Python code','Use lists, dicts and tuples','Build functions and classes','Read and write files','Work with APIs','Create basic automation scripts'],
     instructor: { id: 'i1', name: 'Mr. Emmanuel Nwafor', bio: 'Python enthusiast and backend developer. Teaches Python from scripting basics to object-oriented programming.', credentials: ['Python Certified Developer', 'Backend Engineer'] },
     modules: [
@@ -91,6 +173,22 @@ export const coursesData: Course[] = [
     id: 'c5', subject: 'mathematics', level: 'advanced', lessonCount: 32,
     title: 'Calculus Fundamentals', createdAt: '2024-04-01',
     description: 'An introduction to differential and integral calculus for senior secondary and early university students.',
+    content: `# Calculus Fundamentals
+
+Welcome to Calculus Fundamentals! This course introduces the two main branches of calculus: differentiation and integration.
+
+## What You'll Learn
+
+- **Limits & Continuity**: The foundation of calculus
+- **Differentiation**: Rates of change and derivatives
+- **Integration**: Areas under curves and antiderivatives
+- **Applications**: Real-world calculus problems
+
+## Prerequisites
+
+- Strong foundation in algebra
+- Understanding of functions and graphs
+- Familiarity with trigonometry is helpful but not required`,
     outcomes: ['Understand limits and continuity','Compute derivatives','Apply differentiation rules','Understand integration','Calculate areas under curves','Solve applied calculus problems'],
     instructor: { id: 'i1', name: 'Mr. Emmanuel Nwafor', bio: 'Calculus instructor with a passion for demystifying one of the most important branches of mathematics.', credentials: ['PhD Candidate – Mathematics', 'University Lecturer'] },
     modules: [
@@ -107,6 +205,23 @@ export const coursesData: Course[] = [
     id: 'c6', subject: 'programming', level: 'advanced', lessonCount: 40,
     title: 'React & TypeScript', createdAt: '2024-04-15',
     description: 'Build modern, type-safe web applications with React 18 and TypeScript. From components to state management and deployment.',
+    content: `# React & TypeScript
+
+Welcome to React & TypeScript! Build modern, type-safe web applications with the most popular frontend library.
+
+## What You'll Learn
+
+- **React Fundamentals**: Components, JSX, props, and state
+- **Hooks**: useState, useEffect, useContext, and custom hooks
+- **TypeScript**: Static typing, interfaces, generics with React
+- **State Management**: Context API, Zustand, and TanStack Query
+- **Deployment**: Build and deploy to Vercel
+
+## Prerequisites
+
+- Solid JavaScript knowledge
+- Basic understanding of HTML and CSS
+- Familiarity with npm/yarn is helpful`,
     outcomes: ['Build React components','Manage state with hooks','Use TypeScript with React','Connect to REST APIs','Manage global state','Deploy React applications'],
     instructor: { id: 'i1', name: 'Mr. Emmanuel Nwafor', bio: 'Senior frontend developer specialising in React ecosystems. Has shipped production apps used by thousands.', credentials: ['React Certified Developer', 'TypeScript Expert', 'Open Source Contributor'] },
     modules: [
