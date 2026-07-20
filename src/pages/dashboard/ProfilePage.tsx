@@ -121,7 +121,7 @@ export default function ProfilePage() {
       {/* Preferences */}
       <section aria-label="Preferences" className="space-y-4">
         <h2 className="font-semibold text-gray-900 dark:text-white text-base">Preferences</h2>
-        <div className="flex items-center justify-between py-2">
+        <div className="flex items-center justify-between py-3 px-4 rounded-xl bg-gray-50 dark:bg-gray-800/50">
           <div>
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300" id="dark-mode-label">Dark Mode</p>
             <p className="text-xs text-gray-500 dark:text-gray-400">Switch between light and dark theme</p>
@@ -132,10 +132,11 @@ export default function ProfilePage() {
             aria-checked={isDark}
             aria-labelledby="dark-mode-label"
             onClick={toggleTheme}
-            className={`w-11 h-6 rounded-full transition-colors relative focus-visible:shadow-focus ${isDark ? 'bg-brand-blue' : 'bg-gray-300'}`}
+            className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2"
+            style={{ backgroundColor: isDark ? '#2563eb' : '#d1d5db' }}
           >
             <span
-              className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${isDark ? 'translate-x-5' : 'translate-x-0.5'}`}
+              className={`inline-block h-5 w-5 rounded-full bg-white shadow-sm ring-0 transition-transform duration-200 ease-in-out ${isDark ? 'translate-x-[1.375rem]' : 'translate-x-[0.1875rem]'}`}
               aria-hidden="true"
             />
             <span className="sr-only">{isDark ? 'Disable' : 'Enable'} dark mode</span>

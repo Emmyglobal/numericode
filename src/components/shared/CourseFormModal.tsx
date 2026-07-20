@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input'
 export interface CourseFormValues {
   title: string
   description: string
+  content: string
   subject: 'mathematics' | 'programming'
   level: 'beginner' | 'intermediate' | 'advanced'
   outcomes: string[]
@@ -30,7 +31,7 @@ interface CourseFormModalProps {
 }
 
 const defaultValues: CourseFormValues = {
-  title: '', description: '', subject: 'mathematics', level: 'beginner', outcomes: [], instructorId: '', accessLevel: 'free', priceCents: 0, currency: 'NGN', premiumEnabled: true,
+  title: '', description: '', content: '', subject: 'mathematics', level: 'beginner', outcomes: [], instructorId: '', accessLevel: 'free', priceCents: 0, currency: 'NGN', premiumEnabled: true,
 }
 
 export function CourseFormModal({
@@ -72,7 +73,7 @@ export function CourseFormModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="course-modal-title"
-        className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white dark:bg-surface-dark rounded-2xl shadow-xl p-6"
+        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-surface-dark rounded-2xl shadow-xl p-6"
       >
         <div className="flex items-center justify-between mb-5">
           <h2 id="course-modal-title" className="text-lg font-bold text-gray-900 dark:text-white">{modalTitle}</h2>
@@ -93,15 +94,29 @@ export function CourseFormModal({
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="course-description" className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-              Description <span className="text-red-500" aria-hidden="true">*</span>
+              Short Description <span className="text-red-500" aria-hidden="true">*</span>
             </label>
             <textarea
               id="course-description" rows={3}
               value={values.description}
               onChange={e => setValues(v => ({ ...v, description: e.target.value }))}
+              placeholder="A brief summary shown on course cards"
               className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 py-2.5 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-brand-blue focus:shadow-focus resize-none"
             />
             {fieldErrors.description && <p role="alert" className="text-xs text-red-600 dark:text-red-400">{fieldErrors.description}</p>}
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="course-content" className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+              Course Content <span className="text-gray-400 font-normal">(full learning material shown to enrolled students)</span>
+            </label>
+            <textarea
+              id="course-content" rows={8}
+              value={values.content}
+              onChange={e => setValues(v => ({ ...v, content: e.target.value }))}
+              placeholder={`# Welcome to the Course\n\nWrite your full course content here. You can use Markdown formatting.\n\n## What you'll learn\n- Topic 1\n- Topic 2\n- Topic 3\n\n## Prerequisites\n- Basic understanding of...`}
+              className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:border-brand-blue focus:shadow-focus resize-none font-mono"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

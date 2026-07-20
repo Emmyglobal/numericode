@@ -135,6 +135,16 @@ export default function CourseViewerPage() {
             {activeLesson?.title}
           </h1>
 
+          {/* Course Content - shown when no specific lesson is active */}
+          {!activeLessonId && course.content && (
+            <section aria-label="Course content" className="mb-8">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Course Content</h2>
+              <div className="text-gray-700 dark:text-gray-300 space-y-4 leading-relaxed whitespace-pre-wrap">
+                {course.content}
+              </div>
+            </section>
+          )}
+
           {/* Lesson body */}
           <div className="text-gray-700 dark:text-gray-300 space-y-4 mb-8 leading-relaxed">
             <p>

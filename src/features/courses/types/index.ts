@@ -7,7 +7,7 @@ export interface Lesson     { id: string; title: string; duration: number; isCom
 export interface Module     { id: string; title: string; lessons: Lesson[] }
 export interface LiveClass  { id: string; title: string; date: string; duration: number; meetUrl: string; status: 'upcoming'|'live'|'past' }
 export interface Course {
-  id: string; title: string; description: string; subject: Subject; level: Level
+  id: string; title: string; description: string; content: string; subject: Subject; level: Level
   instructor: Instructor; modules: Module[]; lessonCount: number; liveClasses: LiveClass[]
   thumbnailUrl?: string; outcomes: string[]; createdAt: string
   accessLevel?: CourseAccessLevel; priceCents?: number; currency?: string; premiumEnabled?: boolean
