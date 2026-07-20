@@ -31,6 +31,13 @@ const ResourcesPage     = lazy(() => import('@/pages/dashboard/ResourcesPage'))
 const AnnouncementsPage = lazy(() => import('@/pages/dashboard/AnnouncementsPage'))
 const ProfilePage       = lazy(() => import('@/pages/dashboard/ProfilePage'))
 const CertificatesPage  = lazy(() => import('@/pages/dashboard/CertificatesPage'))
+const QuizzesPage       = lazy(() => import('@/pages/dashboard/QuizzesPage'))
+const ForumsPage        = lazy(() => import('@/pages/dashboard/ForumsPage'))
+const GradesPage        = lazy(() => import('@/pages/dashboard/GradesPage'))
+const NotificationsPage = lazy(() => import('@/pages/dashboard/NotificationsPage'))
+const AnalyticsPage    = lazy(() => import('@/pages/dashboard/AnalyticsPage'))
+const MessagesPage     = lazy(() => import('@/pages/dashboard/MessagesPage'))
+const BadgesPage       = lazy(() => import('@/pages/dashboard/BadgesPage'))
 // Trainer pages
 const TrainerOverview    = lazy(() => import('@/pages/trainer/TrainerOverviewPage'))
 const TrainerCourses     = lazy(() => import('@/pages/trainer/TrainerCoursesPage'))
@@ -41,6 +48,9 @@ const TrainerResources   = lazy(() => import('@/pages/trainer/TrainerResourcesPa
 const TrainerAssignments = lazy(() => import('@/pages/trainer/TrainerAssignmentsPage'))
 const TrainerProfile     = lazy(() => import('@/pages/trainer/TrainerProfilePage'))
 const TrainerBoards      = lazy(() => import('@/pages/trainer/TrainerBoardsPage'))
+const TrainerQuizzes     = lazy(() => import('@/pages/trainer/TrainerQuizzesPage'))
+const TrainerForums      = lazy(() => import('@/pages/trainer/TrainerForumsPage'))
+const TrainerGrading     = lazy(() => import('@/pages/trainer/TrainerGradingPage'))
 // Admin pages
 const AdminOverview      = lazy(() => import('@/pages/admin/AdminOverviewPage'))
 const AdminUsers         = lazy(() => import('@/pages/admin/AdminUsersPage'))
@@ -125,6 +135,13 @@ export function AppRouter() {
             <Route path="/dashboard/announcements" element={<AnnouncementsPage />} />
             <Route path="/dashboard/profile"       element={<ProfilePage />} />
             <Route path="/dashboard/certificates"  element={<CertificatesPage />} />
+            <Route path="/dashboard/quizzes"       element={<QuizzesPage />} />
+            <Route path="/dashboard/forums"        element={<ForumsPage />} />
+            <Route path="/dashboard/grades"        element={<GradesPage />} />
+            <Route path="/dashboard/notifications" element={<NotificationsPage />} />
+            <Route path="/dashboard/analytics"     element={<AnalyticsPage />} />
+            <Route path="/dashboard/messages"      element={<MessagesPage />} />
+            <Route path="/dashboard/badges"        element={<BadgesPage />} />
           </Route>
         </Route>
 
@@ -139,6 +156,9 @@ export function AppRouter() {
             <Route path="/trainer/resources"   element={<TrainerResources />} />
             <Route path="/trainer/assignments" element={<TrainerAssignments />} />
             <Route path="/trainer/boards"      element={<TrainerBoards />} />
+            <Route path="/trainer/quizzes"     element={<TrainerQuizzes />} />
+            <Route path="/trainer/forums"      element={<TrainerForums />} />
+            <Route path="/trainer/grading"     element={<TrainerGrading />} />
             <Route path="/trainer/profile"     element={<TrainerProfile />} />
           </Route>
         </Route>

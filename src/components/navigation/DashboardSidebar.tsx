@@ -1,7 +1,8 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, BookOpen, Video, ClipboardList,
-  FolderOpen, Bell, UserCircle, LogOut, GraduationCap, X, Award
+  FolderOpen, Bell, UserCircle, LogOut, GraduationCap, X, Award,
+  ClipboardCheck, MessageSquare, TrendingUp, Settings, BarChart3, Mail, Medal
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUIStore } from '@/store/uiStore'
@@ -9,14 +10,21 @@ import { Avatar } from '@/components/ui/Avatar'
 import { cn } from '@/utils/classNames'
 
 const navItems = [
-  { to: '/dashboard',               icon: LayoutDashboard, label: 'Overview'      },
-  { to: '/dashboard/courses',       icon: BookOpen,        label: 'My Courses'    },
-  { to: '/dashboard/live-classes',  icon: Video,           label: 'Live Classes'  },
-  { to: '/dashboard/assignments',   icon: ClipboardList,   label: 'Assignments'   },
-  { to: '/dashboard/resources',     icon: FolderOpen,      label: 'Resources'     },
-  { to: '/dashboard/announcements', icon: Bell,            label: 'Announcements' },
-  { to: '/dashboard/certificates',  icon: Award,           label: 'Certificates'  },
-  { to: '/dashboard/profile',       icon: UserCircle,      label: 'Profile'       },
+  { to: '/dashboard',               icon: LayoutDashboard,  label: 'Overview'        },
+  { to: '/dashboard/courses',       icon: BookOpen,         label: 'My Courses'      },
+  { to: '/dashboard/live-classes',  icon: Video,            label: 'Live Classes'    },
+  { to: '/dashboard/assignments',   icon: ClipboardList,    label: 'Assignments'     },
+  { to: '/dashboard/resources',     icon: FolderOpen,       label: 'Resources'       },
+  { to: '/dashboard/quizzes',       icon: ClipboardCheck,   label: 'Quizzes'         },
+  { to: '/dashboard/forums',        icon: MessageSquare,    label: 'Forums'          },
+  { to: '/dashboard/grades',        icon: TrendingUp,       label: 'Grades'          },
+  { to: '/dashboard/analytics',     icon: BarChart3,        label: 'Analytics'       },
+  { to: '/dashboard/messages',      icon: Mail,             label: 'Messages'        },
+  { to: '/dashboard/badges',        icon: Medal,            label: 'Badges'          },
+  { to: '/dashboard/announcements', icon: Bell,             label: 'Announcements'   },
+  { to: '/dashboard/certificates',  icon: Award,            label: 'Certificates'    },
+  { to: '/dashboard/notifications', icon: Settings,         label: 'Notifications'   },
+  { to: '/dashboard/profile',       icon: UserCircle,       label: 'Profile'         },
 ]
 
 export function DashboardSidebar() {
