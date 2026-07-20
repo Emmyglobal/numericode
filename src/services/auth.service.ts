@@ -4,8 +4,14 @@ import type { ApiResponse } from '@/types/api.types'
 
 export const authService = {
   login: async (p: LoginPayload) => {
-    const { data } = await api.post<ApiResponse<AuthResponse>>('/auth/login', p)
-    return data.data
+    const { data } = await api.post<ApiResponse<AuthResponse | PendingApprovalResponse>>('/auth/login', p)
+    
+    // Check if account is pending approval
+    if (data.data && 'pendingApproval' in data.data && data.data.pendingApproval) {
+      throw { pendingApproval: true, message: data.data.message }
+    }
+    
+    return data.data as AuthResponse
   },
   register: async (p: RegisterPayload) => {
     const { data } = await api.post<ApiResponse<AuthResponse | PendingApprovalResponse>>('/auth/register', p)

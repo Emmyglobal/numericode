@@ -21,6 +21,7 @@ const LoginPage         = lazy(() => import('@/pages/auth/LoginPage'))
 const RegisterPage      = lazy(() => import('@/pages/auth/RegisterPage'))
 const ForgotPage        = lazy(() => import('@/pages/auth/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('@/pages/auth/ResetPasswordPage'))
+const PendingApprovalPage = lazy(() => import('@/pages/auth/PendingApprovalPage'))
 // Student dashboard
 const DashboardPage     = lazy(() => import('@/pages/dashboard/DashboardPage'))
 const MyCoursesPage     = lazy(() => import('@/pages/dashboard/MyCoursesPage'))
@@ -120,6 +121,7 @@ export function AppRouter() {
             <Route path="/register"        element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPage />} />
             <Route path="/reset-password"  element={<ResetPasswordPage />} />
+            <Route path="/pending-approval" element={<PendingApprovalPage />} />
           </Route>
         </Route>
 

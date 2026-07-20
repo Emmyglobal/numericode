@@ -41,7 +41,13 @@ export default function LoginPage() {
       else if (res.user.role === 'admin') navigate('/admin')
       else navigate('/dashboard')
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Invalid email or password')
+      const err = e as { pendingApproval?: boolean; message?: string }
+      if (err.pendingApproval) {
+        // Redirect to pending approval page
+        navigate('/pending-approval')
+      } else {
+        setError(err.message || 'Invalid email or password')
+      }
     }
   }
 
