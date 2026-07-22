@@ -58,7 +58,7 @@ export default function TrainerCourseBuilderPage() {
   const { data: course, isLoading: courseLoading } = useQuery({
     queryKey: ['trainer', 'course-builder', courseId],
     queryFn: async () => {
-      const r = await api.get<{ data: CourseDetail }>(`/trainer/courses/${courseId}`)
+      const r = await api.get<{ data: CourseDetail }>(`/courses/${courseId}`)
       return r.data.data
     },
     enabled: !!courseId,

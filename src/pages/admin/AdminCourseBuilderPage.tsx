@@ -47,7 +47,7 @@ export default function AdminCourseBuilderPage() {
   const { data: course, isLoading: courseLoading } = useQuery({
     queryKey: ['admin', 'course-builder', courseId],
     queryFn: async () => {
-      const r = await api.get<{ data: CourseDetail }>(`/admin/courses/${courseId}`)
+      const r = await api.get<{ data: CourseDetail }>(`/courses/${courseId}`)
       return r.data.data
     },
     enabled: !!courseId,
