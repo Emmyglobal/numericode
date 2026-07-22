@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useMemo } from 'react'
-import { Search, Users, ShieldCheck } from 'lucide-react'
+import { Search, Users, ShieldCheck, ArrowLeftRight } from 'lucide-react'
 import { api } from '@/lib/axios'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -29,11 +29,19 @@ export default function AdminUsersPage() {
   const [search,  setSearch]  = useState('')
   const [roleFilter, setRole] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
+  const [reassignStudentId, setReassignStudentId] = useState<string | null>(null)
+  const [selectedTrainerId, setSelectedTrainerId] = useState('')
   const q = useDebounce(search)
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin', 'users'],
     queryFn: async () => { const r = await api.get<{ data: AdminUser[] }>('/admin/users'); return r.data.data },
+  })
+
+  const { data: trainers } = useQuery({
+    queryKey: ['admin', 'trainers'],
+    queryFn: async () => { const r = await api.get<{ data: { id: string; name: string; email: string }[] }>('/admin/trainers'); return r.data.data },
+    enabled: reassignStudentId !== null,
   })
 
   const updateUserMutation = useMutation({
@@ -45,6 +53,20 @@ export default function AdminUsersPage() {
       setSuccessMessage(
         variables.status === 'active' ? 'User approved/activated. They can now log in.' : 'User suspended.'
       )
+    },
+  })
+
+  const reassignMutation = useMutation({
+    mutationFn: ({ studentId, newTrainerId }: { studentId: string; newTrainerId: string }) =>
+      api.post('/admin/reassign-student', { studentId, newTrainerId }),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      setSuccessMessage(data.data.data?.message || 'Student reassigned successfully.')
+      setReassignStudentId(null)
+      setSelectedTrainerId('')
+    },
+    onError: () => {
+      setSuccessMessage('Failed to reassign student. Please try again.')
     },
   })
 
@@ -118,6 +140,19 @@ export default function AdminUsersPage() {
                               Reject
                             </Button>
                           </>
+                        ) : u.role === 'student' ? (
+                          <>
+                            <Button size="sm" variant="secondary" onClick={() => setReassignStudentId(reassignStudentId === u.id ? null : u.id)}>
+                              <ArrowLeftRight className="w-3.5 h-3.5 mr-1" /> Reassign
+                            </Button>
+                            <Button
+                              variant="danger" size="sm" loading={updateUserMutation.isPending}
+                              aria-label={`${u.status === 'active' ? 'Suspend' : 'Activate'} ${u.name}`}
+                              onClick={() => updateUserMutation.mutate({ id: u.id, status: u.status === 'active' ? 'suspended' : 'active' })}
+                            >
+                              {u.status === 'active' ? 'Suspend' : 'Activate'}
+                            </Button>
+                          </>
                         ) : u.role !== 'admin' && (
                           <Button
                             variant="danger" size="sm" loading={updateUserMutation.isPending}
@@ -128,6 +163,28 @@ export default function AdminUsersPage() {
                           </Button>
                         )}
                       </div>
+                      {reassignStudentId === u.id && trainers && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <select
+                            value={selectedTrainerId}
+                            onChange={e => setSelectedTrainerId(e.target.value)}
+                            className="h-8 rounded border border-gray-200 bg-white px-2 text-xs dark:border-gray-700 dark:bg-gray-800"
+                          >
+                            <option value="">Select a trainer…</option>
+                            {trainers.map(t => (
+                              <option key={t.id} value={t.id}>{t.name} ({t.email})</option>
+                            ))}
+                          </select>
+                          <Button
+                            size="sm"
+                            loading={reassignMutation.isPending}
+                            disabled={!selectedTrainerId}
+                            onClick={() => reassignMutation.mutate({ studentId: u.id, newTrainerId: selectedTrainerId })}
+                          >
+                            Confirm
+                          </Button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 )
