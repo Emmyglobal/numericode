@@ -16,18 +16,12 @@ const schema = z.object({
 })
 type FormData = z.infer<typeof schema>
 
-const demoAccounts = [
-  { label: 'Student',  email: 'kolade@gmail.com',         role: 'student', colour: 'bg-brand-light text-brand-blue dark:bg-blue-900/30 dark:text-blue-300' },
-  { label: 'Trainer',  email: 'trainer@numericode.com',   role: 'trainer', colour: 'bg-teal-light text-teal dark:bg-teal-900/30 dark:text-teal-300' },
-  { label: 'Admin',    email: 'emmanuel@numericode.com',  role: 'admin',   colour: 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300' },
-]
-
 export default function LoginPage() {
   usePageTitle('Log In')
   const navigate = useNavigate()
   const login    = useAuthStore(s => s.login)
   const [error,  setError]  = useState('')
-  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
 
@@ -49,11 +43,6 @@ export default function LoginPage() {
         setError(err.message || 'Invalid email or password')
       }
     }
-  }
-
-  const fillDemo = (email: string) => {
-    setValue('email', email)
-    setValue('password', 'password123')
   }
 
   return (
@@ -87,30 +76,6 @@ export default function LoginPage() {
           Log In
         </Button>
       </form>
-
-      {/* Demo accounts */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
-        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-          Demo Accounts — click to fill
-        </p>
-        <div className="flex flex-col gap-2">
-          {demoAccounts.map(a => (
-            <button
-              key={a.role}
-              type="button"
-              onClick={() => fillDemo(a.email)}
-              aria-label={`Fill demo ${a.label} credentials`}
-              className="flex items-center gap-3 w-full text-left rounded-lg p-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-            >
-              <span className={`text-xs font-bold rounded-full px-2 py-0.5 capitalize ${a.colour}`}>
-                {a.label}
-              </span>
-              <span className="text-xs text-gray-600 dark:text-gray-400 truncate">{a.email}</span>
-            </button>
-          ))}
-        </div>
-        <p className="text-xs text-gray-400 dark:text-gray-500">Password for all demo accounts: <code className="font-mono">password123</code></p>
-      </div>
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400">
         Don't have an account?{' '}
