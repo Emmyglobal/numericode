@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { forumsService, type ForumThread, type ForumCategory } from '@/services/forums.service'
+import { forumsService, type ForumThread } from '@/services/forums.service'
+import { api } from '@/lib/axios'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
 import { Plus, Edit, Trash2, MessageSquare, Pin, Lock, X } from 'lucide-react'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import type { TrainerCourse } from '@/features/trainer/types'
+
+interface CategoryItem { id: string; name: string }
 
 export default function TrainerForumsPage() {
   usePageTitle('Forums — Trainer')
@@ -20,22 +23,42 @@ export default function TrainerForumsPage() {
   const [successMessage, setSuccessMessage] = useState('')
   const queryClient = useQueryClient()
 
+  const { data: courses } = useQuery({
+    queryKey: ['trainer', 'courses'],
+    queryFn: async () => { const r = await api.get<{ data: TrainerCourse[] }>('/trainer/courses'); return r.data.data },
+  })
+
   const { data: threads, isLoading } = useQuery({
     queryKey: ['trainer-forum-threads'],
     queryFn: async () => {
-      const categories = await forumsService.listCategories()
       const allThreads: ForumThread[] = []
-      for (const cat of categories) {
-        const catThreads = await forumsService.listThreads(cat.id)
-        allThreads.push(...catThreads)
+      if (!courses) return allThreads
+      for (const course of courses) {
+        const categories = await forumsService.listByCourse(course.id)
+        for (const cat of categories) {
+          const catThreads = await forumsService.listThreads(cat.id)
+          allThreads.push(...catThreads)
+        }
       }
       return allThreads
     },
+    enabled: Boolean(courses),
   })
 
-  const { data: categories } = useQuery({
+  const { data: allCategories } = useQuery<CategoryItem[]>({
     queryKey: ['trainer-forum-categories'],
-    queryFn: () => forumsService.listCategories(),
+    queryFn: async () => {
+      if (!courses) return []
+      const cats: CategoryItem[] = []
+      for (const course of courses) {
+        const courseCats = await forumsService.listByCourse(course.id)
+        for (const cat of courseCats) {
+          cats.push({ id: cat.id, name: cat.name })
+        }
+      }
+      return cats
+    },
+    enabled: Boolean(courses),
   })
 
   const createMutation = useMutation({
@@ -82,7 +105,7 @@ export default function TrainerForumsPage() {
     setEditingThread(null)
     setTitle('')
     setBody('')
-    setCategoryId(categories?.[0]?.id ?? '')
+    setCategoryId(allCategories?.[0]?.id ?? '')
     setShowCreateModal(true)
   }
 
@@ -127,8 +150,8 @@ export default function TrainerForumsPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="font-medium text-gray-900 dark:text-white">{thread.title}</h3>
-                    {thread.isPinned && <Pin className="w-4 h-4 text-yellow-500" title="Pinned" />}
-                    {thread.isLocked && <Lock className="w-4 h-4 text-gray-500" title="Locked" />}
+                    {thread.isPinned && <Pin className="w-4 h-4 text-yellow-500" />}
+                    {thread.isLocked && <Lock className="w-4 h-4 text-gray-500" />}
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{thread.body}</p>
                   <div className="mt-2 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
@@ -150,7 +173,6 @@ export default function TrainerForumsPage() {
         </div>
       )}
 
-      {/* Create/Edit Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowCreateModal(false)}>
           <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
@@ -158,34 +180,34 @@ export default function TrainerForumsPage() {
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {editingThread ? 'Edit Thread' : 'New Thread'}
               </h2>
-              <button onClick={() => setShowCreateModal(false)} aria-label="Close modal">
+              <button onClick={() => setShowCreateModal(false)} aria-label="Close">
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               {!editingThread && (
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Category <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Category <span className="text-red-500">*</span></label>
                   <select
                     required
                     value={categoryId}
                     onChange={e => setCategoryId(e.target.value)}
-                    className="mt-1 h-11 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 text-sm text-gray-900 dark:text-gray-100"
+                    className="h-11 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 text-sm text-gray-900 dark:text-gray-100"
                   >
                     <option value="">Select a category…</option>
-                    {categories?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {allCategories?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
               )}
               <Input label="Title" required value={title} onChange={e => setTitle(e.target.value)} placeholder="Thread title" />
               <div>
-                <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Content <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Content <span className="text-red-500">*</span></label>
                 <textarea
                   required
                   value={body}
                   onChange={e => setBody(e.target.value)}
                   rows={5}
-                  className="mt-1 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 py-2 text-sm text-gray-900 dark:text-gray-100"
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 py-2 text-sm text-gray-900 dark:text-gray-100"
                   placeholder="Write your thread content…"
                 />
               </div>
