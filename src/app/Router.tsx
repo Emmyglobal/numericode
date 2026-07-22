@@ -59,6 +59,7 @@ const AdminUsers         = lazy(() => import('@/pages/admin/AdminUsersPage'))
 const AdminCourses       = lazy(() => import('@/pages/admin/AdminCoursesPage'))
 const AdminAnnouncements = lazy(() => import('@/pages/admin/AdminAnnouncementsPage'))
 const AdminAnalytics     = lazy(() => import('@/pages/admin/AdminAnalyticsPage'))
+const AdminResources     = lazy(() => import('@/pages/admin/AdminResourcesPage'))
 const AdminSettings      = lazy(() => import('@/pages/admin/AdminSettingsPage'))
 // System
 const NotFoundPage       = lazy(() => import('@/pages/system/NotFoundPage'))
@@ -175,6 +176,7 @@ export function AppRouter() {
             <Route path="/admin/courses"       element={<AdminCourses />} />
             <Route path="/admin/announcements" element={<AdminAnnouncements />} />
             <Route path="/admin/analytics"     element={<AdminAnalytics />} />
+            <Route path="/admin/resources"     element={<AdminResources />} />
             <Route path="/admin/settings"      element={<AdminSettings />} />
           </Route>
         </Route>

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { FileText, Video, Link as LinkIcon, PlusCircle, Trash2, X, Globe } from 'lucide-react'
+import { FileText, Video, Link as LinkIcon, PlusCircle, Trash2, X, Globe, Search } from 'lucide-react'
 import { api } from '@/lib/axios'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -10,6 +10,8 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useDebounce } from '@/hooks/useDebounce'
+import { cn } from '@/utils/classNames'
 
 interface ResourceItem {
   id: string
@@ -34,28 +36,31 @@ interface ResourceFormData {
 
 const emptyForm: ResourceFormData = { lessonId: '', title: '', type: 'pdf', url: '' }
 
-export default function TrainerResourcesPage() {
-  usePageTitle('Resources — Trainer')
+export default function AdminResourcesPage() {
+  usePageTitle('Resources — Admin')
   const queryClient = useQueryClient()
+  const [search, setSearch] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState<ResourceFormData>(emptyForm)
   const [successMessage, setSuccessMessage] = useState('')
+  const q = useDebounce(search)
 
-  // Fetch all resources via real API
   const { data: resources, isLoading } = useQuery({
-    queryKey: ['trainer', 'resources'],
-    queryFn: async () => { const r = await api.get<{ data: ResourceItem[] }>('/resources'); return r.data.data },
+    queryKey: ['admin', 'resources'],
+    queryFn: async () => { const r = await api.get<{ data: ResourceItem[] }>('/admin/resources'); return r.data.data },
   })
 
   const { data: lessons } = useQuery({
-    queryKey: ['trainer', 'lessons'],
-    queryFn: async () => (await api.get<{ data: { id: string; title: string; moduleTitle: string; courseTitle: string }[] }>('/trainer/lessons')).data.data,
+    queryKey: ['admin', 'lessons'],
+    queryFn: async () => (await api.get<{ data: { id: string; title: string; moduleTitle: string; courseTitle: string }[] }>('/admin/courses')).data.data.flatMap((c: { id: string; title: string; modules?: { id: string; title: string; lessons?: { id: string; title: string }[] }[] }) =>
+      c.modules?.flatMap(m => m.lessons?.map(l => ({ id: l.id, title: l.title, moduleTitle: m.title, courseTitle: c.title })) ?? []) ?? []
+    ),
   })
 
   const createMutation = useMutation({
-    mutationFn: (data: ResourceFormData) => api.post('/resources', data),
+    mutationFn: (data: ResourceFormData) => api.post('/admin/resources', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trainer', 'resources'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'resources'] })
       setModalOpen(false)
       setForm(emptyForm)
       setSuccessMessage('Resource added successfully.')
@@ -63,9 +68,9 @@ export default function TrainerResourcesPage() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/resources/${id}`),
+    mutationFn: (id: string) => api.delete(`/admin/resources/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trainer', 'resources'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'resources'] })
       setSuccessMessage('Resource deleted.')
     },
   })
@@ -79,9 +84,13 @@ export default function TrainerResourcesPage() {
     setForm(prev => ({ ...prev, [field]: value }))
   }
 
+  const filtered = (resources ?? []).filter(r =>
+    !q || r.title.toLowerCase().includes(q.toLowerCase()) || r.courseTitle.toLowerCase().includes(q.toLowerCase())
+  )
+
   return (
     <div>
-      <PageHeader title="Course Resources" subtitle="Upload PDFs, videos, and links as learning materials for your lessons"
+      <PageHeader title="Resources" subtitle="Manage all learning resources across courses"
         actions={<Button size="sm" onClick={() => { setForm(emptyForm); setModalOpen(true) }}><PlusCircle className="w-4 h-4" aria-hidden="true"/> Add Resource</Button>}/>
 
       {successMessage && (
@@ -90,15 +99,21 @@ export default function TrainerResourcesPage() {
         </div>
       )}
 
+      <div className="relative max-w-sm mb-6">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search resources…" aria-label="Search resources"
+          className="w-full h-10 pl-9 pr-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark text-sm focus:outline-none focus:border-brand-blue dark:text-white placeholder:text-gray-400" />
+      </div>
+
       {isLoading ? (
         <div className="space-y-3">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
-      ) : !resources?.length ? (
-        <EmptyState icon={<FileText className="w-16 h-16" />} title="No resources yet"
-          description="Add PDFs, videos, and links to help your students learn."
+      ) : !filtered.length ? (
+        <EmptyState icon={<FileText className="w-16 h-16" />} title="No resources found"
+          description="Add learning resources to help students."
           action={{ label: 'Add Resource', onClick: () => { setForm(emptyForm); setModalOpen(true) }}} />
       ) : (
         <div className="space-y-3">
-          {resources.map(r => {
+          {filtered.map(r => {
             const Icon = typeIcons[r.type]
             const colorCls = typeColors[r.type]
             return (
