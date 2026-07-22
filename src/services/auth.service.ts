@@ -29,4 +29,8 @@ export const authService = {
     const { data } = await api.post<ApiResponse<{ message: string }>>('/auth/change-password', p)
     return data
   },
+  activateAccount: async (p: { token: string }) => {
+    const { data } = await api.post<ApiResponse<{ message: string }>>('/auth/activate-account', p)
+    return data.data || data
+  },
 }
