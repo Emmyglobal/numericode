@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { BookOpen, PlusCircle } from 'lucide-react'
 import { api } from '@/lib/axios'
@@ -15,6 +16,7 @@ import type { TrainerCourse } from '@/features/trainer/types'
 
 export default function TrainerCoursesPage() {
   usePageTitle('My Courses — Trainer')
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [modalOpen, setModalOpen] = useState(false)
   const [editingCourse, setEditingCourse] = useState<TrainerCourse | null>(null)
@@ -27,10 +29,13 @@ export default function TrainerCoursesPage() {
 
   const createMutation = useMutation({
     mutationFn: (values: CourseFormValues) => api.post('/trainer/courses', values),
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['trainer', 'courses'] })
       setModalOpen(false)
-      setSuccessMessage('Course created as a draft. Publish it when you\'re ready for students to see it.')
+      setSuccessMessage('')
+      const { data } = await api.get<{ data: TrainerCourse[] }>('/trainer/courses')
+      const created = data.data[0]
+      if (created) navigate(`/trainer/courses/${created.id}/builder`)
     },
   })
 
@@ -63,6 +68,7 @@ export default function TrainerCoursesPage() {
   }
   const openEdit = (course: TrainerCourse) => { setEditingCourse(course); setModalOpen(true) }
   const openCreate = () => { setEditingCourse(null); setModalOpen(true) }
+  const openCourse = (course: TrainerCourse) => navigate(`/trainer/courses/${course.id}/builder`)
 
   return (
     <div>
@@ -101,8 +107,8 @@ export default function TrainerCoursesPage() {
                 <div><p className="text-gray-500 dark:text-gray-400 text-xs">Lessons</p><p className="font-semibold text-gray-900 dark:text-white">{c.lessonCount}</p></div>
               </div>
               <ProgressBar value={c.completionRate} label="Avg. Completion" className="mb-4" />
-              <div className="flex flex-wrap gap-2">
-                <Button variant="secondary" size="sm" onClick={() => openEdit(c)}>Edit</Button>
+                <div className="flex flex-wrap gap-2">
+                <Button size="sm" onClick={() => openCourse(c)}>Open Course</Button>
                 {c.status === 'draft' && (
                   <Button size="sm" loading={statusMutation.isPending} onClick={() => statusMutation.mutate({ id: c.id, status: 'published' })}>
                     Publish

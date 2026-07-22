@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { BookOpen, PlusCircle } from 'lucide-react'
 import { api } from '@/lib/axios'
@@ -18,6 +19,7 @@ interface CourseRequest { id: string; status: 'pending' | 'approved' | 'rejected
 
 export default function AdminCoursesPage() {
   usePageTitle('Course Management — Admin')
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [modalOpen, setModalOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
@@ -40,10 +42,13 @@ export default function AdminCoursesPage() {
 
   const createMutation = useMutation({
     mutationFn: (values: CourseFormValues) => api.post('/admin/courses', values),
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'courses'] })
       setModalOpen(false)
-      setSuccessMessage('Course created and assigned. It starts as a draft — the instructor can publish it, or you can publish it below.')
+      setSuccessMessage('')
+      const { data } = await api.get<{ data: AdminCourse[] }>('/admin/courses')
+      const created = data.data[0]
+      if (created) navigate(`/admin/courses/${created.id}/builder`)
     },
   })
 
@@ -107,6 +112,7 @@ export default function AdminCoursesPage() {
                   <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">{formatDate(c.createdAt)}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1.5">
+                      <Button variant="secondary" size="sm" onClick={() => navigate(`/admin/courses/${c.id}/builder`)}>Open Course</Button>
                       {c.status !== 'published' && (
                         <Button size="sm" loading={statusMutation.isPending} onClick={() => statusMutation.mutate({ id: c.id, status: 'published' })}>
                           Publish

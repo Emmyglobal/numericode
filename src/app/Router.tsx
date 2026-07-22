@@ -43,6 +43,7 @@ const BadgesPage       = lazy(() => import('@/pages/dashboard/BadgesPage'))
 // Trainer pages
 const TrainerOverview    = lazy(() => import('@/pages/trainer/TrainerOverviewPage'))
 const TrainerCourses     = lazy(() => import('@/pages/trainer/TrainerCoursesPage'))
+const TrainerCourseBuilder = lazy(() => import('@/pages/trainer/TrainerCourseBuilderPage'))
 const TrainerStudents    = lazy(() => import('@/pages/trainer/TrainerStudentsPage'))
 const TrainerSessions    = lazy(() => import('@/pages/trainer/TrainerSessionsPage'))
 const TrainerNotes       = lazy(() => import('@/pages/trainer/TrainerNotesPage'))
@@ -57,6 +58,7 @@ const TrainerGrading     = lazy(() => import('@/pages/trainer/TrainerGradingPage
 const AdminOverview      = lazy(() => import('@/pages/admin/AdminOverviewPage'))
 const AdminUsers         = lazy(() => import('@/pages/admin/AdminUsersPage'))
 const AdminCourses       = lazy(() => import('@/pages/admin/AdminCoursesPage'))
+const AdminCourseBuilder = lazy(() => import('@/pages/admin/AdminCourseBuilderPage'))
 const AdminAnnouncements = lazy(() => import('@/pages/admin/AdminAnnouncementsPage'))
 const AdminAnalytics     = lazy(() => import('@/pages/admin/AdminAnalyticsPage'))
 const AdminResources     = lazy(() => import('@/pages/admin/AdminResourcesPage'))
@@ -153,9 +155,10 @@ export function AppRouter() {
         {/* ── Trainer ── */}
         <Route element={<RoleGuard role="trainer" />}>
           <Route element={<TrainerLayout />}>
-            <Route path="/trainer"             element={<TrainerOverview />} />
-            <Route path="/trainer/courses"     element={<TrainerCourses />} />
-            <Route path="/trainer/students"    element={<TrainerStudents />} />
+            <Route path="/trainer"                          element={<TrainerOverview />} />
+            <Route path="/trainer/courses"                  element={<TrainerCourses />} />
+            <Route path="/trainer/courses/:courseId/builder" element={<TrainerCourseBuilder />} />
+            <Route path="/trainer/students"                 element={<TrainerStudents />} />
             <Route path="/trainer/sessions"    element={<TrainerSessions />} />
             <Route path="/trainer/notes"       element={<TrainerNotes />} />
             <Route path="/trainer/resources"   element={<TrainerResources />} />
@@ -171,10 +174,11 @@ export function AppRouter() {
         {/* ── Admin ── */}
         <Route element={<RoleGuard role="admin" />}>
           <Route element={<AdminLayout />}>
-            <Route path="/admin"               element={<AdminOverview />} />
-            <Route path="/admin/users"         element={<AdminUsers />} />
-            <Route path="/admin/courses"       element={<AdminCourses />} />
-            <Route path="/admin/announcements" element={<AdminAnnouncements />} />
+            <Route path="/admin"                          element={<AdminOverview />} />
+            <Route path="/admin/users"                    element={<AdminUsers />} />
+            <Route path="/admin/courses"                  element={<AdminCourses />} />
+            <Route path="/admin/courses/:courseId/builder" element={<AdminCourseBuilder />} />
+            <Route path="/admin/announcements"            element={<AdminAnnouncements />} />
             <Route path="/admin/analytics"     element={<AdminAnalytics />} />
             <Route path="/admin/resources"     element={<AdminResources />} />
             <Route path="/admin/settings"      element={<AdminSettings />} />
