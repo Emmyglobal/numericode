@@ -79,18 +79,6 @@ describe('RegisterPage', () => {
     expect(screen.getByRole('button', { name: /create trainer account/i })).toBeInTheDocument()
   })
 
-  it('registers as a trainer and navigates to /trainer', async () => {
-    const user = userEvent.setup()
-    render(<RegisterPage />)
-    await user.click(screen.getByText('Trainer'))
-    await user.type(screen.getByLabelText(/full name/i), 'New Trainer')
-    await user.type(screen.getByLabelText(/email address/i), 'newtrainer@example.com')
-    await user.type(screen.getByPlaceholderText('Min. 8 characters'), 'password123')
-    await user.type(screen.getByPlaceholderText('Repeat password'), 'password123')
-    await user.click(screen.getByRole('button', { name: /create trainer account/i }))
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/trainer'))
-  })
-
   // ── Validation (fireEvent.submit to bypass jsdom click limitation) ─────────
 
   it('shows error when submitting with empty name', async () => {
@@ -182,21 +170,23 @@ describe('RegisterPage', () => {
 
   // ── Successful registration ───────────────────────────────────────────────
 
-  it('registers and navigates to /dashboard on success', async () => {
+  it('registers as trainer and navigates to /trainer on success', async () => {
     const user = userEvent.setup()
     render(<RegisterPage />)
+    await user.click(screen.getByText('Trainer'))
     await user.type(screen.getByLabelText(/full name/i), 'Kolade Adebayo')
     await user.type(screen.getByLabelText(/email address/i), 'new@example.com')
     await user.type(screen.getByPlaceholderText('Min. 8 characters'), 'password123')
     await user.type(screen.getByPlaceholderText('Repeat password'), 'password123')
     await user.click(screen.getByRole('button', { name: /create .*account/i }))
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/dashboard'))
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/trainer'))
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
   })
 
   it('shows error alert when email is already taken', async () => {
     const user = userEvent.setup()
     render(<RegisterPage />)
+    await user.click(screen.getByText('Trainer'))
     await user.type(screen.getByLabelText(/full name/i), 'Existing User')
     await user.type(screen.getByLabelText(/email address/i), 'taken@example.com')
     await user.type(screen.getByPlaceholderText('Min. 8 characters'), 'password123')

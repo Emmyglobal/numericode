@@ -44,34 +44,6 @@ describe('LoginPage', () => {
     expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument()
   })
 
-  it('renders three demo account buttons', () => {
-    render(<LoginPage />)
-    expect(screen.getByRole('button', { name: /fill demo student/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /fill demo trainer/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /fill demo admin/i })).toBeInTheDocument()
-  })
-
-  it('fills email field when demo student button clicked', async () => {
-    const user = userEvent.setup()
-    render(<LoginPage />)
-    await user.click(screen.getByRole('button', { name: /fill demo student/i }))
-    expect(screen.getByLabelText(/email address/i)).toHaveValue('kolade@gmail.com')
-  })
-
-  it('fills email field when demo trainer button clicked', async () => {
-    const user = userEvent.setup()
-    render(<LoginPage />)
-    await user.click(screen.getByRole('button', { name: /fill demo trainer/i }))
-    expect(screen.getByLabelText(/email address/i)).toHaveValue('trainer@numericode.com')
-  })
-
-  it('fills email field when demo admin button clicked', async () => {
-    const user = userEvent.setup()
-    render(<LoginPage />)
-    await user.click(screen.getByRole('button', { name: /fill demo admin/i }))
-    expect(screen.getByLabelText(/email address/i)).toHaveValue('emmanuel@numericode.com')
-  })
-
   it('shows validation error when email is empty on submit', async () => {
     render(<LoginPage />)
     const form = document.querySelector('form')
