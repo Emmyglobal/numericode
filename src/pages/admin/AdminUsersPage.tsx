@@ -107,8 +107,8 @@ export default function AdminUsersPage() {
 
       {isLoading ? <div className="space-y-2">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-16" />)}</div>
       : !filtered.length ? <EmptyState icon={<Users className="w-16 h-16" />} title="No users found" description="Try adjusting your search or filter." />
-      : <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <table className="w-full" aria-label="User list">
+      : <div className="hidden md:block rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <table className="w-full min-w-[720px]" aria-label="User list">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>{['User', 'Role', 'Status', 'Joined', 'Last Active', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{h}</th>)}</tr>
             </thead>
@@ -192,6 +192,72 @@ export default function AdminUsersPage() {
             </tbody>
           </table>
         </div>}
+
+      {/* Mobile cards */}
+      {!isLoading && filtered.length > 0 && (
+        <div className="md:hidden space-y-3">
+          {filtered.map(u => {
+            const isPendingTrainer = u.role === 'trainer' && u.status === 'pending'
+            return (
+              <div key={u.id} className={cn('rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark p-4', isPendingTrainer && 'border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/5')}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold ${u.role === 'admin' ? 'bg-red-600' : u.role === 'trainer' ? 'bg-teal' : 'bg-brand-blue'}`}>{u.name[0]}</div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{u.name}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500">{u.email}</p>
+                    </div>
+                  </div>
+                  <span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize', roleBadge[u.role])}>{u.role}</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-gray-300 mb-3">
+                  <span className="px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800">Status: <Badge variant={statusVariant[u.status]}>{isPendingTrainer ? 'Awaiting Approval' : u.status}</Badge></span>
+                  <span className="px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800">Joined: {formatDate(u.joinedAt)}</span>
+                  <span className="px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800">Last active: {formatDate(u.lastActive)}</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {isPendingTrainer ? (
+                    <div className="flex gap-2">
+                      <Button size="sm" loading={updateUserMutation.isPending} onClick={() => updateUserMutation.mutate({ id: u.id, status: 'active' })}>
+                        <ShieldCheck className="w-3.5 h-3.5 mr-1" /> Approve
+                      </Button>
+                      <Button variant="danger" size="sm" loading={updateUserMutation.isPending} onClick={() => updateUserMutation.mutate({ id: u.id, status: 'suspended' })}>
+                        Reject
+                      </Button>
+                    </div>
+                  ) : u.role === 'student' ? (
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="secondary" onClick={() => setReassignStudentId(reassignStudentId === u.id ? null : u.id)}>
+                          <ArrowLeftRight className="w-3.5 h-3.5 mr-1" /> Reassign
+                        </Button>
+                        <Button variant="danger" size="sm" loading={updateUserMutation.isPending} onClick={() => updateUserMutation.mutate({ id: u.id, status: u.status === 'active' ? 'suspended' : 'active' })}>
+                          {u.status === 'active' ? 'Suspend' : 'Activate'}
+                        </Button>
+                      </div>
+                      {reassignStudentId === u.id && trainers && (
+                        <div className="flex items-center gap-2">
+                          <select value={selectedTrainerId} onChange={e => setSelectedTrainerId(e.target.value)} className="h-8 rounded border border-gray-200 bg-white px-2 text-xs dark:border-gray-700 dark:bg-gray-800">
+                            <option value="">Select a trainer…</option>
+                            {trainers.map(t => <option key={t.id} value={t.id}>{t.name} ({t.email})</option>)}
+                          </select>
+                          <Button size="sm" loading={reassignMutation.isPending} disabled={!selectedTrainerId} onClick={() => reassignMutation.mutate({ studentId: u.id, newTrainerId: selectedTrainerId })}>
+                            Confirm
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  ) : u.role !== 'admin' && (
+                    <Button variant="danger" size="sm" loading={updateUserMutation.isPending} onClick={() => updateUserMutation.mutate({ id: u.id, status: u.status === 'active' ? 'suspended' : 'active' })}>
+                      {u.status === 'active' ? 'Suspend' : 'Activate'}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
