@@ -1,26 +1,75 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { quizzesService } from '@/services/quizzes.service'
+import { quizzesService, type Quiz } from '@/services/quizzes.service'
+import { api } from '@/lib/axios'
+import type { ApiResponse } from '@/types/api.types'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { Plus, Edit, Trash2, ClipboardList } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Input } from '@/components/ui/Input'
+import { Alert } from '@/components/ui/Alert'
+import { Plus, Trash2, ClipboardList, X } from 'lucide-react'
+import { usePageTitle } from '@/hooks/usePageTitle'
+
+interface TrainerCourse { id: string; title: string }
 
 export default function TrainerQuizzesPage() {
+  usePageTitle('Quizzes — Trainer')
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
   const queryClient = useQueryClient()
 
-  const { data: quizzes, isLoading } = useQuery({
-    queryKey: ['trainer-quizzes'],
+  // Create form state
+  const [courseId, setCourseId] = useState('')
+  const [quizTitle, setQuizTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [timeLimit, setTimeLimit] = useState('')
+  const [passingScore, setPassingScore] = useState('70')
+
+  const { data: courses } = useQuery({
+    queryKey: ['trainer', 'courses'],
     queryFn: async () => {
-      // In a real app, fetch quizzes for trainer's courses
-      return [] as Array<{
-        id: string; courseId: string; title: string; description: string
-        timeLimit?: number; passingScore: number; maxAttempts: number
-        questionCount: number; createdAt: string
-      }>
+      const r = await api.get<{ data: TrainerCourse[] }>('/trainer/courses')
+      return r.data.data
+    },
+  })
+
+  const { data: quizzes, isLoading } = useQuery({
+    queryKey: ['trainer-quizzes', courseId],
+    queryFn: async () => {
+      if (!courses || courses.length === 0) return [] as Quiz[]
+      const results: Quiz[] = []
+      for (const course of courses) {
+        try {
+          const courseQuizzes = await quizzesService.listByCourse(course.id)
+          results.push(...courseQuizzes)
+        } catch {
+          // course might not have quizzes yet
+        }
+      }
+      return results
+    },
+    enabled: Boolean(courses),
+  })
+
+  const createMutation = useMutation({
+    mutationFn: () =>
+      quizzesService.create({
+        courseId,
+        title: quizTitle,
+        description,
+        timeLimit: timeLimit ? Number(timeLimit) : undefined,
+        passingScore: passingScore ? Number(passingScore) : 70,
+        maxAttempts: 1,
+        shuffleQuestions: false,
+        showResults: true,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trainer-quizzes'] })
+      setShowCreateModal(false)
+      resetForm()
+      setSuccessMessage('Quiz created successfully.')
     },
   })
 
@@ -28,8 +77,29 @@ export default function TrainerQuizzesPage() {
     mutationFn: (quizId: string) => quizzesService.delete(quizId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trainer-quizzes'] })
+      setSuccessMessage('Quiz deleted.')
     },
   })
+
+  const resetForm = () => {
+    setCourseId('')
+    setQuizTitle('')
+    setDescription('')
+    setTimeLimit('')
+    setPassingScore('70')
+  }
+
+  const openCreate = () => {
+    resetForm()
+    if (courses && courses.length > 0) setCourseId(courses[0].id)
+    setShowCreateModal(true)
+  }
+
+  const handleCreate = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!courseId || !quizTitle.trim()) return
+    createMutation.mutate()
+  }
 
   return (
     <div>
@@ -37,11 +107,17 @@ export default function TrainerQuizzesPage() {
         title="Quiz Management"
         subtitle="Create and manage quizzes for your courses"
         actions={
-          <Button onClick={() => setShowCreateModal(true)}>
+          <Button onClick={openCreate}>
             <Plus className="w-4 h-4 mr-1" /> Create Quiz
           </Button>
         }
       />
+
+      {successMessage && (
+        <div className="mb-4">
+          <Alert type="success" message={successMessage} onClose={() => setSuccessMessage('')} />
+        </div>
+      )}
 
       {isLoading ? (
         <div className="space-y-4">
@@ -69,11 +145,6 @@ export default function TrainerQuizzesPage() {
                   </div>
                 </div>
                 <div className="flex gap-2 ml-4">
-                  <Link to={`/trainer/quizzes/${quiz.id}`}>
-                    <Button variant="ghost" size="sm">
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                  </Link>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -92,16 +163,49 @@ export default function TrainerQuizzesPage() {
         </div>
       )}
 
-      {/* Create Quiz Modal - simplified for demo */}
+      {/* Create Quiz Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-surface-dark rounded-xl p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Create New Quiz</h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">Quiz creation form would go here with fields for title, description, time limit, passing score, and question builder.</p>
-            <div className="flex gap-2 justify-end">
-              <Button variant="ghost" onClick={() => setShowCreateModal(false)}>Cancel</Button>
-              <Button onClick={() => setShowCreateModal(false)}>Create Quiz</Button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowCreateModal(false)}>
+          <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Create New Quiz</h2>
+              <button onClick={() => setShowCreateModal(false)} aria-label="Close">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
             </div>
+            <form onSubmit={handleCreate} className="space-y-4">
+              <div>
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Course <span className="text-red-500">*</span></label>
+                <select
+                  required
+                  value={courseId}
+                  onChange={e => setCourseId(e.target.value)}
+                  className="mt-1 h-11 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 text-sm text-gray-900 dark:text-gray-100"
+                >
+                  <option value="">Select a course…</option>
+                  {courses?.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                </select>
+              </div>
+              <Input label="Quiz Title" required value={quizTitle} onChange={e => setQuizTitle(e.target.value)} placeholder="e.g. Algebra Quiz 1" />
+              <div>
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Description</label>
+                <textarea
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  rows={3}
+                  className="mt-1 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 py-2 text-sm text-gray-900 dark:text-gray-100"
+                  placeholder="Describe the quiz..."
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Input label="Time Limit (min)" type="number" value={timeLimit} onChange={e => setTimeLimit(e.target.value)} placeholder="e.g. 30" />
+                <Input label="Passing Score %" type="number" value={passingScore} onChange={e => setPassingScore(e.target.value)} placeholder="70" />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <Button variant="ghost" type="button" onClick={() => setShowCreateModal(false)}>Cancel</Button>
+                <Button type="submit" loading={createMutation.isPending}>Create Quiz</Button>
+              </div>
+            </form>
           </div>
         </div>
       )}

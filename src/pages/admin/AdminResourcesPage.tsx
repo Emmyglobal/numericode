@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
-import { FileText, Video, Link as LinkIcon, PlusCircle, Trash2, X, Globe, Search } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { FileText, Video, Link as LinkIcon, PlusCircle, Trash2, X, Globe, Search, UploadCloud } from 'lucide-react'
 import { api } from '@/lib/axios'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -42,6 +42,7 @@ export default function AdminResourcesPage() {
   const [search, setSearch] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState<ResourceFormData>(emptyForm)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [successMessage, setSuccessMessage] = useState('')
   const q = useDebounce(search)
 
@@ -58,11 +59,20 @@ export default function AdminResourcesPage() {
   })
 
   const createMutation = useMutation({
-    mutationFn: (data: ResourceFormData) => api.post('/admin/resources', data),
+    mutationFn: async (data: ResourceFormData) => {
+      const formData = new FormData()
+      formData.append('lessonId', data.lessonId)
+      formData.append('title', data.title)
+      if (data.type) formData.append('type', data.type)
+      if (data.url) formData.append('url', data.url)
+      if (selectedFile) formData.append('file', selectedFile)
+      await api.post('/admin/resources', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'resources'] })
       setModalOpen(false)
       setForm(emptyForm)
+      setSelectedFile(null)
       setSuccessMessage('Resource added successfully.')
     },
   })
@@ -82,6 +92,18 @@ export default function AdminResourcesPage() {
 
   const updateField = (field: keyof ResourceFormData, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }))
+  }
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const openFilePicker = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0])
+    }
   }
 
   const filtered = (resources ?? []).filter(r =>
@@ -186,8 +208,40 @@ export default function AdminResourcesPage() {
                   ))}
                 </div>
               </div>
-              <Input label="Resource URL" required value={form.url} onChange={e => updateField('url', e.target.value)}
-                placeholder={form.type === 'pdf' ? 'https://…/document.pdf' : form.type === 'video' ? 'https://…/video.mp4 or YouTube link' : 'https://…'} />
+              {/* URL or File (user picks one) */}
+              {!selectedFile && (
+                <Input label="Resource URL" value={form.url} onChange={e => updateField('url', e.target.value)}
+                  placeholder={form.type === 'pdf' ? 'https://…/document.pdf' : form.type === 'video' ? 'https://…/video.mp4 or YouTube link' : 'https://…'} />
+              )}
+
+              <div>
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                  Upload File
+                  {!form.url && <span className="text-red-500"> *</span>}
+                </label>
+                <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.mp4,.mov,.avi,.jpg,.jpeg,.png,.gif" />
+                <div
+                  className="mt-1 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 cursor-pointer hover:border-brand-blue hover:bg-brand-blue/5 transition-colors"
+                  onClick={openFilePicker}
+                >
+                  {selectedFile ? (
+                    <>
+                      <UploadCloud className="w-8 h-8 text-brand-blue mb-2" aria-hidden="true" />
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{selectedFile.name}</span>
+                      <span className="text-xs text-gray-500 mt-1">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</span>
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud className="w-8 h-8 text-gray-400 mb-2" aria-hidden="true" />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Click to upload a file</span>
+                      <span className="text-xs text-gray-500 mt-1">PDF, DOC, PPT, XLS, MP4, JPG, PNG — up to 50 MB</span>
+                    </>
+                  )}
+                </div>
+                {selectedFile && (
+                  <button type="button" className="mt-1 text-xs text-red-500 hover:text-red-700" onClick={(e) => { e.stopPropagation(); setSelectedFile(null); }}>Remove file</button>
+                )}
+              </div>
               <div className="flex justify-end gap-3 pt-2">
                 <Button variant="ghost" type="button" onClick={() => setModalOpen(false)}>Cancel</Button>
                 <Button type="submit" loading={createMutation.isPending}>Add Resource</Button>

@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/axios'
-import { ArrowLeft, Plus, BookOpen, FileText, ClipboardCheck, ClipboardList, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Plus, BookOpen, FileText, ClipboardCheck, ClipboardList, ChevronRight, ChevronDown, HelpCircle, FileSpreadsheet } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
@@ -10,25 +10,11 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
-interface Module {
-  id: string
-  title: string
-  lessons: Lesson[]
-}
-
-interface Lesson {
-  id: string
-  title: string
-}
-
-interface CourseDetail {
-  id: string
-  title: string
-  subject: string
-  level: string
-  status: string
-  modules: Module[]
-}
+interface QuizItem { id: string; title: string }
+interface AssignmentItem { id: string; title: string }
+interface LessonItem { id: string; title: string; quizzes: QuizItem[]; assignments: AssignmentItem[] }
+interface ModuleItem { id: string; title: string; lessons: LessonItem[] }
+interface BuilderData { id: string; title: string; modules: ModuleItem[] }
 
 export default function AdminCourseBuilderPage() {
   usePageTitle('Course Builder — Admin')
@@ -36,18 +22,18 @@ export default function AdminCourseBuilderPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [successMessage, setSuccessMessage] = useState('')
-  const [activeModuleId, setActiveModuleId] = useState<string | null>(null)
-  const [activeLessonId, setActiveLessonId] = useState<string | null>(null)
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
+  const [expandedLessons, setExpandedLessons] = useState<Set<string>>(new Set())
 
   const [moduleTitle, setModuleTitle] = useState('')
   const [lessonTitle, setLessonTitle] = useState('')
   const [quizTitle, setQuizTitle] = useState('')
   const [assignmentTitle, setAssignmentTitle] = useState('')
 
-  const { data: course, isLoading: courseLoading } = useQuery({
+  const { data: builder, isLoading } = useQuery({
     queryKey: ['admin', 'course-builder', courseId],
     queryFn: async () => {
-      const r = await api.get<{ data: CourseDetail }>(`/courses/${courseId}`)
+      const r = await api.get<{ data: BuilderData }>(`/admin/courses/${courseId}/builder`)
       return r.data.data
     },
     enabled: !!courseId,
@@ -98,25 +84,41 @@ export default function AdminCourseBuilderPage() {
     createModuleMutation.mutate(moduleTitle)
   }
 
-  const handleAddLesson = (e: React.FormEvent) => {
+  const handleAddLesson = (e: React.FormEvent, moduleId: string) => {
     e.preventDefault()
-    if (!lessonTitle.trim() || !activeModuleId) return
-    createLessonMutation.mutate({ moduleId: activeModuleId, title: lessonTitle })
+    if (!lessonTitle.trim()) return
+    createLessonMutation.mutate({ moduleId, title: lessonTitle })
   }
 
-  const handleAttachQuiz = (e: React.FormEvent) => {
+  const handleAttachQuiz = (e: React.FormEvent, lessonId: string) => {
     e.preventDefault()
-    if (!quizTitle.trim() || !activeLessonId) return
-    createQuizMutation.mutate({ lessonId: activeLessonId, title: quizTitle })
+    if (!quizTitle.trim()) return
+    createQuizMutation.mutate({ lessonId, title: quizTitle })
   }
 
-  const handleAttachAssignment = (e: React.FormEvent) => {
+  const handleAttachAssignment = (e: React.FormEvent, lessonId: string) => {
     e.preventDefault()
-    if (!assignmentTitle.trim() || !activeLessonId) return
-    createAssignmentMutation.mutate({ lessonId: activeLessonId, title: assignmentTitle })
+    if (!assignmentTitle.trim()) return
+    createAssignmentMutation.mutate({ lessonId, title: assignmentTitle })
   }
 
-  if (courseLoading) {
+  const toggleModule = (id: string) => {
+    setExpandedModules(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  const toggleLesson = (id: string) => {
+    setExpandedLessons(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  if (isLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-12 w-96" />
@@ -125,18 +127,16 @@ export default function AdminCourseBuilderPage() {
     )
   }
 
-  if (!course) {
+  if (!builder) {
     return (
       <div className="text-center py-12">
         <p className="text-gray-500">Course not found</p>
-        <Button onClick={() => navigate('/admin/courses')} className="mt-4">
-          Back to Courses
-        </Button>
+        <Button onClick={() => navigate('/admin/courses')} className="mt-4">Back to Courses</Button>
       </div>
     )
   }
 
-  const totalLessons = course.modules.reduce((sum, m) => sum + m.lessons.length, 0)
+  const totalLessons = builder.modules.reduce((sum, m) => sum + m.lessons.length, 0)
 
   return (
     <div>
@@ -146,13 +146,11 @@ export default function AdminCourseBuilderPage() {
           Back to Courses
         </Link>
         <PageHeader
-          title={course.title}
-          subtitle={`${totalLessons} lessons · ${course.modules.length} modules`}
+          title={builder.title}
+          subtitle={`${totalLessons} lessons · ${builder.modules.length} modules`}
           actions={
             <div className="flex gap-2">
-              <Button variant="secondary" size="sm" onClick={() => navigate('/admin/courses')}>
-                Done
-              </Button>
+              <Button variant="secondary" size="sm" onClick={() => navigate('/admin/courses')}>Done</Button>
             </div>
           }
         />
@@ -166,146 +164,100 @@ export default function AdminCourseBuilderPage() {
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <section className="rounded-xl border border-gray-200 bg-white dark:bg-surface-dark p-6">
-            <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Course Overview</h2>
-            <div className="grid sm:grid-cols-3 gap-4 text-sm">
-              <div>
-                <p className="text-gray-500 dark:text-gray-400 text-xs">Subject</p>
-                <p className="font-semibold text-gray-900 dark:text-white capitalize">{course.subject}</p>
-              </div>
-              <div>
-                <p className="text-gray-500 dark:text-gray-400 text-xs">Level</p>
-                <p className="font-semibold text-gray-900 dark:text-white capitalize">{course.level}</p>
-              </div>
-              <div>
-                <p className="text-gray-500 dark:text-gray-400 text-xs">Status</p>
-                <p className="font-semibold text-gray-900 dark:text-white capitalize">{course.status}</p>
-              </div>
-            </div>
-          </section>
-
+          {/* Add Module */}
           <section className="rounded-xl border border-gray-200 bg-white dark:bg-surface-dark p-6">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <BookOpen className="w-5 h-5" aria-hidden="true" />
               Add Module
             </h3>
-            <form onSubmit={handleAddModule} className="flex gap-2">
-              <Input
-                value={moduleTitle}
-                onChange={e => setModuleTitle(e.target.value)}
-                placeholder="Module title (e.g., Introduction to Algebra)"
-                className="flex-1"
-              />
-              <Button type="submit" loading={createModuleMutation.isPending}>
-                <Plus className="w-4 h-4 mr-1" aria-hidden="true" />
-                Add Module
+            <form onSubmit={handleAddModule} className="flex flex-col sm:flex-row gap-2">
+              <Input value={moduleTitle} onChange={e => setModuleTitle(e.target.value)}
+                placeholder="Module title (e.g., Module 1 – Numbers Around Us)" className="flex-1" />
+              <Button type="submit" loading={createModuleMutation.isPending} className="w-full sm:w-auto">
+                <Plus className="w-4 h-4 mr-1" aria-hidden="true" /> Add Module
               </Button>
             </form>
           </section>
 
-          <div className="space-y-4">
-            {course.modules.map(module => (
-              <section
-                key={module.id}
-                className={`rounded-xl border bg-white dark:bg-surface-dark overflow-hidden transition-colors ${
-                  activeModuleId === module.id ? 'border-brand-blue' : 'border-gray-200'
-                }`}
-              >
-                <div
-                  className="p-5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                  onClick={() => {
-                    setActiveModuleId(module.id === activeModuleId ? null : module.id)
-                    setActiveLessonId(null)
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue font-semibold text-sm">
-                        {module.lessons.length}
-                      </div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{module.title}</h3>
-                    </div>
-                    <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${activeModuleId === module.id ? 'rotate-90' : ''}`} />
+          {/* Course Tree */}
+          <div className="space-y-3">
+            {builder.modules.map(mod => (
+              <div key={mod.id} className="rounded-xl border border-gray-200 bg-white dark:bg-surface-dark overflow-hidden">
+                {/* Module Header */}
+                <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                  onClick={() => toggleModule(mod.id)}>
+                  <div className="flex items-center gap-3">
+                    <BookOpen className="w-5 h-5 text-brand-blue" aria-hidden="true" />
+                    <span className="font-semibold text-gray-900 dark:text-white">{mod.title}</span>
+                    <span className="text-xs text-gray-400">({mod.lessons.length} lessons)</span>
                   </div>
+                  {expandedModules.has(mod.id) ? <ChevronDown className="w-5 h-5 text-gray-400" /> : <ChevronRight className="w-5 h-5 text-gray-400" />}
                 </div>
 
-                {activeModuleId === module.id && (
-                  <div className="px-5 pb-5 border-t border-gray-100 dark:border-gray-700">
-                    <form onSubmit={handleAddLesson} className="flex gap-2 mt-4 mb-4">
-                      <Input
-                        value={activeModuleId === module.id ? lessonTitle : ''}
-                        onChange={e => setLessonTitle(e.target.value)}
-                        placeholder="Add lesson title..."
-                        className="flex-1"
-                      />
-                      <Button
-                        type="submit"
-                        size="sm"
-                        loading={createLessonMutation.isPending}
-                        onClick={() => setActiveModuleId(module.id)}
-                      >
-                        <Plus className="w-4 h-4 mr-1" aria-hidden="true" />
-                        Add Lesson
+                {expandedModules.has(mod.id) && (
+                  <div className="px-4 pb-4 border-t border-gray-100 dark:border-gray-700">
+                    {/* Add Lesson */}
+                    <form onSubmit={e => handleAddLesson(e, mod.id)} className="flex flex-col sm:flex-row gap-2 mt-4 mb-4">
+                      <Input value={lessonTitle} onChange={e => setLessonTitle(e.target.value)}
+                        placeholder="Lesson title (e.g., Lesson 1 – Introduction)" className="flex-1" />
+                      <Button type="submit" size="sm" loading={createLessonMutation.isPending} className="w-full sm:w-auto">
+                        <Plus className="w-4 h-4 mr-1" aria-hidden="true" /> Add Lesson
                       </Button>
                     </form>
 
-                    {module.lessons.length === 0 ? (
-                      <p className="text-sm text-gray-500 py-4 text-center">No lessons yet. Add your first lesson above.</p>
+                    {/* Lessons */}
+                    {mod.lessons.length === 0 ? (
+                      <p className="text-sm text-gray-500 py-3 text-center">No lessons yet.</p>
                     ) : (
                       <div className="space-y-2">
-                        {module.lessons.map(lesson => (
-                          <div
-                            key={lesson.id}
-                            className={`p-4 rounded-lg border cursor-pointer transition-colors ${
-                              activeLessonId === lesson.id
-                                ? 'border-brand-blue bg-brand-blue/5'
-                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                            }`}
-                            onClick={() => setActiveLessonId(lesson.id === activeLessonId ? null : lesson.id)}
-                          >
-                            <div className="flex items-center justify-between">
+                        {mod.lessons.map(lesson => (
+                          <div key={lesson.id} className="rounded-lg border border-gray-200 dark:border-gray-700">
+                            {/* Lesson Header */}
+                            <div className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                              onClick={() => toggleLesson(lesson.id)}>
                               <div className="flex items-center gap-2">
                                 <FileText className="w-4 h-4 text-gray-400" aria-hidden="true" />
                                 <span className="font-medium text-gray-900 dark:text-white text-sm">{lesson.title}</span>
                               </div>
-                              <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${activeLessonId === lesson.id ? 'rotate-90' : ''}`} />
+                              {expandedLessons.has(lesson.id) ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
                             </div>
 
-                            {activeLessonId === lesson.id && (
-                              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
-                                <form onSubmit={handleAttachQuiz} className="flex gap-2">
-                                  <Input
-                                    value={activeLessonId === lesson.id ? quizTitle : ''}
-                                    onChange={e => setQuizTitle(e.target.value)}
-                                    placeholder="Quiz title..."
-                                    className="flex-1"
-                                  />
-                                  <Button
-                                    type="submit"
-                                    size="sm"
-                                    variant="secondary"
-                                    loading={createQuizMutation.isPending}
-                                  >
-                                    <ClipboardCheck className="w-4 h-4 mr-1" aria-hidden="true" />
-                                    Attach Quiz
+                            {expandedLessons.has(lesson.id) && (
+                              <div className="px-3 pb-3 border-t border-gray-100 dark:border-gray-700 space-y-3">
+                                {/* Quizzes & Assignments list */}
+                                <div className="mt-3 space-y-1">
+                                  {lesson.quizzes.map(q => (
+                                    <div key={q.id} className="flex items-center gap-2 pl-2 py-1 text-sm">
+                                      <HelpCircle className="w-3.5 h-3.5 text-purple-500" aria-hidden="true" />
+                                      <span className="text-gray-700 dark:text-gray-300">Quiz: {q.title}</span>
+                                    </div>
+                                  ))}
+                                  {lesson.assignments.map(a => (
+                                    <div key={a.id} className="flex items-center gap-2 pl-2 py-1 text-sm">
+                                      <FileSpreadsheet className="w-3.5 h-3.5 text-orange-500" aria-hidden="true" />
+                                      <span className="text-gray-700 dark:text-gray-300">Assignment: {a.title}</span>
+                                    </div>
+                                  ))}
+                                  {lesson.quizzes.length === 0 && lesson.assignments.length === 0 && (
+                                    <p className="text-xs text-gray-400 pl-2">No assessments yet</p>
+                                  )}
+                                </div>
+
+                                {/* Add Quiz */}
+                                <form onSubmit={e => handleAttachQuiz(e, lesson.id)} className="flex flex-col sm:flex-row gap-2">
+                                  <Input value={quizTitle} onChange={e => setQuizTitle(e.target.value)}
+                                    placeholder="Quiz title..." className="flex-1" />
+                                  <Button type="submit" size="sm" variant="secondary" loading={createQuizMutation.isPending} className="w-full sm:w-auto">
+                                    <ClipboardCheck className="w-4 h-4 mr-1" aria-hidden="true" /> Attach Quiz
                                   </Button>
                                 </form>
 
-                                <form onSubmit={handleAttachAssignment} className="flex gap-2">
-                                  <Input
-                                    value={activeLessonId === lesson.id ? assignmentTitle : ''}
-                                    onChange={e => setAssignmentTitle(e.target.value)}
-                                    placeholder="Assignment title..."
-                                    className="flex-1"
-                                  />
-                                  <Button
-                                    type="submit"
-                                    size="sm"
-                                    variant="secondary"
-                                    loading={createAssignmentMutation.isPending}
-                                  >
-                                    <ClipboardList className="w-4 h-4 mr-1" aria-hidden="true" />
-                                    Attach Assignment
+                                {/* Add Assignment */}
+                                <form onSubmit={e => handleAttachAssignment(e, lesson.id)} className="flex flex-col sm:flex-row gap-2">
+                                  <Input value={assignmentTitle} onChange={e => setAssignmentTitle(e.target.value)}
+                                    placeholder="Assignment title..." className="flex-1" />
+                                  <Button type="submit" size="sm" variant="secondary" loading={createAssignmentMutation.isPending} className="w-full sm:w-auto">
+                                    <ClipboardList className="w-4 h-4 mr-1" aria-hidden="true" /> Attach Assignment
                                   </Button>
                                 </form>
                               </div>
@@ -316,10 +268,10 @@ export default function AdminCourseBuilderPage() {
                     )}
                   </div>
                 )}
-              </section>
+              </div>
             ))}
 
-            {course.modules.length === 0 && (
+            {builder.modules.length === 0 && (
               <div className="text-center py-12 rounded-xl border border-dashed border-gray-300">
                 <BookOpen className="w-12 h-12 mx-auto text-gray-300 mb-3" aria-hidden="true" />
                 <p className="text-gray-500">No modules yet. Add your first module above to start building your course.</p>
@@ -328,13 +280,14 @@ export default function AdminCourseBuilderPage() {
           </div>
         </div>
 
-        <div className="space-y-6">
+        {/* Sidebar */}
+        <div className="space-y-6 mt-6 lg:mt-0">
           <section className="rounded-xl border border-gray-200 bg-white dark:bg-surface-dark p-6">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Course Structure</h3>
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
                 <span className="text-gray-600 dark:text-gray-400">Modules</span>
-                <span className="font-semibold text-gray-900 dark:text-white">{course.modules.length}</span>
+                <span className="font-semibold text-gray-900 dark:text-white">{builder.modules.length}</span>
               </div>
               <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
                 <span className="text-gray-600 dark:text-gray-400">Lessons</span>
