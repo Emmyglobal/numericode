@@ -59,6 +59,7 @@ export default function RegisterPage() {
   const login    = useAuthStore(s => s.login)
   const [error,  setError] = useState('')
   const [pendingMessage, setPendingMessage] = useState('')
+  const [pendingRole, setPendingRole] = useState('')
   const [teachers, setTeachers] = useState<AvailableTeacher[]>([])
   const [teachersError, setTeachersError] = useState('')
   const {
@@ -94,6 +95,7 @@ export default function RegisterPage() {
       const res = await authService.register(data)
       if (isPendingApproval(res)) {
         setPendingMessage(res.message)
+        setPendingRole(data.role)
         return
       }
       login(res.user as AuthUserWithRole, res.token)
@@ -114,7 +116,7 @@ export default function RegisterPage() {
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{pendingMessage}</p>
         </div>
         <p className="text-xs text-gray-400 dark:text-gray-500">
-          You'll be able to log in as soon as an admin approves your trainer account. This is usually quick.
+          You'll be able to log in as soon as an admin approves your {pendingRole === 'trainer' ? 'Trainer' : 'Student'} account. This is usually quick.
         </p>
         <Link to="/login" className="block">
           <Button variant="secondary" className="w-full">Back to Log In</Button>
