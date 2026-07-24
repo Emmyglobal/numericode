@@ -21,6 +21,7 @@ export default function TrainerForumsPage() {
   const [body, setBody] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
   const queryClient = useQueryClient()
 
   const { data: courses } = useQuery({
@@ -65,11 +66,15 @@ export default function TrainerForumsPage() {
     mutationFn: (data: { categoryId: string; title: string; body: string }) => forumsService.createThread(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trainer-forum-threads'] })
+      queryClient.invalidateQueries({ queryKey: ['trainer-forum-categories'] })
       setShowCreateModal(false)
       setTitle('')
       setBody('')
       setCategoryId('')
       setSuccessMessage('Thread created successfully.')
+    },
+    onError: (err: unknown) => {
+      setErrorMessage(err instanceof Error ? err.message : 'Failed to create thread')
     },
   })
 
@@ -131,6 +136,11 @@ export default function TrainerForumsPage() {
       {successMessage && (
         <div className="mb-4">
           <Alert type="success" message={successMessage} onClose={() => setSuccessMessage('')} />
+        </div>
+      )}
+      {errorMessage && (
+        <div className="mb-4">
+          <Alert type="error" message={errorMessage} onClose={() => setErrorMessage('')} />
         </div>
       )}
 
