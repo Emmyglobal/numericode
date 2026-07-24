@@ -20,7 +20,7 @@ export interface ForumPost {
 export const forumsService = {
   // Categories
   listByCourse: (courseId: string) =>
-    api.get<ApiResponse<ForumCategory[]>>(`/forums/courses/${courseId}/forum/categories`).then(r => r.data.data),
+    api.get<ApiResponse<ForumCategory[]>>(`/courses/${courseId}/forum/categories`).then(r => r.data.data),
 
   createCategory: (data: { courseId?: string; name: string; description?: string; position?: number }) =>
     api.post<ApiResponse<ForumCategory>>('/forums/forum/categories', data).then(r => r.data.data),
