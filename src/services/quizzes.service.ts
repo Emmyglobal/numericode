@@ -29,37 +29,37 @@ export const quizzesService = {
     api.get<ApiResponse<Quiz[]>>(`/quizzes/courses/${courseId}/quizzes`).then(r => r.data.data),
 
   get: (quizId: string) =>
-    api.get<ApiResponse<Quiz & { questions: QuizQuestion[] }>>(`/quizzes/${quizId}`).then(r => r.data.data),
+    api.get<ApiResponse<Quiz & { questions: QuizQuestion[] }>>(`/quizzes/quizzes/${quizId}`).then(r => r.data.data),
 
   create: (data: {
     courseId: string; moduleId?: string; lessonId?: string; title: string; description?: string
     timeLimit?: number; passingScore?: number; maxAttempts?: number; shuffleQuestions?: boolean; showResults?: boolean
     questions?: QuizQuestion[]
-  }) => api.post<ApiResponse<Quiz>>('/quizzes', data).then(r => r.data.data),
+  }) => api.post<ApiResponse<Quiz>>('/quizzes/quizzes', data).then(r => r.data.data),
 
   update: (quizId: string, data: Partial<Quiz>) =>
-    api.put<ApiResponse<Quiz>>(`/quizzes/${quizId}`, data).then(r => r.data.data),
+    api.put<ApiResponse<Quiz>>(`/quizzes/quizzes/${quizId}`, data).then(r => r.data.data),
 
   delete: (quizId: string) =>
-    api.delete<ApiResponse<{ deleted: boolean }>>(`/quizzes/${quizId}`).then(r => r.data.data),
+    api.delete<ApiResponse<{ deleted: boolean }>>(`/quizzes/quizzes/${quizId}`).then(r => r.data.data),
 
   // Questions
   addQuestion: (quizId: string, question: QuizQuestion) =>
-    api.post<ApiResponse<QuizQuestion>>(`/quizzes/${quizId}/questions`, question).then(r => r.data.data),
+    api.post<ApiResponse<QuizQuestion>>(`/quizzes/quizzes/${quizId}/questions`, question).then(r => r.data.data),
 
   updateQuestion: (quizId: string, questionId: string, question: Partial<QuizQuestion>) =>
-    api.put<ApiResponse<QuizQuestion>>(`/quizzes/${quizId}/questions/${questionId}`, question).then(r => r.data.data),
+    api.put<ApiResponse<QuizQuestion>>(`/quizzes/quizzes/${quizId}/questions/${questionId}`, question).then(r => r.data.data),
 
   deleteQuestion: (quizId: string, questionId: string) =>
-    api.delete<ApiResponse<{ deleted: boolean }>>(`/quizzes/${quizId}/questions/${questionId}`).then(r => r.data.data),
+    api.delete<ApiResponse<{ deleted: boolean }>>(`/quizzes/quizzes/${quizId}/questions/${questionId}`).then(r => r.data.data),
 
   // Attempts
   startAttempt: (quizId: string) =>
-    api.post<ApiResponse<{ attemptId: string; questions: QuizQuestion[]; timeLimit?: number; maxAttempts: number; attemptNumber: number }>>(`/quizzes/${quizId}/start`).then(r => r.data.data),
+    api.post<ApiResponse<{ attemptId: string; questions: QuizQuestion[]; timeLimit?: number; maxAttempts: number; attemptNumber: number }>>(`/quizzes/quizzes/${quizId}/start`).then(r => r.data.data),
 
   submitAttempt: (quizId: string, answers: Record<string, unknown>) =>
-    api.post<ApiResponse<QuizResult>>(`/quizzes/${quizId}/submit`, { answers }).then(r => r.data.data),
+    api.post<ApiResponse<QuizResult>>(`/quizzes/quizzes/${quizId}/submit`, { answers }).then(r => r.data.data),
 
   getAttempts: (quizId: string) =>
-    api.get<ApiResponse<QuizAttempt[]>>(`/quizzes/${quizId}/attempts`).then(r => r.data.data),
+    api.get<ApiResponse<QuizAttempt[]>>(`/quizzes/quizzes/${quizId}/attempts`).then(r => r.data.data),
 }
