@@ -26,7 +26,7 @@ export interface QuizResult {
 export const quizzesService = {
   // Quiz CRUD
   listByCourse: (courseId: string) =>
-    api.get<ApiResponse<Quiz[]>>(`/courses/${courseId}/quizzes`).then(r => r.data.data),
+    api.get<ApiResponse<Quiz[]>>(`/quizzes/courses/${courseId}/quizzes`).then(r => r.data.data),
 
   get: (quizId: string) =>
     api.get<ApiResponse<Quiz & { questions: QuizQuestion[] }>>(`/quizzes/${quizId}`).then(r => r.data.data),
