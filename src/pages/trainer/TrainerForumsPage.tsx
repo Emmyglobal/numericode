@@ -159,7 +159,7 @@ export default function TrainerForumsPage() {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-medium text-gray-900 dark:text-white">{thread.title}</h3>
+                    <h3 className="font-medium text-gray-900 dark:text-white">{thread.title}.</h3>
                     {thread.isPinned && <Pin className="w-4 h-4 text-yellow-500" />}
                     {thread.isLocked && <Lock className="w-4 h-4 text-gray-500" />}
                   </div>
