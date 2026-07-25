@@ -54,7 +54,7 @@ export default function TrainerForumsPage() {
     enabled: Boolean(courses),
   })
 
-  const { data: allCategories } = useQuery<CategoryItem[]>({
+  const { data: allCategories, isLoading: categoriesLoading } = useQuery<CategoryItem[]>({
     queryKey: ['trainer-forum-categories'],
     queryFn: async () => {
       if (!courses) return []
@@ -142,7 +142,12 @@ export default function TrainerForumsPage() {
     setEditingThread(null)
     setTitle('')
     setBody('')
-    setCategoryId(allCategories?.[0]?.id ?? '')
+    // Use the first loaded category, or empty if still loading
+    if (allCategories && allCategories.length > 0) {
+      setCategoryId(allCategories[0].id)
+    } else {
+      setCategoryId('')
+    }
     setShowCreateModal(true)
   }
 
@@ -279,15 +284,23 @@ export default function TrainerForumsPage() {
               {!editingThread && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Category <span className="text-red-500">*</span></label>
-                  <select
-                    required
-                    value={categoryId}
-                    onChange={e => setCategoryId(e.target.value)}
-                    className="h-11 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 text-sm text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="">Select a category…</option>
-                    {allCategories?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
+                  {categoriesLoading ? (
+                    <div className="h-11 flex items-center px-3.5 text-sm text-gray-400 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">Loading categories…</div>
+                  ) : !allCategories?.length ? (
+                    <div className="text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3">
+                      No categories available. Please <button type="button" className="underline font-medium" onClick={() => { setShowCreateModal(false); setShowCategoryModal(true) }}>create a category</button> first.
+                    </div>
+                  ) : (
+                    <select
+                      required
+                      value={categoryId}
+                      onChange={e => setCategoryId(e.target.value)}
+                      className="h-11 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 text-sm text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="">Select a category…</option>
+                      {allCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  )}
                 </div>
               )}
               <Input label="Title" required value={title} onChange={e => setTitle(e.target.value)} placeholder="Thread title" />
