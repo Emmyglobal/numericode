@@ -1,20 +1,23 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { forumsService, type ForumThread } from '@/services/forums.service'
+import { forumsService, type ForumThread, type ForumCategory } from '@/services/forums.service'
 import { api } from '@/lib/axios'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
-import { Plus, Edit, Trash2, MessageSquare, Pin, Lock, X } from 'lucide-react'
+import { Plus, Edit, Trash2, MessageSquare, Pin, Lock, X, FolderPlus } from 'lucide-react'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import type { TrainerCourse } from '@/features/trainer/types'
 
-interface CategoryItem { id: string; name: string }
+interface CategoryItem { id: string; name: string; courseId: string | null }
 
 export default function TrainerForumsPage() {
   usePageTitle('Forums — Trainer')
+  const queryClient = useQueryClient()
+
+  // ── Thread state ──────────────────────────────────────────────────────────
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingThread, setEditingThread] = useState<ForumThread | null>(null)
   const [title, setTitle] = useState('')
@@ -22,7 +25,12 @@ export default function TrainerForumsPage() {
   const [categoryId, setCategoryId] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
-  const queryClient = useQueryClient()
+
+  // ── Category state ────────────────────────────────────────────────────────
+  const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const [categoryName, setCategoryName] = useState('')
+  const [categoryDesc, setCategoryDesc] = useState('')
+  const [categoryCourseId, setCategoryCourseId] = useState('')
 
   const { data: courses } = useQuery({
     queryKey: ['trainer', 'courses'],
@@ -54,7 +62,7 @@ export default function TrainerForumsPage() {
       for (const course of courses) {
         const courseCats = await forumsService.listByCourse(course.id)
         for (const cat of courseCats) {
-          cats.push({ id: cat.id, name: cat.name })
+          cats.push({ id: cat.id, name: cat.name, courseId: cat.courseId })
         }
       }
       return cats
@@ -62,11 +70,10 @@ export default function TrainerForumsPage() {
     enabled: Boolean(courses),
   })
 
-  const createMutation = useMutation({
+  const createThreadMutation = useMutation({
     mutationFn: (data: { categoryId: string; title: string; body: string }) => forumsService.createThread(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trainer-forum-threads'] })
-      queryClient.invalidateQueries({ queryKey: ['trainer-forum-categories'] })
       setShowCreateModal(false)
       setTitle('')
       setBody('')
@@ -97,12 +104,37 @@ export default function TrainerForumsPage() {
     },
   })
 
+  const createCategoryMutation = useMutation({
+    mutationFn: (data: { courseId: string; name: string; description?: string }) =>
+      forumsService.createCategory({ courseId: data.courseId, name: data.name, description: data.description }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trainer-forum-categories'] })
+      setShowCategoryModal(false)
+      setCategoryName('')
+      setCategoryDesc('')
+      setCategoryCourseId('')
+      setSuccessMessage('Category created successfully.')
+    },
+    onError: (err: unknown) => {
+      setErrorMessage(err instanceof Error ? err.message : 'Failed to create category')
+    },
+  })
+
+  const handleCategorySubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!categoryName.trim() || !categoryCourseId) {
+      setErrorMessage('Category name and course are required')
+      return
+    }
+    createCategoryMutation.mutate({ courseId: categoryCourseId, name: categoryName.trim(), description: categoryDesc.trim() || undefined })
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (editingThread) {
       updateMutation.mutate({ id: editingThread.id, data: { title, body } })
     } else {
-      createMutation.mutate({ categoryId, title, body })
+      createThreadMutation.mutate({ categoryId, title, body })
     }
   }
 
@@ -127,9 +159,14 @@ export default function TrainerForumsPage() {
         title="Forum Management"
         subtitle="Create and moderate discussion threads for your courses"
         actions={
-          <Button onClick={openCreate}>
-            <Plus className="w-4 h-4 mr-1" /> New Thread
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={() => { setShowCategoryModal(true); setCategoryCourseId(courses?.[0]?.id ?? ''); setCategoryName(''); setCategoryDesc('') }}>
+              <FolderPlus className="w-4 h-4 mr-1" /> New Category
+            </Button>
+            <Button onClick={openCreate}>
+              <Plus className="w-4 h-4 mr-1" /> New Thread
+            </Button>
+          </div>
         }
       />
 
@@ -183,6 +220,50 @@ export default function TrainerForumsPage() {
         </div>
       )}
 
+      {/* ── New Category Modal ──────────────────────────────────────────── */}
+      {showCategoryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowCategoryModal(false)}>
+          <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">New Forum Category</h2>
+              <button onClick={() => setShowCategoryModal(false)} aria-label="Close">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <form onSubmit={handleCategorySubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Course <span className="text-red-500">*</span></label>
+                <select
+                  required
+                  value={categoryCourseId}
+                  onChange={e => setCategoryCourseId(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 text-sm text-gray-900 dark:text-gray-100"
+                >
+                  <option value="">Select a course…</option>
+                  {courses?.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                </select>
+              </div>
+              <Input label="Category Name" required value={categoryName} onChange={e => setCategoryName(e.target.value)} placeholder="e.g. Q&A, Study Group" />
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Description <span className="text-gray-400 font-normal">(optional)</span></label>
+                <textarea
+                  value={categoryDesc}
+                  onChange={e => setCategoryDesc(e.target.value)}
+                  rows={3}
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 py-2 text-sm text-gray-900 dark:text-gray-100"
+                  placeholder="Brief description of this category…"
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <Button variant="ghost" type="button" onClick={() => setShowCategoryModal(false)}>Cancel</Button>
+                <Button type="submit" loading={createCategoryMutation.isPending}>Create Category</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Thread Modal ────────────────────────────────────────────────── */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowCreateModal(false)}>
           <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
@@ -223,7 +304,7 @@ export default function TrainerForumsPage() {
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <Button variant="ghost" type="button" onClick={() => setShowCreateModal(false)}>Cancel</Button>
-                <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>
+                <Button type="submit" loading={createThreadMutation.isPending || updateMutation.isPending}>
                   {editingThread ? 'Update' : 'Create'} Thread
                 </Button>
               </div>
