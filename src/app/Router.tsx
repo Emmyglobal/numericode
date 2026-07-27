@@ -34,7 +34,9 @@ const AnnouncementsPage = lazy(() => import('@/pages/dashboard/AnnouncementsPage
 const ProfilePage       = lazy(() => import('@/pages/dashboard/ProfilePage'))
 const CertificatesPage  = lazy(() => import('@/pages/dashboard/CertificatesPage'))
 const QuizzesPage       = lazy(() => import('@/pages/dashboard/QuizzesPage'))
+const QuizTakePage      = lazy(() => import('@/pages/dashboard/QuizTakePage'))
 const ForumsPage        = lazy(() => import('@/pages/dashboard/ForumsPage'))
+const ForumThreadPage   = lazy(() => import('@/pages/dashboard/ForumThreadPage'))
 const GradesPage        = lazy(() => import('@/pages/dashboard/GradesPage'))
 const NotificationsPage = lazy(() => import('@/pages/dashboard/NotificationsPage'))
 const AnalyticsPage    = lazy(() => import('@/pages/dashboard/AnalyticsPage'))
@@ -143,7 +145,9 @@ export function AppRouter() {
             <Route path="/dashboard/profile"       element={<ProfilePage />} />
             <Route path="/dashboard/certificates"  element={<CertificatesPage />} />
             <Route path="/dashboard/quizzes"       element={<QuizzesPage />} />
+            <Route path="/dashboard/quizzes/:id"   element={<QuizTakePage />} />
             <Route path="/dashboard/forums"        element={<ForumsPage />} />
+            <Route path="/dashboard/forums/:threadId" element={<ForumThreadPage />} />
             <Route path="/dashboard/grades"        element={<GradesPage />} />
             <Route path="/dashboard/notifications" element={<NotificationsPage />} />
             <Route path="/dashboard/analytics"     element={<AnalyticsPage />} />

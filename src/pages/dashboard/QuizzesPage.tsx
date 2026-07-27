@@ -1,25 +1,43 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { quizzesService } from '@/services/quizzes.service'
-import { useAuth } from '@/hooks/useAuth'
+import { dashboardService } from '@/services/dashboard.service'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { ClipboardList, Clock, CheckCircle, XCircle, Play } from 'lucide-react'
+import { ClipboardList, Clock, Play } from 'lucide-react'
+import type { EnrolledCourse } from '@/features/courses/types'
 
 export default function QuizzesPage() {
-  const { user } = useAuth()
+  const { data: enrolledCourses } = useQuery({
+    queryKey: ['dashboard', 'courses'],
+    queryFn: () => dashboardService.getMyCourses() as Promise<EnrolledCourse[]>,
+  })
+
   const { data: quizzes, isLoading } = useQuery({
-    queryKey: ['quizzes'],
+    queryKey: ['student-quizzes', enrolledCourses],
     queryFn: async () => {
-      // In a real app, you'd fetch quizzes for enrolled courses
-      return [] as Array<{
+      if (!enrolledCourses || enrolledCourses.length === 0) return []
+
+      const allQuizzes: Array<{
         id: string; courseId: string; title: string; description: string
         timeLimit?: number; passingScore: number; maxAttempts: number
         questionCount: number; attemptCount: number; createdAt: string
-      }>
+      }> = []
+
+      for (const course of enrolledCourses) {
+        try {
+          const courseQuizzes = await quizzesService.listByCourse(course.id)
+          allQuizzes.push(...courseQuizzes)
+        } catch {
+          // course might not have quizzes yet
+        }
+      }
+
+      return allQuizzes
     },
+    enabled: Boolean(enrolledCourses),
   })
 
   return (

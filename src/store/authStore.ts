@@ -13,6 +13,7 @@ interface AuthState {
   token: string | null
   isAuthenticated: boolean
   login: (user: AuthUserWithRole, token: string) => void
+  setToken: (token: string) => void
   logout: () => void
 }
 
@@ -23,6 +24,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       login: (user, token) => set({ user, token, isAuthenticated: true }),
+      setToken: (token) => set({ token, isAuthenticated: true }),
       logout: () => set({ user: null, token: null, isAuthenticated: false }),
     }),
     { name: 'numericode-auth' }

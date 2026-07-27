@@ -33,4 +33,21 @@ export const authService = {
     const { data } = await api.post<ApiResponse<{ message: string }>>('/auth/activate-account', p)
     return data.data || data
   },
+
+  // ─── Google OAuth ───────────────────────────────────────────────────────────
+  /** Fetches the Google OAuth consent URL from the backend. */
+  getGoogleAuthUrl: async (): Promise<string> => {
+    const { data } = await api.get<ApiResponse<{ url: string }>>('/auth/google/url')
+    return data.data.url
+  },
+  /** Redirects the browser to Google's OAuth consent page. */
+  googleLogin: async () => {
+    const url = await authService.getGoogleAuthUrl()
+    window.location.href = url
+  },
+  /** Fetches the current authenticated user from the backend. */
+  getCurrentUser: async (): Promise<AuthResponse['user']> => {
+    const { data } = await api.get<ApiResponse<{ user: AuthResponse['user'] }>>('/auth/me')
+    return data.data.user
+  },
 }
