@@ -3,6 +3,13 @@ import type { ApiResponse } from '@/types/api.types'
 
 export interface LearningAnalytics {
   courseId: string; courseTitle: string; totalTimeSpent: number; totalInteractions: number
+  overallGrade: number | null
+  quizMetrics: {
+    totalQuizzes: number; completedQuizzes: number; averageScore: number | null
+  }
+  forumMetrics: {
+    threadsCreated: number; postsMade: number
+  }
   lessonAnalytics: Array<{
     id: string; lessonId: string; lessonTitle: string
     timeSpent: number; interactions: number; lastAccessed: string
