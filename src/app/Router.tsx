@@ -56,6 +56,7 @@ const TrainerBoards      = lazy(() => import('@/pages/trainer/TrainerBoardsPage'
 const TrainerQuizzes     = lazy(() => import('@/pages/trainer/TrainerQuizzesPage'))
 const TrainerForums      = lazy(() => import('@/pages/trainer/TrainerForumsPage'))
 const TrainerGrading     = lazy(() => import('@/pages/trainer/TrainerGradingPage'))
+const TrainerAnnouncements = lazy(() => import('@/pages/trainer/TrainerAnnouncementsPage'))
 // Admin pages
 const AdminOverview      = lazy(() => import('@/pages/admin/AdminOverviewPage'))
 const AdminUsers         = lazy(() => import('@/pages/admin/AdminUsersPage'))
@@ -171,6 +172,7 @@ export function AppRouter() {
             <Route path="/trainer/quizzes"     element={<TrainerQuizzes />} />
             <Route path="/trainer/forums"      element={<TrainerForums />} />
             <Route path="/trainer/grading"     element={<TrainerGrading />} />
+            <Route path="/trainer/announcements" element={<TrainerAnnouncements />} />
             <Route path="/trainer/profile"     element={<TrainerProfile />} />
           </Route>
         </Route>
