@@ -1,8 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Bell, PlusCircle } from 'lucide-react'
 import { api } from '@/lib/axios'
-import { Badge } from '@/components/ui/Badge'
+import type { ApiResponse } from '@/types/api.types'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
@@ -17,41 +17,75 @@ const audienceBadge: Record<string, string> = { all: 'bg-brand-light text-brand-
 
 export default function AdminAnnouncementsPage() {
   usePageTitle('Announcements — Admin')
+  const queryClient = useQueryClient()
   const [showForm, setShowForm] = useState(false)
-  const [sent, setSent] = useState(false)
+  const [title, setTitle] = useState('')
+  const [body, setBody] = useState('')
+  const [audience, setAudience] = useState('all')
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+
   const { data: announcements, isLoading } = useQuery({
     queryKey: ['admin','announcements'],
     queryFn: async () => { const r = await api.get<{data:AdminAnnouncement[]}>('/admin/announcements'); return r.data.data }
   })
-  const handleSend = (e: React.FormEvent) => { e.preventDefault(); setSent(true); setShowForm(false); setTimeout(()=>setSent(false), 3000) }
+
+  const createMutation = useMutation({
+    mutationFn: async (data: { title: string; body: string; audience: string }) => {
+      const r = await api.post<ApiResponse<AdminAnnouncement>>('/admin/announcements', data)
+      return r.data.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin','announcements'] })
+      setShowForm(false)
+      setTitle('')
+      setBody('')
+      setAudience('all')
+      setSuccess('Announcement sent successfully!')
+      setTimeout(() => setSuccess(''), 4000)
+    },
+    onError: (err: Error) => {
+      setError(err.message)
+    },
+  })
+
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!title.trim() || !body.trim()) {
+      setError('Title and message are required')
+      return
+    }
+    createMutation.mutate({ title: title.trim(), body: body.trim(), audience })
+  }
 
   return (
     <div>
       <PageHeader title="Announcements" subtitle="Send platform-wide or targeted announcements"
-        actions={<Button size="sm" onClick={()=>setShowForm(!showForm)}><PlusCircle className="w-4 h-4" aria-hidden="true"/> New Announcement</Button>}/>
+        actions={<Button size="sm" onClick={()=>{setShowForm(!showForm); setError(''); setSuccess('')}}><PlusCircle className="w-4 h-4" aria-hidden="true"/> New Announcement</Button>}/>
 
-      {sent && <div className="mb-4"><Alert type="success" message="Announcement sent successfully!" onClose={()=>setSent(false)}/></div>}
+      {success && <div className="mb-4"><Alert type="success" message={success} onClose={()=>setSuccess('')}/></div>}
+      {error && <div className="mb-4"><Alert type="error" message={error} onClose={()=>setError('')}/></div>}
 
       {showForm && (
         <div className="rounded-xl border border-brand-light dark:border-blue-800 bg-brand-light/30 dark:bg-blue-900/10 p-6 mb-6">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Create Announcement</h3>
           <form onSubmit={handleSend} aria-label="Create announcement" className="space-y-4">
-            <Input label="Title" placeholder="Announcement title" required/>
+            <Input label="Title" required value={title} onChange={e => setTitle(e.target.value)} placeholder="Announcement title"/>
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Message</label>
-              <textarea rows={3} required placeholder="Write your announcement…" aria-label="Announcement message"
+              <textarea rows={3} required value={body} onChange={e => setBody(e.target.value)} placeholder="Write your announcement…" aria-label="Announcement message"
                 className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:border-brand-blue focus:shadow-focus resize-none"/>
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Send to</label>
-              <select aria-label="Target audience" className="h-10 w-48 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-brand-blue">
+              <select value={audience} onChange={e => setAudience(e.target.value)} aria-label="Target audience" className="h-10 w-48 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-brand-blue">
                 <option value="all">Everyone</option>
                 <option value="students">Students only</option>
                 <option value="trainers">Trainers only</option>
               </select>
             </div>
             <div className="flex gap-2">
-              <Button type="submit">Send Announcement</Button>
+              <Button type="submit" loading={createMutation.isPending}>Send Announcement</Button>
               <Button variant="ghost" type="button" onClick={()=>setShowForm(false)}>Cancel</Button>
             </div>
           </form>
