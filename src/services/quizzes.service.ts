@@ -13,6 +13,11 @@ export interface QuizQuestion {
   options?: unknown; correctAnswer?: string; points: number; position: number
 }
 
+export interface QuizQuestionInput {
+  questionText: string; questionType: 'multiple_choice' | 'true_false' | 'essay' | 'fill_blank'
+  options?: unknown; correctAnswer?: string; points: number; position: number
+}
+
 export interface QuizAttempt {
   id: string; quizId: string; userId: string
   startedAt: string; completedAt?: string; score?: number; passed?: boolean
@@ -34,7 +39,7 @@ export const quizzesService = {
   create: (data: {
     courseId: string; moduleId?: string; lessonId?: string; title: string; description?: string
     timeLimit?: number; passingScore?: number; maxAttempts?: number; shuffleQuestions?: boolean; showResults?: boolean
-    questions?: QuizQuestion[]
+    questions?: QuizQuestionInput[]
   }) => api.post<ApiResponse<Quiz>>('/quizzes/quizzes', data).then(r => r.data.data),
 
   update: (quizId: string, data: Partial<Quiz>) =>

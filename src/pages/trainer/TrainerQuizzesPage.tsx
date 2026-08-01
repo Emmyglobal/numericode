@@ -4,6 +4,7 @@ import { quizzesService, type Quiz } from '@/services/quizzes.service'
 import { api } from '@/lib/axios'
 import type { ApiResponse } from '@/types/api.types'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { AiContentGenerator } from '@/components/shared/AiContentGenerator'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -54,8 +55,12 @@ export default function TrainerQuizzesPage() {
   })
 
   const createMutation = useMutation({
-    mutationFn: () =>
-      quizzesService.create({
+    mutationFn: (data?: {
+      courseId: string; title: string; description?: string; timeLimit?: number; passingScore?: number;
+      maxAttempts?: number; shuffleQuestions?: boolean; showResults?: boolean;
+      questions?: Array<{ questionText: string; questionType: 'multiple_choice' | 'true_false' | 'essay' | 'fill_blank'; options?: unknown; correctAnswer?: string; points: number; position: number }>
+    }) =>
+      quizzesService.create(data ?? {
         courseId,
         title: quizTitle,
         description,
@@ -99,6 +104,29 @@ export default function TrainerQuizzesPage() {
     e.preventDefault()
     if (!courseId || !quizTitle.trim()) return
     createMutation.mutate()
+  }
+
+  const handleAiQuizGenerated = (questions: Array<{ questionText: string; questionType: string; options: unknown; correctAnswer: string | null; points: number; position: number }>) => {
+    const mapped = questions.map(q => ({
+      questionText: q.questionText,
+      questionType: q.questionType as 'multiple_choice' | 'true_false' | 'essay' | 'fill_blank',
+      options: q.options || undefined,
+      correctAnswer: q.correctAnswer || undefined,
+      points: q.points || 1,
+      position: q.position,
+    }))
+    createMutation.mutate({
+      courseId,
+      title: quizTitle || 'AI Generated Quiz',
+      description: description || 'Quiz generated with AI',
+      timeLimit: timeLimit ? Number(timeLimit) : undefined,
+      passingScore: passingScore ? Number(passingScore) : 70,
+      maxAttempts: 1,
+      shuffleQuestions: false,
+      showResults: true,
+      questions: mapped,
+    })
+    setSuccessMessage(`AI generated quiz with ${mapped.length} questions.`)
   }
 
   return (
@@ -200,6 +228,9 @@ export default function TrainerQuizzesPage() {
               <div className="grid grid-cols-2 gap-4">
                 <Input label="Time Limit (min)" type="number" value={timeLimit} onChange={e => setTimeLimit(e.target.value)} placeholder="e.g. 30" />
                 <Input label="Passing Score %" type="number" value={passingScore} onChange={e => setPassingScore(e.target.value)} placeholder="70" />
+              </div>
+              <div className="flex justify-end">
+                <AiContentGenerator mode="quiz" onQuizGenerated={handleAiQuizGenerated} buttonLabel="Generate with AI" />
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <Button variant="ghost" type="button" onClick={() => setShowCreateModal(false)}>Cancel</Button>
