@@ -2,7 +2,7 @@ import { type FormEvent, useState } from 'react'
 import { Bot, MessageCircle, Send, X } from 'lucide-react'
 import { studyGuideService } from '@/services/studyGuide.service'
 
-const prompts = ['Help me choose a subject', 'How do live classes work?', 'What should my child learn first?']
+const prompts = ['Help me choose a subject', 'How do live classes work?', 'What should my child learn first?', 'Explain fractions simply', 'How does NumeriCode work?']
 
 export function AiStudyAssistant() {
   const [open, setOpen] = useState(false)
