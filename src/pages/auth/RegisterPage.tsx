@@ -7,6 +7,7 @@ import { GraduationCap, Presentation, ShieldCheck, Lock, Clock3, Users, Check } 
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
+import { Avatar } from '@/components/ui/Avatar'
 import { authService } from '@/services/auth.service'
 import { useAuthStore, type AuthUserWithRole } from '@/store/authStore'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -72,8 +73,11 @@ export default function RegisterPage() {
 
   const pwd          = watch('password', '')
   const selectedRole = watch('role')
-  const selectedSubjects = watch('subjects', [])
+  const rawSubjects  = watch('subjects', [])
+  const selectedSubjects = rawSubjects ?? []
+  const selectedTeacherId = watch('preferredTeacherId', '') ?? ''
   const eligibleTeachers = teachers.filter(teacher => selectedSubjects.every(subject => teacher.subjects.includes(subject)))
+  const selectTeacher = (id: string) => { setValue('preferredTeacherId', id, { shouldValidate: true }) }
   const strength = pwd.length === 0 ? 0 : pwd.length < 6 ? 1 : pwd.length < 10 ? 2 : 3
   const strengthLabel = ['', 'Weak', 'Medium', 'Strong']
   const strengthColor = ['', 'bg-red-500', 'bg-orange-400', 'bg-green-500']
@@ -199,14 +203,88 @@ export default function RegisterPage() {
             <div className="space-y-4">
               <Input label="Parent / Guardian Name" placeholder="Parent or guardian's full name" error={errors.guardianName?.message} required {...register('guardianName')} />
               <Input label="Parent / Guardian Phone" type="tel" placeholder="e.g. +234 801 234 5678" error={errors.guardianPhone?.message} required {...register('guardianPhone')} />
+
+              {/* Subjects */}
+              <fieldset>
+                <legend className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">Subjects <span className="ml-1 text-red-500">*</span></legend>
+                <div className="grid grid-cols-2 gap-2">
+                  {subjects.map(subject => (
+                    <label key={subject.value} className={cn('flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors', selectedSubjects.includes(subject.value) ? 'border-brand-blue bg-white text-brand-navy dark:bg-surface-dark dark:text-white' : 'border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300')}>
+                      <input type="checkbox" value={subject.value} className="sr-only" {...register('subjects')} />
+                      <span className={cn('flex h-4 w-4 items-center justify-center rounded border', selectedSubjects.includes(subject.value) ? 'border-brand-blue bg-brand-blue text-white' : 'border-gray-300')}>
+                        {selectedSubjects.includes(subject.value) && <Check className="h-3 w-3" />}
+                      </span>
+                      {subject.label}
+                    </label>
+                  ))}
+                </div>
+                {errors.subjects && <p className="mt-2 text-xs text-red-600 dark:text-red-400" role="alert">{errors.subjects.message}</p>}
+              </fieldset>
+
+              {/* Preferred Teacher — card selector with photo & bio */}
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="preferred-teacher" className="text-sm font-semibold text-gray-700 dark:text-gray-200">Preferred Teacher <span className="ml-1 text-red-500">*</span></label>
-                <select id="preferred-teacher" className="h-11 w-full rounded-xl border border-gray-200 bg-white px-3.5 text-sm text-gray-900 shadow-sm focus:border-brand-blue focus:outline-none dark:border-gray-700 dark:bg-surface-dark dark:text-gray-100" {...register('preferredTeacherId')}>
-                  <option value="">{teachersError || (teachers.length ? (selectedSubjects.length ? 'Select a teacher' : 'Select subject(s) first') : 'Loading available teachers…')}</option><option value="auto">Match my child with an available teacher</option>{eligibleTeachers.map(teacher => <option key={teacher.id} value={teacher.id}>{teacher.name} — {teacher.subjects.map(subject => subject[0].toUpperCase() + subject.slice(1)).join(', ')}</option>)}
-                </select>
+                <input type="hidden" value={selectedTeacherId} {...register('preferredTeacherId')} />
+
+                {teachersError ? (
+                  <p className="text-xs text-red-600 dark:text-red-400" role="alert">{teachersError}</p>
+                ) : !teachers.length ? (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Loading available teachers…</p>
+                ) : !selectedSubjects.length ? (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Select subject(s) first to see available teachers.</p>
+                ) : eligibleTeachers.length === 0 ? (
+                  <p className="text-xs text-amber-600 dark:text-amber-400">No teachers currently teach every selected subject. Choose different subjects or contact support.</p>
+                ) : (
+                  <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                    {eligibleTeachers.map(teacher => {
+                      const isSelected = selectedTeacherId === teacher.id
+                      return (
+                        <button
+                          key={teacher.id}
+                          type="button"
+                          onClick={() => selectTeacher(teacher.id)}
+                          aria-pressed={isSelected}
+                          className={cn(
+                            'w-full text-left rounded-xl border-2 p-3 cursor-pointer transition-all',
+                            isSelected
+                              ? 'border-brand-blue bg-brand-light dark:bg-blue-900/20'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                          )}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Avatar name={teacher.name} src={teacher.avatarUrl} size="md" />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white">{teacher.name}</p>
+                                <span className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2', isSelected ? 'border-brand-blue bg-brand-blue text-white' : 'border-gray-300')}>
+                                  {isSelected && <Check className="h-3 w-3" />}
+                                </span>
+                              </div>
+                              <p className="text-xs text-brand-blue mt-0.5">{teacher.subjects.map(subject => subject[0].toUpperCase() + subject.slice(1)).join(' · ')}</p>
+                              {teacher.bio && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed line-clamp-3">{teacher.bio}</p>}
+                            </div>
+                          </div>
+                        </button>
+                      )
+                    })}
+                    <button
+                      type="button"
+                      onClick={() => selectTeacher('auto')}
+                      aria-pressed={selectedTeacherId === 'auto'}
+                      className={cn(
+                        'w-full text-left rounded-xl border-2 border-dashed p-3 cursor-pointer transition-all',
+                        selectedTeacherId === 'auto'
+                          ? 'border-brand-blue bg-brand-light dark:bg-blue-900/20'
+                          : 'border-gray-300 dark:border-gray-600 hover:border-brand-blue'
+                      )}
+                    >
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">Match my child with an available teacher</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">We'll assign a qualified teacher automatically.</p>
+                    </button>
+                  </div>
+                )}
                 {errors.preferredTeacherId && <p className="text-xs text-red-600 dark:text-red-400" role="alert">{errors.preferredTeacherId.message}</p>}
               </div>
-              <fieldset><legend className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">Subjects <span className="ml-1 text-red-500">*</span></legend><div className="grid grid-cols-2 gap-2">{subjects.map(subject => <label key={subject.value} className={cn('flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors', selectedSubjects.includes(subject.value) ? 'border-brand-blue bg-white text-brand-navy dark:bg-surface-dark dark:text-white' : 'border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300')}><input type="checkbox" value={subject.value} className="sr-only" {...register('subjects')} /><span className={cn('flex h-4 w-4 items-center justify-center rounded border', selectedSubjects.includes(subject.value) ? 'border-brand-blue bg-brand-blue text-white' : 'border-gray-300')} >{selectedSubjects.includes(subject.value) && <Check className="h-3 w-3" />}</span>{subject.label}</label>)}</div>{errors.subjects && <p className="mt-2 text-xs text-red-600 dark:text-red-400" role="alert">{errors.subjects.message}</p>}</fieldset>
             </div>
           </section>
         )}

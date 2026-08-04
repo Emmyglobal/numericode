@@ -1,7 +1,7 @@
 import { api } from '@/lib/axios'
 import type { Course } from '@/features/courses/types'
 import type { ApiResponse } from '@/types/api.types'
-export interface AvailableTeacher { id: string; name: string; subjects: Array<'mathematics' | 'programming'> }
+export interface AvailableTeacher { id: string; name: string; bio: string; avatarUrl?: string; subjects: Array<'mathematics' | 'programming'> }
 export interface AvailableCourseForEnrollment { id: string; title: string; subject: string; level: string; instructorName: string; instructorId: string }
 export interface EnrollResult { enrolledCourses: string[]; count: number }
 export const coursesService = {
