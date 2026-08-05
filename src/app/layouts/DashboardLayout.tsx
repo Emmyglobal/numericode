@@ -3,6 +3,7 @@ import { DashboardSidebar } from '@/components/navigation/DashboardSidebar'
 import { DashboardTopBar } from '@/components/navigation/DashboardTopBar'
 import { SkipLink } from '@/components/shared/SkipLink'
 import { useScrollTop } from '@/hooks/useScrollTop'
+import { useUIStore } from '@/store/uiStore'
 
 const titles: Record<string, string> = {
   '/dashboard':                   'Overview',
@@ -18,6 +19,7 @@ const titles: Record<string, string> = {
 export default function DashboardLayout() {
   const { pathname } = useLocation()
   useScrollTop()
+  const { isSidebarOpen } = useUIStore()
   const title = pathname.startsWith('/dashboard/courses/') ? 'Course Viewer' : (titles[pathname] ?? 'Dashboard')
 
   return (
@@ -25,7 +27,7 @@ export default function DashboardLayout() {
       <SkipLink />
       <DashboardSidebar />
       <DashboardTopBar title={title} />
-      <main id="main-content" tabIndex={-1} className="lg:pl-64 pt-16 min-h-screen focus:outline-none">
+      <main id="main-content" tabIndex={-1} className={`pt-16 min-h-screen focus:outline-none transition-all duration-300 ${isSidebarOpen ? 'lg:pl-64 pl-64' : 'lg:pl-64 pl-0'}`}>
         <div className="p-4 sm:p-6 lg:p-8">
           <Outlet />
         </div>

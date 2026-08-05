@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Video, PlusCircle, ExternalLink, Pencil, Trash2, X } from 'lucide-react'
+import { Video, PlusCircle, ExternalLink, Pencil, Trash2, X, Users } from 'lucide-react'
 import { api } from '@/lib/axios'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -14,7 +14,7 @@ import { formatDateTime } from '@/utils/formatDate'
 import { formatDuration } from '@/utils/formatDuration'
 import { cn } from '@/utils/classNames'
 import type { TrainerLiveSession } from '@/features/trainer/types'
-import type { TrainerCourse } from '@/features/trainer/types'
+import type { TrainerCourse, TrainerStudent } from '@/features/trainer/types'
 
 const tabs = ['all','scheduled','completed'] as const
 
@@ -25,10 +25,14 @@ interface SessionFormData {
   time: string
   duration: number
   meetUrl: string
+  sessionType: 'group' | 'individual'
+  studentIds: string[]
+  extensionMinutes: number
 }
 
 const emptyForm: SessionFormData = {
   courseId: '', title: '', date: '', time: '', duration: 60, meetUrl: '',
+  sessionType: 'group', studentIds: [], extensionMinutes: 0,
 }
 
 export default function TrainerSessionsPage() {
@@ -50,6 +54,12 @@ export default function TrainerSessionsPage() {
     queryFn: async () => { const r = await api.get<{ data: TrainerCourse[] }>('/trainer/courses'); return r.data.data },
   })
 
+  const { data: students } = useQuery({
+    queryKey: ['trainer', 'students'],
+    queryFn: async () => { const r = await api.get<{ data: TrainerStudent[] }>('/trainer/students'); return r.data.data },
+    enabled: form.sessionType === 'individual',
+  })
+
   const filtered = sessions?.filter(s => tab==='all' || s.status===tab) ?? []
 
   const createMutation = useMutation({
@@ -58,6 +68,7 @@ export default function TrainerSessionsPage() {
         courseId: data.courseId, title: data.title,
         date: `${data.date}T${data.time}:00`,
         duration: data.duration, meetUrl: data.meetUrl,
+        sessionType: data.sessionType, studentIds: data.studentIds, extensionMinutes: data.extensionMinutes,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trainer', 'sessions'] })
@@ -73,6 +84,7 @@ export default function TrainerSessionsPage() {
         title: data.title,
         date: `${data.date}T${data.time}:00`,
         duration: data.duration, meetUrl: data.meetUrl,
+        sessionType: data.sessionType, studentIds: data.studentIds, extensionMinutes: data.extensionMinutes,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trainer', 'sessions'] })
@@ -107,6 +119,9 @@ export default function TrainerSessionsPage() {
       time: dt.toTimeString().slice(0, 5),
       duration: session.duration,
       meetUrl: session.meetUrl,
+      sessionType: session.sessionType,
+      studentIds: session.studentIds,
+      extensionMinutes: session.extensionMinutes,
     })
     setModalOpen(true)
   }
@@ -120,7 +135,7 @@ export default function TrainerSessionsPage() {
     }
   }
 
-  const updateField = (field: keyof SessionFormData, value: string | number) => {
+  const updateField = (field: keyof SessionFormData, value: string | number | string[]) => {
     setForm(prev => ({ ...prev, [field]: value }))
   }
 
@@ -205,6 +220,26 @@ export default function TrainerSessionsPage() {
                 <Input label="Time" type="time" required value={form.time} onChange={e => updateField('time', e.target.value)} />
               </div>
               <Input label="Duration (minutes)" type="number" required min={15} max={180} value={form.duration} onChange={e => updateField('duration', Number(e.target.value))} />
+              <Input label="Extension (minutes)" type="number" min={0} max={60} value={form.extensionMinutes} onChange={e => updateField('extensionMinutes', Number(e.target.value))} hint="Extra time added to the class" />
+              <div>
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Session Type</label>
+                <select value={form.sessionType} onChange={e => updateField('sessionType', e.target.value as 'group' | 'individual')} className="mt-1 h-11 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 text-sm text-gray-900 dark:text-gray-100">
+                  <option value="group">Group (all enrolled students)</option>
+                  <option value="individual">Individual (select students)</option>
+                </select>
+              </div>
+              {form.sessionType === 'individual' && (
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Select Students</label>
+                  <select multiple value={form.studentIds} onChange={e => {
+                    const selected = Array.from(e.target.selectedOptions).map(o => o.value)
+                    updateField('studentIds', selected)
+                  }} className="mt-1 h-32 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 text-sm text-gray-900 dark:text-gray-100">
+                    {students?.map(s => <option key={s.id} value={s.id}>{s.name} ({s.email})</option>)}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple students.</p>
+                </div>
+              )}
               <Input label="Meeting URL" value={form.meetUrl} onChange={e => updateField('meetUrl', e.target.value)} placeholder="https://meet.google.com/…" hint="Zoom or Google Meet link" />
               <div className="flex justify-end gap-3 pt-2">
                 <Button variant="ghost" type="button" onClick={() => { setModalOpen(false); setEditingSession(null); setForm(emptyForm) }}>Cancel</Button>

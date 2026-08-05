@@ -14,7 +14,7 @@ export function DashboardTopBar({ title }: { title: string }) {
       className="fixed top-0 left-0 lg:left-64 right-0 z-20 h-16 bg-white/95 dark:bg-surface-dark/95 backdrop-blur border-b border-gray-200 dark:border-gray-700 flex items-center px-4 sm:px-6 gap-4"
     >
       <button
-        className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
         onClick={() => setSidebarOpen(true)}
         aria-label="Open sidebar navigation"
       >

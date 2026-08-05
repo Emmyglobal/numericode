@@ -30,8 +30,13 @@ export interface TrainerLiveSession {
   date: string
   duration: number
   meetUrl: string
-  status: 'scheduled' | 'live' | 'completed'
+  status: 'scheduled' | 'live' | 'completed' | 'expired'
   attendees: number
+  sessionType: 'group' | 'individual'
+  studentIds: string[]
+  extensionMinutes: number
+  startTime: string | null
+  endTime: string | null
 }
 
 export interface TrainerAssignment {
