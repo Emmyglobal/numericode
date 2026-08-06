@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Eraser, Highlighter, MousePointer2, Pencil, Redo2, RotateCcw, Save, Square, Type, Undo2, ZoomIn, ZoomOut, Users } from 'lucide-react'
+import { Eraser, Highlighter, MousePointer2, Pencil, Radio, Redo2, RotateCcw, Save, Square, Type, Undo2, ZoomIn, ZoomOut, Users } from 'lucide-react'
 import { dashboardService } from '@/services/dashboard.service'
 import { api } from '@/lib/axios'
 import { Button } from '@/components/ui/Button'
@@ -67,15 +67,22 @@ export function LearningBoard({ lessonId, mode = 'student' }: { lessonId: string
   const [students, setStudents] = useState<TrainerStudent[]>([])
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const [live, setLive] = useState(false)
+  const [lastRevision, setLastRevision] = useState(0)
+  const boardRef = useRef(board)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const boardPath = `/boards/${mode === 'trainer' ? 'trainer/' : ''}lessons/${lessonId}`
+  const livePath = `/boards/lessons/${lessonId}/live`
+
+  useEffect(() => { boardRef.current = board }, [board])
 
   useEffect(() => {
     const load = mode === 'trainer'
       ? api.get<{ data: unknown }>(boardPath).then(response => response.data.data)
       : dashboardService.getBoard(lessonId)
     load.then((data: unknown) => {
-      const result = data as { boardData?: BoardDocument; isLocked?: boolean; isShared?: boolean; boardType?: 'group' | 'individual'; targetStudentIds?: string[] }
+      const result = data as { boardData?: BoardDocument; isLocked?: boolean; isShared?: boolean; boardType?: 'group' | 'individual'; targetStudentIds?: string[]; revision?: number }
       const loaded = result.boardData?.elements ? result.boardData : emptyBoard
       setBoard(loaded)
       setHistory([loaded])
@@ -84,8 +91,47 @@ export function LearningBoard({ lessonId, mode = 'student' }: { lessonId: string
       setShared(Boolean(result.isShared))
       setBoardType(result.boardType ?? 'group')
       setTargetStudentIds(result.targetStudentIds ?? [])
+      setLastRevision(result.revision ?? 0)
     }).catch(() => setMessage('Unable to load saved board notes.'))
   }, [boardPath, lessonId, mode])
+
+  // Real-time sync: students poll the trainer's shared board; trainers auto-save debounced
+  useEffect(() => {
+    if (mode === 'trainer') return
+    let cancelled = false
+    const poll = async () => {
+      try {
+        const { data } = await api.get<{ data: { boardData?: BoardDocument; isLocked?: boolean; isShared?: boolean; revision?: number } }>(livePath)
+        const result = data.data
+        if (cancelled) return
+        if (result.isShared && result.boardData?.elements) {
+          setLive(true)
+          if ((result.revision ?? 0) > lastRevision) {
+            setBoard(result.boardData)
+            setLastRevision(result.revision ?? 0)
+          }
+          setLocked(Boolean(result.isLocked))
+        } else {
+          setLive(false)
+        }
+      } catch { /* silent — board may not be shared yet */ }
+    }
+    poll()
+    const id = setInterval(poll, 2000)
+    return () => { cancelled = true; clearInterval(id) }
+  }, [livePath, mode, lastRevision])
+
+  // Trainer auto-save (debounced) so students see changes in real time
+  useEffect(() => {
+    if (mode !== 'trainer' || !shared) return
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(async () => {
+      try {
+        await api.put(boardPath, { boardData: boardRef.current })
+      } catch { /* silent */ }
+    }, 800)
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
+  }, [board, boardPath, mode, shared])
 
   // Load students for individual board targeting
   useEffect(() => {
@@ -255,6 +301,11 @@ export function LearningBoard({ lessonId, mode = 'student' }: { lessonId: string
         </span>
       </div>
 
+      {live && mode === 'student' && (
+        <p className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-red-50 dark:bg-red-900/20 px-2.5 py-1 text-xs font-medium text-red-600 dark:text-red-400">
+          <Radio className="h-3.5 w-3.5 animate-pulse" aria-hidden="true" /> Trainer is live — board updates in real time
+        </p>
+      )}
       {locked && <p className="mb-2 text-xs text-amber-700 dark:text-amber-400">The trainer has locked this board for the current live class.</p>}
       {message && <p aria-live="polite" className="mb-2 text-xs text-gray-600 dark:text-gray-300">{message}</p>}
       <div className="overflow-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700">
