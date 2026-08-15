@@ -10,6 +10,7 @@ const titles: Record<string, string> = {
   '/trainer/notes': 'Course Notes', '/trainer/resources': 'Resources',
   '/trainer/assignments': 'Assignments', '/trainer/profile': 'Profile',
   '/trainer/boards': 'Lesson Boards',
+  '/trainer/code-editor': 'Code Editor',
 }
 
 export default function TrainerLayout() {

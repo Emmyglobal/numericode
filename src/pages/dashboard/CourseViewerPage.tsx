@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { formatDuration } from '@/utils/formatDuration'
 import { cn } from '@/utils/classNames'
 import { LearningBoard } from '@/components/shared/LearningBoard'
+import { CollaborativeCodeEditor } from '@/components/shared/CollaborativeCodeEditor'
 import type { EnrolledCourse, Lesson } from '@/features/courses/types'
 
 export default function CourseViewerPage() {
@@ -159,6 +160,7 @@ export default function CourseViewerPage() {
           </div>
 
           {activeLesson && <LearningBoard lessonId={activeLesson.id} />}
+          {activeLesson && <CollaborativeCodeEditor lessonId={activeLesson.id} />}
 
           {/* Resources */}
           {(activeLesson?.resources?.length ?? 0) > 0 && (

@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, BookOpen, Users, Video, ClipboardList, GraduationCap, LogOut, X, UserCircle, Palette, FileText, FolderOpen, ClipboardCheck, MessageSquare, Trophy, Bell } from 'lucide-react'
+import { LayoutDashboard, BookOpen, Users, Video, ClipboardList, GraduationCap, LogOut, X, UserCircle, Palette, FileText, FolderOpen, ClipboardCheck, MessageSquare, Trophy, Bell, Code2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUIStore } from '@/store/uiStore'
 import { Avatar } from '@/components/ui/Avatar'
@@ -17,6 +17,7 @@ const navItems = [
   { to: '/trainer/forums',      icon: MessageSquare,   label: 'Forums',         end: false },
   { to: '/trainer/grading',     icon: Trophy,          label: 'Grading & Rubrics', end: false },
   { to: '/trainer/boards',      icon: Palette,         label: 'Lesson Boards',  end: false },
+  { to: '/trainer/code-editor', icon: Code2,           label: 'Code Editor',    end: false },
   { to: '/trainer/announcements', icon: Bell,          label: 'Announcements',  end: false },
   { to: '/trainer/profile',     icon: UserCircle,      label: 'Profile',        end: false },
 ]
