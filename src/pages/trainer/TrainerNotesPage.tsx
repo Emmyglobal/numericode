@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { formatDateTime } from '@/utils/formatDate'
+import { AiContentGenerator } from '@/components/shared/AiContentGenerator'
 import type { TrainerCourse } from '@/features/trainer/types'
 import type { TrainerNote } from '@/mocks/data/trainer.data'
 
@@ -110,6 +111,11 @@ export default function TrainerNotesPage() {
     setForm(prev => ({ ...prev, [field]: value }))
   }
 
+  const handleAiNoteGenerated = (note: { title: string; content: string }) => {
+    setForm(prev => ({ ...prev, title: note.title, content: note.content }))
+    setSuccessMessage('AI-generated notes added — review them and save when ready.')
+  }
+
   return (
     <div>
       <PageHeader title="Course Notes" subtitle="Create and manage notes and learning content for your courses"
@@ -204,6 +210,15 @@ export default function TrainerNotesPage() {
                   className="mt-1 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 py-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 shadow-sm focus:outline-none focus:border-brand-blue focus:shadow-focus dark:focus:border-brand-sky"
                 />
               </div>
+              {!editingNote && (
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 px-3.5 py-2.5">
+                  <div className="text-sm text-gray-600 dark:text-gray-300">
+                    <span className="font-semibold text-gray-800 dark:text-gray-100">Prefer a draft?</span>{' '}
+                    Let AI write these notes for you — it fills in the title and content above.
+                  </div>
+                  <AiContentGenerator mode="note" onNoteGenerated={handleAiNoteGenerated} buttonLabel="AI Notes" />
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"

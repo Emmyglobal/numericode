@@ -235,4 +235,60 @@ Welcome to React & TypeScript! Build modern, type-safe web applications with the
       { id: 'lc6', title: 'React Hooks Deep Dive', date: '2026-07-06T15:00:00', duration: 90, meetUrl: 'https://meet.google.com/react-hooks', status: 'upcoming' },
     ],
   },
+  {
+    id: 'c7', subject: 'mathematics', level: 'beginner', lessonCount: 12,
+    title: 'Mathematics to Coding: Logic, Numbers & Algorithms', createdAt: '2024-05-01',
+    description: 'A bridge course that takes students from mathematics into coding, revealing how the logic, number systems, variables, and patterns you study in maths become the core ideas behind every computer program.',
+    content: `# Mathematics to Coding: Logic, Numbers & Algorithms
+
+Welcome to our bridge course! This course connects the mathematics you already study to the world of coding. Every idea here — from logical reasoning to binary numbers to algebra — becomes a superpower when you start writing programs.
+
+## What You'll Learn
+
+- **Mathematical Logic for Code**: Statements, truth tables, and the Boolean logic behind every if/else decision in programming
+- **Number Systems Under the Hood**: Binary and hexadecimal, base conversion, and how computers really store data
+- **Algebra as Programming**: Variables, expressions, functions, and algorithms — the algebra of code
+- **Patterns, Pseudocode & First Programs**: Turning mathematical patterns into step-by-step algorithms and running your very first program
+
+## How to Use This Course
+
+1. Work through the modules in order — each one builds on the last
+2. Practice each new idea in the learning workspace
+3. Bring your questions to the live Q&A sessions
+4. Finish the last module to run your first coding project
+
+## Prerequisites
+
+- Basic arithmetic and a little algebra
+- A genuine curiosity about how mathematics becomes code
+
+Let's turn maths into code!`,
+    outcomes: ['Apply Boolean logic to decisions','Convert between binary and decimal','Use variables and functions like a programmer','Turn number patterns into algorithms','Write and run a first coding project','Connect mathematics to real programming'],
+    instructor: { id: 'i1', name: 'Mr. Emmanuel Nwafor', bio: 'Mathematics educator with 10+ years teaching secondary and tertiary students across Nigeria. Passionate about making maths accessible and showing where it leads — including into code.', credentials: ['B.Sc Mathematics – UNILAG', 'PGDE Education – UI', '10+ Years Teaching'] },
+    modules: [
+      { id: 'm12', title: 'Mathematical Logic for Code', lessons: [
+        { id: 'l27', title: 'Statements, Truth and Boolean Logic', duration: 25, isCompleted: false, resources: [] },
+        { id: 'l28', title: 'Conditional Reasoning and Truth Tables', duration: 35, isCompleted: false, resources: [] },
+        { id: 'l29', title: 'Logic Gates and Logical Operators', duration: 35, isCompleted: false, resources: [] },
+      ]},
+      { id: 'm13', title: 'Number Systems Under the Hood', lessons: [
+        { id: 'l30', title: 'Binary and Hexadecimal', duration: 30, isCompleted: false, resources: [] },
+        { id: 'l31', title: 'Base Conversion and Binary Arithmetic', duration: 35, isCompleted: false, resources: [] },
+        { id: 'l32', title: 'How Computers Encode Data', duration: 30, isCompleted: false, resources: [] },
+      ]},
+      { id: 'm14', title: 'Algebra as Programming', lessons: [
+        { id: 'l33', title: 'Variables and Expressions', duration: 35, isCompleted: false, resources: [] },
+        { id: 'l34', title: 'Linear Functions and Input–Output', duration: 35, isCompleted: false, resources: [] },
+        { id: 'l35', title: 'Functions, Sequences and Algorithms', duration: 40, isCompleted: false, resources: [] },
+      ]},
+      { id: 'm15', title: 'Patterns, Pseudocode and First Programs', lessons: [
+        { id: 'l36', title: 'Number Patterns and Series', duration: 30, isCompleted: false, resources: [] },
+        { id: 'l37', title: 'Algorithms and Flowcharts', duration: 35, isCompleted: false, resources: [] },
+        { id: 'l38', title: 'Your First Coding Project', duration: 45, isCompleted: false, resources: [] },
+      ]},
+    ],
+    liveClasses: [
+      { id: 'lc7', title: 'Maths-to-Code: Boolean Logic Q&A', date: '2026-07-15T10:00:00', duration: 60, meetUrl: 'https://meet.google.com/math-to-code', status: 'upcoming' },
+    ],
+  },
 ]

@@ -31,6 +31,18 @@ export interface AiGenerateAssignmentParams {
   level?: string
 }
 
+export interface AiGenerateNoteParams {
+  topic: string
+  subject?: string
+  level?: string
+  style?: string
+}
+
+export interface AiGeneratedNote {
+  title: string
+  content: string
+}
+
 export const aiService = {
   /** Study Guide — available to everyone (no auth required) */
   studyGuide: async (message: string) => {
@@ -53,6 +65,12 @@ export const aiService = {
   /** Generate assignment (trainer/admin only) */
   generateAssignment: async (params: AiGenerateAssignmentParams) => {
     const { data } = await api.post<ApiResponse<{ description: string }>>('/ai/generate-assignment', params)
+    return data.data
+  },
+
+  /** Generate course note (trainer/admin only) */
+  generateNote: async (params: AiGenerateNoteParams) => {
+    const { data } = await api.post<ApiResponse<AiGeneratedNote>>('/ai/generate-note', params)
     return data.data
   },
 }

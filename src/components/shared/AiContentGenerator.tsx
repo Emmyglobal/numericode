@@ -1,17 +1,18 @@
 import { type FormEvent, useState } from 'react'
 import { Sparkles, X, Loader2 } from 'lucide-react'
-import { aiService, type AiGeneratedQuestion } from '@/services/ai.service'
+import { aiService, type AiGeneratedNote, type AiGeneratedQuestion } from '@/services/ai.service'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
 
-export type AiGeneratorMode = 'lesson' | 'quiz' | 'assignment'
+export type AiGeneratorMode = 'lesson' | 'quiz' | 'assignment' | 'note'
 
 interface AiContentGeneratorProps {
   mode: AiGeneratorMode
   onLessonGenerated?: (content: string) => void
   onQuizGenerated?: (questions: AiGeneratedQuestion[]) => void
   onAssignmentGenerated?: (description: string) => void
+  onNoteGenerated?: (note: AiGeneratedNote) => void
   defaultSubject?: string
   defaultLevel?: string
   buttonLabel?: string
@@ -34,6 +35,7 @@ export function AiContentGenerator({
   onLessonGenerated,
   onQuizGenerated,
   onAssignmentGenerated,
+  onNoteGenerated,
   defaultSubject = 'Mathematics',
   defaultLevel = 'beginner',
   buttonLabel,
@@ -51,12 +53,18 @@ export function AiContentGenerator({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const title = mode === 'lesson' ? 'Generate Lesson Content' : mode === 'quiz' ? 'Generate Quiz Questions' : 'Generate Assignment'
+  const title = mode === 'lesson' ? 'Generate Lesson Content'
+    : mode === 'quiz' ? 'Generate Quiz Questions'
+      : mode === 'assignment' ? 'Generate Assignment'
+        : 'Generate Study Notes'
+
   const description = mode === 'lesson'
     ? 'Let AI draft a structured lesson for your course.'
     : mode === 'quiz'
       ? 'Let AI create quiz questions for your topic.'
-      : 'Let AI draft an assignment for your students.'
+      : mode === 'assignment'
+        ? 'Let AI draft an assignment for your students.'
+        : 'Let AI write concise, well-organised study notes for your topic.'
 
   const toggleQuestionType = (value: string) => {
     setQuestionTypes(prev =>
@@ -82,9 +90,12 @@ export function AiContentGenerator({
           questionTypes: questionTypes.length > 0 ? questionTypes : undefined,
         })
         onQuizGenerated?.(result.questions)
-      } else {
+      } else if (mode === 'assignment') {
         const result = await aiService.generateAssignment({ topic: topic.trim(), subject, level })
         onAssignmentGenerated?.(result.description)
+      } else {
+        const result = await aiService.generateNote({ topic: topic.trim(), subject, level, style })
+        onNoteGenerated?.(result)
       }
       setOpen(false)
       setTopic('')
@@ -162,7 +173,7 @@ export function AiContentGenerator({
                 </div>
               </div>
 
-              {mode === 'lesson' && (
+              {(mode === 'lesson' || mode === 'note') && (
                 <div>
                   <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Style</label>
                   <select
