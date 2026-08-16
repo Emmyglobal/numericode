@@ -4,6 +4,7 @@ import { DashboardTopBar } from '@/components/navigation/DashboardTopBar'
 import { SkipLink } from '@/components/shared/SkipLink'
 import { useScrollTop } from '@/hooks/useScrollTop'
 import { useUIStore } from '@/store/uiStore'
+import { AiStudyAssistant } from '@/components/shared/AiStudyAssistant'
 
 const titles: Record<string, string> = {
   '/dashboard':                   'Overview',
@@ -14,6 +15,7 @@ const titles: Record<string, string> = {
   '/dashboard/announcements':     'Announcements',
   '/dashboard/certificates':      'Certificates',
   '/dashboard/profile':           'Profile',
+  '/dashboard/workspace':         'Learning Workspace',
 }
 
 export default function DashboardLayout() {
@@ -32,6 +34,7 @@ export default function DashboardLayout() {
           <Outlet />
         </div>
       </main>
+      <AiStudyAssistant />
     </div>
   )
 }

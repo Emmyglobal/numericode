@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import Editor, { type BeforeMount } from '@monaco-editor/react'
 import { Code, Play, Save, Lock, Unlock, Share2, Users, Plus, X, Terminal, FileCode, Globe, Radio, Eraser, Moon, Sun } from 'lucide-react'
 import { api } from '@/lib/axios'
 import { Button } from '@/components/ui/Button'
@@ -75,6 +76,27 @@ const SUPPORTED_LANGUAGES: Record<string, string> = {
 function detectLanguage(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase() ?? ''
   return SUPPORTED_LANGUAGES[ext] || 'javascript'
+}
+
+const configureEditor: BeforeMount = (monaco) => {
+  monaco.languages.registerCompletionItemProvider('html', {
+    provideCompletionItems: () => ({ suggestions: [
+      {
+        label: '! (HTML document)',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: '<!doctype html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8" />\n  <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n  <title>${1:Document}</title>\n  <link rel="stylesheet" href="${2:styles.css}" />\n</head>\n<body>\n  ${0}\n  <script src="${3:script.js}"></script>\n</body>\n</html>',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Create a complete HTML5 document',
+      },
+      {
+        label: 'html:5',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: '<!doctype html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8" />\n  <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n  <title>${1:Document}</title>\n</head>\n<body>\n  ${0}\n</body>\n</html>',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: 'Create a basic HTML5 document',
+      },
+    ] }),
+  })
 }
 
 export function CollaborativeCodeEditor({
@@ -437,37 +459,23 @@ export function CollaborativeCodeEditor({
       {/* Code editor area */}
       <div className="flex flex-col lg:flex-row">
         <div className="flex-1 min-h-0">
-          <div className="relative">
+          <div className="relative min-h-[300px] lg:min-h-[400px]">
             {activeFile && (
-              <textarea
+              <Editor
+                height="400px"
+                language={activeFile.language}
                 value={activeFile.content}
-                onChange={e => updateContent(e.target.value)}
-                disabled={isLocked && mode === 'student'}
-                spellCheck={false}
-                className={cn(
-                  'w-full min-h-[300px] lg:min-h-[400px] p-4 font-mono text-sm leading-relaxed resize-y focus:outline-none',
-                  darkEditor
-                    ? 'bg-gray-900 text-green-300 border-0'
-                    : 'bg-white text-gray-900 border-0',
-                  (isLocked && mode === 'student') ? 'cursor-not-allowed opacity-75' : ''
-                )}
-                style={{ tabSize: 2 }}
-                aria-label="Code editor"
-                placeholder="Write your code here..."
+                onChange={value => updateContent(value ?? '')}
+                beforeMount={configureEditor}
+                theme={darkEditor ? 'vs-dark' : 'vs'}
+                options={{
+                  readOnly: isLocked && mode === 'student', minimap: { enabled: false }, fontSize: 14,
+                  tabSize: 2, automaticLayout: true, wordWrap: 'on', scrollBeyondLastLine: false,
+                  quickSuggestions: true, suggestOnTriggerCharacters: true, snippetSuggestions: 'top',
+                  padding: { top: 12, bottom: 12 }, ariaLabel: 'Code editor',
+                }}
               />
             )}
-            {/* Line numbers */}
-            <div
-              className={cn(
-                'absolute left-0 top-0 bottom-0 w-10 py-4 text-right pr-2 font-mono text-xs select-none overflow-hidden pointer-events-none',
-                darkEditor ? 'text-gray-600 bg-gray-800/50' : 'text-gray-400 bg-gray-50'
-              )}
-              aria-hidden="true"
-            >
-              {activeFile?.content.split('\n').map((_, i) => (
-                <div key={i} className="leading-relaxed">{i + 1}</div>
-              ))}
-            </div>
           </div>
         </div>
 

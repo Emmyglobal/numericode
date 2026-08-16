@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { GraduationCap } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { AiStudyAssistant } from '@/components/shared/AiStudyAssistant'
 export default function AuthLayout() {
   return (
     <div className="min-h-screen flex">
@@ -16,6 +17,7 @@ export default function AuthLayout() {
       <div className="flex-1 flex flex-col justify-center items-center px-4 py-10 bg-bg dark:bg-bg-dark overflow-y-auto">
         <div className="w-full max-w-md"><Outlet /></div>
       </div>
+      <AiStudyAssistant />
     </div>
   )
 }

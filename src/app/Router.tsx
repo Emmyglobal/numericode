@@ -42,6 +42,7 @@ const NotificationsPage = lazy(() => import('@/pages/dashboard/NotificationsPage
 const AnalyticsPage    = lazy(() => import('@/pages/dashboard/AnalyticsPage'))
 const MessagesPage     = lazy(() => import('@/pages/dashboard/MessagesPage'))
 const BadgesPage       = lazy(() => import('@/pages/dashboard/BadgesPage'))
+const LearningWorkspacePage = lazy(() => import('@/pages/dashboard/LearningWorkspacePage'))
 // Trainer pages
 const TrainerOverview    = lazy(() => import('@/pages/trainer/TrainerOverviewPage'))
 const TrainerCourses     = lazy(() => import('@/pages/trainer/TrainerCoursesPage'))
@@ -155,6 +156,7 @@ export function AppRouter() {
             <Route path="/dashboard/analytics"     element={<AnalyticsPage />} />
             <Route path="/dashboard/messages"      element={<MessagesPage />} />
             <Route path="/dashboard/badges"        element={<BadgesPage />} />
+            <Route path="/dashboard/workspace"     element={<LearningWorkspacePage />} />
           </Route>
         </Route>
 

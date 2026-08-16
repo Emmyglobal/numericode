@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, BookOpen, Video, ClipboardList,
   FolderOpen, Bell, UserCircle, LogOut, GraduationCap, X, Award,
-  ClipboardCheck, MessageSquare, TrendingUp, Settings, BarChart3, Mail, Medal
+  ClipboardCheck, MessageSquare, TrendingUp, Settings, BarChart3, Mail, Medal, PanelsTopLeft
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUIStore } from '@/store/uiStore'
@@ -13,6 +13,7 @@ const navItems = [
   { to: '/dashboard',               icon: LayoutDashboard,  label: 'Overview'        },
   { to: '/dashboard/courses',       icon: BookOpen,         label: 'My Courses'      },
   { to: '/dashboard/live-classes',  icon: Video,            label: 'Live Classes'    },
+  { to: '/dashboard/workspace',     icon: PanelsTopLeft,    label: 'Learning Workspace' },
   { to: '/dashboard/assignments',   icon: ClipboardList,    label: 'Assignments'     },
   { to: '/dashboard/resources',     icon: FolderOpen,       label: 'Resources'       },
   { to: '/dashboard/quizzes',       icon: ClipboardCheck,   label: 'Quizzes'         },
