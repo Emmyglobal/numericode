@@ -43,6 +43,22 @@ export interface AiGeneratedNote {
   content: string
 }
 
+export interface AiGeneratedAssignmentQuestion {
+  id: string
+  type: 'mcq' | 'theory' | 'subjective' | 'file' | 'related'
+  title: string
+  marks: number
+  options?: string[]
+  correctOptionIndex?: number
+}
+
+export interface AiGeneratedAssignment {
+  title: string
+  description: string
+  questions: AiGeneratedAssignmentQuestion[]
+  aiGenerated: boolean
+}
+
 export const aiService = {
   /** Study Guide — available to everyone (no auth required) */
   studyGuide: async (message: string) => {
@@ -64,7 +80,7 @@ export const aiService = {
 
   /** Generate assignment (trainer/admin only) */
   generateAssignment: async (params: AiGenerateAssignmentParams) => {
-    const { data } = await api.post<ApiResponse<{ description: string }>>('/ai/generate-assignment', params)
+    const { data } = await api.post<ApiResponse<AiGeneratedAssignment>>('/ai/generate-assignment', params)
     return data.data
   },
 

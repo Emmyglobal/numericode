@@ -1,3 +1,5 @@
+import type { AssignmentQuestion } from '@/features/assignments/types'
+
 export type TrainerCourseStatus = 'published' | 'draft' | 'archived'
 
 export interface TrainerCourse {
@@ -49,6 +51,10 @@ export interface TrainerAssignment {
   pendingReview: number
   totalMarks: number
   passingScore: number
+  description?: string
+  type?: 'mcq' | 'theory' | 'subjective' | 'file' | 'mixed'
+  questions?: AssignmentQuestion[]
+  aiGenerated?: boolean
   createdAt: string
 }
 

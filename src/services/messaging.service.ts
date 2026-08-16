@@ -9,6 +9,7 @@ export interface Message {
 export interface GroupConversation {
   id: string; courseId?: string; title: string; createdBy: string
   memberCount: number; messageCount: number; createdAt: string
+  isMember?: boolean
 }
 
 export interface GroupMessage {

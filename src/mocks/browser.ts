@@ -6,6 +6,7 @@ import { trainerHandlers } from './handlers/trainer.handlers'
 import { adminHandlers }   from './handlers/admin.handlers'
 import { notificationsHandlers } from './handlers/notifications.handlers'
 import { contactHandlers } from './handlers/contact.handlers'
+import { assignmentsHandlers } from './handlers/assignments.handlers'
 
 export const worker = setupWorker(
   ...authHandlers,
@@ -15,4 +16,5 @@ export const worker = setupWorker(
   ...adminHandlers,
   ...notificationsHandlers,
   ...contactHandlers,
+  ...assignmentsHandlers,
 )

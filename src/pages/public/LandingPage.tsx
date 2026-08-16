@@ -1,10 +1,15 @@
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, BookOpen, Video, Users, Star, ChevronRight, Code2, Calculator, Play, Sparkles, ShieldCheck, Clock3 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { SectionWrapper } from '@/components/shared/SectionWrapper'
 import { AdSlot } from '@/components/shared/AdSlot'
+import { CourseCard } from '@/components/shared/CourseCard'
+import { CourseCardSkeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { coursesService } from '@/services/courses.service'
 
 const fadeUp = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } }
 const stagger = (delay = 0.08) => ({ show: { transition: { staggerChildren: delay } } })
@@ -20,6 +25,12 @@ const testimonials = [
 
 export default function LandingPage() {
   usePageTitle('Home')
+  const navigate = useNavigate()
+  const { data: courses, isLoading } = useQuery({
+    queryKey: ['available-courses'],
+    queryFn: () => coursesService.getAll(),
+  })
+  const availableCourses = (courses ?? []).slice(0, 3)
   return (
     <div className="overflow-x-hidden">
       {/* HERO — animated gradient + floating orbs + video-style mockup */}
@@ -158,6 +169,36 @@ export default function LandingPage() {
           ))}
         </div>
       </SectionWrapper>
+
+      {/* AVAILABLE COURSES */}
+      <div className="bg-gray-50 dark:bg-gray-900">
+        <SectionWrapper>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Available Courses</h2>
+              <p className="text-gray-500 dark:text-gray-400 max-w-xl">Explore the courses currently on offer — no account needed to browse.</p>
+            </div>
+            <Link to="/courses"><Button variant="secondary">Browse All Courses <ArrowRight className="w-4 h-4 ml-1" /></Button></Link>
+          </div>
+
+          {isLoading ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="Loading courses…">
+              {[...Array(3)].map((_, i) => <CourseCardSkeleton key={i} />)}
+            </div>
+          ) : availableCourses.length ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="Available courses">
+              {availableCourses.map(c => <CourseCard key={c.id} course={c} />)}
+            </div>
+          ) : (
+            <EmptyState
+              icon={<BookOpen className="w-16 h-16" />}
+              title="No courses available yet"
+              description="New courses are being added all the time — check back soon or contact us for details."
+              action={{ label: 'Contact us', onClick: () => navigate('/contact') }}
+            />
+          )}
+        </SectionWrapper>
+      </div>
 
       {/* HOW IT WORKS */}
       <div className="bg-gray-50 dark:bg-gray-900">

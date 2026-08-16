@@ -32,9 +32,24 @@ export const trainerSessions: TrainerLiveSession[] = [
 ]
 
 export const trainerAssignments: TrainerAssignment[] = [
-  { id: 'a1', courseId: 'c1', courseTitle: 'Foundation Mathematics', title: 'Fractions Worksheet', dueDate: '2026-07-08', totalSubmissions: 14, pendingReview: 5, createdAt: '2026-06-28' },
-  { id: 'a2', courseId: 'c2', courseTitle: 'JavaScript for Beginners', title: 'Build a Calculator', dueDate: '2026-07-10', totalSubmissions: 9, pendingReview: 4, createdAt: '2026-06-29' },
-  { id: 'a3', courseId: 'c1', courseTitle: 'Foundation Mathematics', title: 'Number Patterns Quiz', dueDate: '2026-06-28', totalSubmissions: 18, pendingReview: 0, createdAt: '2026-06-15' },
+  { id: 'a1', courseId: 'c1', courseTitle: 'Foundation Mathematics', title: 'Fractions Worksheet', dueDate: '2026-07-08', totalSubmissions: 14, pendingReview: 5, createdAt: '2026-06-28', totalMarks: 40, passingScore: 20, description: 'Fractions practice covering equivalence, addition and word problems.', type: 'mixed', aiGenerated: true, questions: [
+    { id: 'q1', type: 'mcq', title: 'Which fraction is equivalent to 1/2?', marks: 4, options: ['2/3', '2/4', '3/5', '1/3'], correctOptionIndex: 1 },
+    { id: 'q2', type: 'theory', title: 'Explain how to simplify 8/12.', marks: 6 },
+    { id: 'q3', type: 'subjective', title: 'Solve and show working: 3/4 + 2/6.', marks: 10 },
+    { id: 'q4', type: 'file', title: 'Upload a photo of 5 worked fraction multiplication examples.', marks: 12, allowedFileTypes: ['pdf', 'jpg', 'png'] },
+    { id: 'q5', type: 'related', title: 'Using the attached sheet, convert 0.75 to a fraction.', marks: 8, relatedMaterialId: 'rm1' },
+  ] },
+  { id: 'a2', courseId: 'c2', courseTitle: 'JavaScript for Beginners', title: 'Build a Calculator', dueDate: '2026-07-10', totalSubmissions: 9, pendingReview: 4, createdAt: '2026-06-29', totalMarks: 50, passingScore: 25, description: 'Build a calculator app in JavaScript and upload your code.', type: 'mixed', questions: [
+    { id: 'q1', type: 'mcq', title: 'Which keyword declares a block-scoped variable?', marks: 5, options: ['var', 'let', 'function', 'static'], correctOptionIndex: 1 },
+    { id: 'q2', type: 'subjective', title: 'Write add(a, b) and explain it.', marks: 15 },
+    { id: 'q3', type: 'file', title: 'Upload your calculator project (.js or .zip).', marks: 30, allowedFileTypes: ['js', 'zip'] },
+  ] },
+  { id: 'a3', courseId: 'c1', courseTitle: 'Foundation Mathematics', title: 'Number Patterns Quiz', dueDate: '2026-06-28', totalSubmissions: 18, pendingReview: 0, createdAt: '2026-06-15', totalMarks: 20, passingScore: 10, description: 'MCQ quiz on number patterns.', type: 'mcq', questions: [
+    { id: 'q1', type: 'mcq', title: 'Next in 2,4,6,8,...?', marks: 5, options: ['9', '10', '11', '12'], correctOptionIndex: 1 },
+    { id: 'q2', type: 'mcq', title: 'Which is odd?', marks: 5, options: ['12', '14', '9', '20'], correctOptionIndex: 2 },
+    { id: 'q3', type: 'mcq', title: '5,10,15,20 increases by?', marks: 5, options: ['3', '5', '10', '15'], correctOptionIndex: 1 },
+    { id: 'q4', type: 'mcq', title: 'After 30 in 10,20,30,...?', marks: 5, options: ['35', '40', '45', '50'], correctOptionIndex: 1 },
+  ] },
 ]
 
 export interface TrainerNote {
