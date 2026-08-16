@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useMemo } from 'react'
-import { Search, Users, ShieldCheck, ArrowLeftRight } from 'lucide-react'
+import { Search, Users, ShieldCheck, ArrowLeftRight, Trash2, AlertTriangle } from 'lucide-react'
 import { api } from '@/lib/axios'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -23,6 +23,8 @@ const statusVariant: Record<AdminUser['status'], 'submitted' | 'pending' | 'over
   active: 'submitted', pending: 'pending', suspended: 'overdue',
 }
 
+type ActionMode = 'suspend' | 'delete' | null
+
 export default function AdminUsersPage() {
   usePageTitle('User Management — Admin')
   const queryClient = useQueryClient()
@@ -31,6 +33,9 @@ export default function AdminUsersPage() {
   const [successMessage, setSuccessMessage] = useState('')
   const [reassignStudentId, setReassignStudentId] = useState<string | null>(null)
   const [selectedTrainerId, setSelectedTrainerId] = useState('')
+  const [actionMode, setActionMode] = useState<ActionMode>(null)
+  const [actionUserId, setActionUserId] = useState<string | null>(null)
+  const [actionReason, setActionReason] = useState('')
   const q = useDebounce(search)
 
   const { data: users, isLoading } = useQuery({
@@ -67,6 +72,38 @@ export default function AdminUsersPage() {
     },
     onError: () => {
       setSuccessMessage('Failed to reassign student. Please try again.')
+    },
+  })
+
+  const suspendUserMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
+      api.patch(`/admin/users/${id}/suspend`, { reason }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'stats'] })
+      setSuccessMessage('User account has been suspended and notified via email.')
+      setActionMode(null)
+      setActionUserId(null)
+      setActionReason('')
+    },
+    onError: () => {
+      setSuccessMessage('Failed to suspend user. Please try again.')
+    },
+  })
+
+  const deleteUserMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
+      api.delete(`/admin/users/${id}`, { data: { reason } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'stats'] })
+      setSuccessMessage('User account has been deleted and notified via email.')
+      setActionMode(null)
+      setActionUserId(null)
+      setActionReason('')
+    },
+    onError: () => {
+      setSuccessMessage('Failed to delete user. Please try again.')
     },
   })
 
@@ -146,21 +183,37 @@ export default function AdminUsersPage() {
                               <ArrowLeftRight className="w-3.5 h-3.5 mr-1" /> Reassign
                             </Button>
                             <Button
-                              variant="danger" size="sm" loading={updateUserMutation.isPending}
-                              aria-label={`${u.status === 'active' ? 'Suspend' : 'Activate'} ${u.name}`}
-                              onClick={() => updateUserMutation.mutate({ id: u.id, status: u.status === 'active' ? 'suspended' : 'active' })}
+                              variant="danger" size="sm" loading={suspendUserMutation.isPending}
+                              aria-label={`Suspend ${u.name}`}
+                              onClick={() => { setActionMode('suspend'); setActionUserId(u.id) }}
                             >
-                              {u.status === 'active' ? 'Suspend' : 'Activate'}
+                              Suspend
+                            </Button>
+                            <Button
+                              variant="danger" size="sm" loading={deleteUserMutation.isPending}
+                              aria-label={`Delete ${u.name}`}
+                              onClick={() => { setActionMode('delete'); setActionUserId(u.id) }}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                             </Button>
                           </>
                         ) : u.role !== 'admin' && (
-                          <Button
-                            variant="danger" size="sm" loading={updateUserMutation.isPending}
-                            aria-label={`${u.status === 'active' ? 'Suspend' : 'Activate'} ${u.name}`}
-                            onClick={() => updateUserMutation.mutate({ id: u.id, status: u.status === 'active' ? 'suspended' : 'active' })}
-                          >
-                            {u.status === 'active' ? 'Suspend' : 'Activate'}
-                          </Button>
+                          <>
+                            <Button
+                              variant="danger" size="sm" loading={suspendUserMutation.isPending}
+                              aria-label={`Suspend ${u.name}`}
+                              onClick={() => { setActionMode('suspend'); setActionUserId(u.id) }}
+                            >
+                              Suspend
+                            </Button>
+                            <Button
+                              variant="danger" size="sm" loading={deleteUserMutation.isPending}
+                              aria-label={`Delete ${u.name}`}
+                              onClick={() => { setActionMode('delete'); setActionUserId(u.id) }}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                            </Button>
+                          </>
                         )}
                       </div>
                       {reassignStudentId === u.id && trainers && (
@@ -193,69 +246,63 @@ export default function AdminUsersPage() {
           </table>
         </div>}
 
-      {/* Mobile cards */}
-      {!isLoading && filtered.length > 0 && (
-        <div className="md:hidden space-y-3">
-          {filtered.map(u => {
-            const isPendingTrainer = u.role === 'trainer' && u.status === 'pending'
-            return (
-              <div key={u.id} className={cn('rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark p-4', isPendingTrainer && 'border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/5')}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold ${u.role === 'admin' ? 'bg-red-600' : u.role === 'trainer' ? 'bg-teal' : 'bg-brand-blue'}`}>{u.name[0]}</div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{u.name}</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">{u.email}</p>
-                    </div>
-                  </div>
-                  <span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize', roleBadge[u.role])}>{u.role}</span>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-gray-300 mb-3">
-                  <span className="px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800">Status: <Badge variant={statusVariant[u.status]}>{isPendingTrainer ? 'Awaiting Approval' : u.status}</Badge></span>
-                  <span className="px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800">Joined: {formatDate(u.joinedAt)}</span>
-                  <span className="px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800">Last active: {formatDate(u.lastActive)}</span>
-                </div>
-                <div className="flex flex-col gap-2">
-                  {isPendingTrainer ? (
-                    <div className="flex gap-2">
-                      <Button size="sm" loading={updateUserMutation.isPending} onClick={() => updateUserMutation.mutate({ id: u.id, status: 'active' })}>
-                        <ShieldCheck className="w-3.5 h-3.5 mr-1" /> Approve
-                      </Button>
-                      <Button variant="danger" size="sm" loading={updateUserMutation.isPending} onClick={() => updateUserMutation.mutate({ id: u.id, status: 'suspended' })}>
-                        Reject
-                      </Button>
-                    </div>
-                  ) : u.role === 'student' ? (
-                    <div className="flex flex-col gap-2">
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="secondary" onClick={() => setReassignStudentId(reassignStudentId === u.id ? null : u.id)}>
-                          <ArrowLeftRight className="w-3.5 h-3.5 mr-1" /> Reassign
-                        </Button>
-                        <Button variant="danger" size="sm" loading={updateUserMutation.isPending} onClick={() => updateUserMutation.mutate({ id: u.id, status: u.status === 'active' ? 'suspended' : 'active' })}>
-                          {u.status === 'active' ? 'Suspend' : 'Activate'}
-                        </Button>
-                      </div>
-                      {reassignStudentId === u.id && trainers && (
-                        <div className="flex items-center gap-2">
-                          <select value={selectedTrainerId} onChange={e => setSelectedTrainerId(e.target.value)} className="h-8 rounded border border-gray-200 bg-white px-2 text-xs dark:border-gray-700 dark:bg-gray-800">
-                            <option value="">Select a trainer…</option>
-                            {trainers.map(t => <option key={t.id} value={t.id}>{t.name} ({t.email})</option>)}
-                          </select>
-                          <Button size="sm" loading={reassignMutation.isPending} disabled={!selectedTrainerId} onClick={() => reassignMutation.mutate({ studentId: u.id, newTrainerId: selectedTrainerId })}>
-                            Confirm
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  ) : u.role !== 'admin' && (
-                    <Button variant="danger" size="sm" loading={updateUserMutation.isPending} onClick={() => updateUserMutation.mutate({ id: u.id, status: u.status === 'active' ? 'suspended' : 'active' })}>
-                      {u.status === 'active' ? 'Suspend' : 'Activate'}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )
-          })}
+      {/* Confirmation Modal */}
+      {actionMode && actionUserId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-surface-dark rounded-xl shadow-lg max-w-sm w-full p-6 space-y-4">
+            <div className="flex items-center gap-3 text-red-600">
+              <AlertTriangle className="w-6 h-6 flex-shrink-0" />
+              <h3 className="text-lg font-semibold">
+                {actionMode === 'delete' ? 'Delete Account?' : 'Suspend Account?'}
+              </h3>
+            </div>
+            
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {actionMode === 'delete' 
+                ? 'This will permanently delete the user account and all associated data. The user will be notified via email.'
+                : 'This will suspend the user account and prevent them from logging in. They will be notified via email.'}
+            </p>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Reason (optional)
+              </label>
+              <textarea
+                value={actionReason}
+                onChange={e => setActionReason(e.target.value)}
+                placeholder={actionMode === 'delete' ? 'Why are you deleting this account?' : 'Why are you suspending this account?'}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:border-brand-blue dark:bg-gray-800 dark:text-white resize-none"
+                rows={3}
+              />
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setActionMode(null)
+                  setActionUserId(null)
+                  setActionReason('')
+                }}
+                disabled={actionMode === 'delete' ? deleteUserMutation.isPending : suspendUserMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                loading={actionMode === 'delete' ? deleteUserMutation.isPending : suspendUserMutation.isPending}
+                onClick={() => {
+                  if (actionMode === 'delete') {
+                    deleteUserMutation.mutate({ id: actionUserId, reason: actionReason || undefined })
+                  } else {
+                    suspendUserMutation.mutate({ id: actionUserId, reason: actionReason || undefined })
+                  }
+                }}
+              >
+                {actionMode === 'delete' ? 'Delete Account' : 'Suspend Account'}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
