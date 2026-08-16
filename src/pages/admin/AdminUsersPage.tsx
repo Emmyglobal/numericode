@@ -151,9 +151,9 @@ export default function AdminUsersPage() {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {filtered.map(u => {
-                const isPendingTrainer = u.role === 'trainer' && u.status === 'pending'
+                const isPending = u.status === 'pending'
                 return (
-                  <tr key={u.id} className={cn('bg-white dark:bg-surface-dark hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors', isPendingTrainer && 'bg-orange-50/50 dark:bg-orange-900/5')}>
+                  <tr key={u.id} className={cn('bg-white dark:bg-surface-dark hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors', isPending && 'bg-orange-50/50 dark:bg-orange-900/5')}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${u.role === 'admin' ? 'bg-red-600' : u.role === 'trainer' ? 'bg-teal' : 'bg-brand-blue'}`}>{u.name[0]}</div>
@@ -161,12 +161,12 @@ export default function AdminUsersPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3"><span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize', roleBadge[u.role])}>{u.role}</span></td>
-                    <td className="px-4 py-3"><Badge variant={statusVariant[u.status]}>{isPendingTrainer ? 'Awaiting Approval' : u.status}</Badge></td>
+                    <td className="px-4 py-3"><Badge variant={statusVariant[u.status]}>{isPending ? 'Awaiting Approval' : u.status}</Badge></td>
                     <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">{formatDate(u.joinedAt)}</td>
                     <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">{formatDate(u.lastActive)}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1.5">
-                        {isPendingTrainer ? (
+                        {isPending ? (
                           <>
                             <Button size="sm" loading={updateUserMutation.isPending} aria-label={`Approve ${u.name}`}
                               onClick={() => updateUserMutation.mutate({ id: u.id, status: 'active' })}>
