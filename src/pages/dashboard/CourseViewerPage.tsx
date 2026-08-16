@@ -147,16 +147,8 @@ export default function CourseViewerPage() {
           )}
 
           {/* Lesson body */}
-          <div className="text-gray-700 dark:text-gray-300 space-y-4 mb-8 leading-relaxed">
-            <p>
-              This is the lesson content area. In the full implementation, this would contain rich
-              text, code examples, diagrams, and interactive exercises related to{' '}
-              <strong>{activeLesson?.title}</strong>.
-            </p>
-            <p>
-              Take your time working through the material. If you have questions, bring them to the
-              next live class session.
-            </p>
+          <div className="text-gray-700 dark:text-gray-300 space-y-4 mb-8 leading-relaxed whitespace-pre-wrap">
+            {activeLesson?.content || `Work through ${activeLesson?.title}, practise in the learning workspace, then complete the available exercises.`}
           </div>
 
           {activeLesson && <LearningBoard lessonId={activeLesson.id} />}
@@ -175,10 +167,12 @@ export default function CourseViewerPage() {
                     className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700"
                   >
                     <span className="text-sm text-gray-700 dark:text-gray-300">{r.title}</span>
-                    <Button variant="ghost" size="sm" aria-label={`Download ${r.title}`}>
+                    <a href={r.url} target="_blank" rel="noreferrer" aria-label={`Open ${r.title} in a new tab`}>
+                    <Button variant="ghost" size="sm">
                       <Download className="w-3.5 h-3.5" aria-hidden="true" />
-                      Download
+                      Open resource
                     </Button>
+                    </a>
                   </li>
                 ))}
               </ul>

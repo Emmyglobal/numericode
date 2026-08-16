@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQueries, useQuery } from '@tanstack/react-query'
 import { Code2, LayoutPanelTop, Palette } from 'lucide-react'
 import { dashboardService } from '@/services/dashboard.service'
 import { LearningBoard } from '@/components/shared/LearningBoard'
@@ -16,13 +16,24 @@ export default function LearningWorkspacePage() {
     queryKey: ['dashboard', 'courses'],
     queryFn: () => dashboardService.getMyCourses() as Promise<EnrolledCourse[]>,
   })
-  const lessons = useMemo(() => courses?.flatMap(course => course.modules.flatMap(module =>
+  // The course list is intentionally lightweight. Fetch full enrolled-course
+  // records here because they contain the modules and lessons needed by tools.
+  const courseQueries = useQueries({
+    queries: (courses ?? []).map(course => ({
+      queryKey: ['dashboard', 'courses', course.id],
+      queryFn: () => dashboardService.getCourse(course.id) as Promise<EnrolledCourse>,
+      enabled: Boolean(course.id),
+    })),
+  })
+  const fullCourses = courseQueries.map(query => query.data).filter((course): course is EnrolledCourse => Boolean(course))
+  const isLoadingLessons = courses !== undefined && courseQueries.some(query => query.isLoading)
+  const lessons = useMemo(() => fullCourses.flatMap(course => course.modules.flatMap(module =>
     module.lessons.map(lesson => ({ ...lesson, courseTitle: course.title, moduleTitle: module.title }))
-  )) ?? [], [courses])
+  )), [fullCourses])
   const [chosenLessonId, setChosenLessonId] = useState('')
   const lessonId = chosenLessonId || lessons[0]?.id
 
-  if (isLoading) return <div className="space-y-4">{[1, 2, 3].map(key => <Skeleton key={key} className="h-20 w-full" />)}</div>
+  if (isLoading || isLoadingLessons) return <div className="space-y-4">{[1, 2, 3].map(key => <Skeleton key={key} className="h-20 w-full" />)}</div>
 
   return (
     <div>

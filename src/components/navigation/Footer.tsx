@@ -27,7 +27,7 @@ export function Footer() {
             </div>
           ))}
         </div>
-        <div className="border-t border-blue-800 pt-6 text-center text-xs text-blue-400">© 2026 NumeriCode. Built with 💙 by Nwafor Ugochukwu Emmanuel.</div>
+        <div className="border-t border-blue-800 pt-6 text-center text-xs text-blue-400">© 2026 NumeriCode. Built by Nwafor Ugochukwu Emmanuel</div>
       </div>
     </footer>
   )
