@@ -7,12 +7,19 @@ import AssignmentsPage from '@/pages/dashboard/AssignmentsPage'
 
 vi.mock('@/services/dashboard.service', () => ({
   dashboardService: {
-    getAssignments: vi.fn().mockResolvedValue([
-      { id: 'a1', courseId: 'c1', courseTitle: 'Foundation Mathematics',    title: 'Fractions Worksheet', dueDate: '2026-07-08', status: 'pending'   },
-      { id: 'a2', courseId: 'c2', courseTitle: 'JavaScript for Beginners', title: 'Build a Calculator',  dueDate: '2026-07-10', status: 'pending'   },
-      { id: 'a3', courseId: 'c1', courseTitle: 'Foundation Mathematics',    title: 'Number Patterns Quiz', dueDate: '2026-06-28', status: 'overdue'  },
-      { id: 'a4', courseId: 'c2', courseTitle: 'JavaScript for Beginners', title: 'Variables Exercise',   dueDate: '2026-06-25', status: 'submitted' },
+    getAssignments: vi.fn().mockResolvedValue([]),
+  },
+}))
+
+vi.mock('@/services/assignments.service', () => ({
+  assignmentsService: {
+    getAll: vi.fn().mockResolvedValue([
+      { id: 'a1', courseId: 'c1', courseTitle: 'Foundation Mathematics',    title: 'Fractions Worksheet', dueDate: '2026-07-08', status: 'pending',   type: 'theory', totalMarks: 20, passingScore: 10, score: null, description: '', feedback: null, returnedForCorrection: false, questions: [] },
+      { id: 'a2', courseId: 'c2', courseTitle: 'JavaScript for Beginners', title: 'Build a Calculator',  dueDate: '2026-07-10', status: 'pending',   type: 'mixed',  totalMarks: 30, passingScore: 15, score: null, description: '', feedback: null, returnedForCorrection: false, questions: [] },
+      { id: 'a3', courseId: 'c1', courseTitle: 'Foundation Mathematics',    title: 'Number Patterns Quiz', dueDate: '2026-06-28', status: 'overdue',  type: 'mcq',    totalMarks: 20, passingScore: 10, score: null, description: '', feedback: null, returnedForCorrection: false, questions: [] },
+      { id: 'a4', courseId: 'c2', courseTitle: 'JavaScript for Beginners', title: 'Variables Exercise',   dueDate: '2026-06-25', status: 'submitted', type: 'theory', totalMarks: 15, passingScore: 8,  score: 12,   description: '', feedback: '',  returnedForCorrection: false, questions: [] },
     ]),
+    submit: vi.fn(),
   },
 }))
 

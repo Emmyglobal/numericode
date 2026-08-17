@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { AssignmentDetailModal } from '@/features/assignments/components/AssignmentDetailModal'
+import { GradeBook } from '@/features/assignments/components/GradeBook'
 import { downloadAssignment } from '@/features/assignments/lib/download'
 import { formatDate } from '@/utils/formatDate'
 import { cn } from '@/utils/classNames'
@@ -57,7 +58,9 @@ export default function AssignmentsPage() {
 
   return (
     <div>
-{/* Tabs */}
+      <PageHeader title="Assignments" subtitle="Answer, submit and download your pending and completed work" />
+
+      {/* Tabs */}
       <div role="tablist" aria-label="Assignment status" className="flex gap-2 mb-6">
         {tabs.map(t => (
           <button
@@ -135,4 +138,3 @@ export default function AssignmentsPage() {
     </div>
   )
 }
-      <PageHeader title="Assignments" subtitle="Answer, submit and download your pending and completed work" />

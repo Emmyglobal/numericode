@@ -8,9 +8,30 @@ import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { formatDuration } from '@/utils/formatDuration'
 import { cn } from '@/utils/classNames'
+import { Markdown } from '@/components/ui/Markdown'
+import { downloadText, downloadUrl, sanitizeFilename } from '@/lib/download'
 import { LearningBoard } from '@/components/shared/LearningBoard'
 import { CollaborativeCodeEditor } from '@/components/shared/CollaborativeCodeEditor'
 import type { EnrolledCourse, Lesson } from '@/features/courses/types'
+
+function downloadCourseNotes(course: EnrolledCourse) {
+  const header = `# ${course.title}\n\n${course.description}\n`
+  downloadText(sanitizeFilename(course.title, 'course-notes', 'md'), `${header}\n${course.content || ''}`)
+}
+
+function downloadLessonNotes(lesson: Lesson) {
+  downloadText(
+    sanitizeFilename(lesson.title, 'lesson-notes', 'md'),
+    `# ${lesson.title}\n\n${lesson.content || `Work through ${lesson.title}, practise in the learning workspace, then complete the available exercises.`}`,
+  )
+}
+
+async function downloadLessonResource(r: { title: string; url: string; type: string }) {
+  const isPlaceholder = !r.url || r.url === '#'
+  const ext = isPlaceholder ? 'txt' : r.type === 'pdf' ? 'pdf' : r.type === 'video' ? 'mp4' : 'txt'
+  const fallback = `RESOURCE — ${r.title}\n\n(No file is attached to this resource yet.)`
+  await downloadUrl(r.url, sanitizeFilename(r.title, 'resource', ext), fallback)
+}
 
 export default function CourseViewerPage() {
   const { id } = useParams<{ id: string }>()
@@ -139,19 +160,44 @@ export default function CourseViewerPage() {
           {/* Course Content - shown when no specific lesson is active */}
           {!activeLessonId && course.content && (
             <section aria-label="Course content" className="mb-8">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Course Content</h2>
-              <div className="text-gray-700 dark:text-gray-300 space-y-4 leading-relaxed whitespace-pre-wrap">
-                {course.content}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Course Content</h2>
+                <Button variant="ghost" size="sm" onClick={() => downloadCourseNotes(course)}>
+                  <Download className="w-3.5 h-3.5" aria-hidden="true" />
+                  Download notes
+                </Button>
               </div>
+              <Markdown text={course.content} className="text-gray-700 dark:text-gray-300 space-y-4 leading-relaxed" />
             </section>
           )}
 
-          {/* Lesson body */}
-          <div className="text-gray-700 dark:text-gray-300 space-y-4 mb-8 leading-relaxed whitespace-pre-wrap">
-            {activeLesson?.content || `Work through ${activeLesson?.title}, practise in the learning workspace, then complete the available exercises.`}
-          </div>
+          {/* Lesson body / notes */}
+          <section aria-label="Lesson notes" className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Lesson Notes</h2>
+              {activeLesson && (
+                <Button variant="ghost" size="sm" onClick={() => downloadLessonNotes(activeLesson)}>
+                  <Download className="w-3.5 h-3.5" aria-hidden="true" />
+                  Download notes
+                </Button>
+              )}
+            </div>
+            <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
+              {activeLesson && (
+                <Markdown
+                  className="space-y-3 leading-relaxed"
+                  text={activeLesson.content || `Work through ${activeLesson.title}, practise in the learning workspace, then complete the available exercises.`}
+                />
+              )}
+            </div>
+          </section>
 
-          {activeLesson && <LearningBoard lessonId={activeLesson.id} />}
+          {activeLesson && (
+            <section aria-label="Learning workspace" className="mb-8">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Take Notes</h2>
+              <LearningBoard lessonId={activeLesson.id} />
+            </section>
+          )}
           {activeLesson && <CollaborativeCodeEditor lessonId={activeLesson.id} />}
 
           {/* Resources */}
@@ -164,15 +210,16 @@ export default function CourseViewerPage() {
                 {activeLesson!.resources.map(r => (
                   <li
                     key={r.id}
-                    className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700"
+                    className="flex items-center justify-between gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700"
                   >
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{r.title}</span>
-                    <a href={r.url} target="_blank" rel="noreferrer" aria-label={`Open ${r.title} in a new tab`}>
-                    <Button variant="ghost" size="sm">
+                    <div className="min-w-0">
+                      <p className="text-sm text-gray-700 dark:text-gray-300 truncate">{r.title}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 capitalize">{r.type}</p>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => downloadLessonResource(r)}>
                       <Download className="w-3.5 h-3.5" aria-hidden="true" />
-                      Open resource
+                      Download
                     </Button>
-                    </a>
                   </li>
                 ))}
               </ul>

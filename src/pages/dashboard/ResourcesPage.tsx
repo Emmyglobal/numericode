@@ -6,9 +6,19 @@ import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { downloadUrl, sanitizeFilename } from '@/lib/download'
 import type { ResourceItem } from '@/features/resources/types'
 
 const typeIcon = { pdf: FileText, video: VideoIcon, link: LinkIcon }
+
+async function handleDownload(r: ResourceItem) {
+  const isPlaceholder = !r.url || r.url === '#'
+  const ext = isPlaceholder ? 'txt' : r.type === 'pdf' ? 'pdf' : r.type === 'video' ? 'mp4' : 'txt'
+  const fallback =
+    `RESOURCE — ${r.title}\nCourse: ${r.courseTitle}\nType: ${r.type}\n\n` +
+    '(This environment has no file attached to this resource yet.)'
+  await downloadUrl(r.url, sanitizeFilename(r.title, 'resource', ext), fallback)
+}
 
 export default function ResourcesPage() {
   usePageTitle('Resources')
@@ -23,7 +33,7 @@ export default function ResourcesPage() {
             <div key={r.id} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark p-4">
               <div className="flex items-center gap-3 min-w-0"><div className="w-10 h-10 rounded-lg bg-brand-light dark:bg-blue-900/30 text-brand-blue flex items-center justify-center shrink-0"><Icon className="w-5 h-5" /></div>
                 <div className="min-w-0"><p className="font-medium text-gray-900 dark:text-white text-sm truncate">{r.title}</p><p className="text-xs text-gray-500 dark:text-gray-400">{r.courseTitle}</p></div></div>
-              <Button variant="ghost" size="sm" className="shrink-0"><Download className="w-3.5 h-3.5" />Download</Button>
+              <Button variant="ghost" size="sm" className="shrink-0" onClick={() => handleDownload(r)}><Download className="w-3.5 h-3.5" />Download</Button>
             </div>
           )})}
         </div>}

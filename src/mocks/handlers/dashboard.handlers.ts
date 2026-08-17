@@ -8,6 +8,14 @@ const enrolledCourses = [
   { ...coursesData[1], progress: 25, enrolledAt: '2024-02-15' },
 ]
 
+let mockCertificates = [
+  {
+    id: 'cert1', courseId: 'c1', courseTitle: 'Foundation Mathematics',
+    studentName: 'Emmanuel Nwafor', finalPercentage: 92, letterGrade: 'A',
+    issuedAt: '2026-07-01', certificateCode: 'NUM-2026-0001',
+  },
+]
+
 export const dashboardHandlers = [
   http.get('/api/dashboard', () => HttpResponse.json({ success: true, data: {
     enrolledCount: enrolledCourses.length,
@@ -44,5 +52,36 @@ export const dashboardHandlers = [
   http.put('/api/profile', async ({ request }) => {
     const body = await request.json()
     return HttpResponse.json({ success: true, data: body })
+  }),
+
+  // Grade book — drives certificate eligibility
+  http.get('/api/gradebook', () => HttpResponse.json({ success: true, data: [
+    { courseId: 'c1', courseTitle: 'Foundation Mathematics', completed: true, finalPercentage: 92, letterGrade: 'A' },
+    { courseId: 'c2', courseTitle: 'JavaScript for Beginners', completed: false, finalPercentage: 45, letterGrade: 'D' },
+  ]})),
+
+  // Certificates
+  http.get('/api/certificates/me', () => HttpResponse.json({ success: true, data: mockCertificates })),
+
+  http.post('/api/certificates/courses/:courseId/generate', ({ params }) => {
+    const course = coursesData.find(c => c.id === params.courseId)
+    if (!course) return new HttpResponse(null, { status: 404 })
+    const created = {
+      id: `cert-${Date.now()}`, courseId: course.id, courseTitle: course.title,
+      studentName: 'Emmanuel Nwafor', finalPercentage: 100, letterGrade: 'A',
+      issuedAt: new Date().toISOString().slice(0, 10), certificateCode: `NUM-${Date.now().toString().slice(-8)}`,
+    }
+    mockCertificates = [created, ...mockCertificates]
+    return HttpResponse.json({ success: true, data: created }, { status: 201 })
+  }),
+
+  http.get('/api/certificates/verify/:code', ({ params }) => {
+    const cert = mockCertificates.find(c => c.certificateCode === String(params.code))
+    if (!cert) return new HttpResponse(null, { status: 404 })
+    return HttpResponse.json({ success: true, data: {
+      valid: true, studentName: cert.studentName, courseTitle: cert.courseTitle,
+      finalPercentage: cert.finalPercentage, letterGrade: cert.letterGrade,
+      issuedAt: cert.issuedAt, certificateCode: cert.certificateCode,
+    }})
   }),
 ]

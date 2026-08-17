@@ -1,13 +1,16 @@
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Award, ExternalLink, CheckCircle, Clock, Download } from 'lucide-react'
+import { Award, ExternalLink, CheckCircle, Download } from 'lucide-react'
 import { dashboardService } from '@/services/dashboard.service'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { Alert } from '@/components/ui/Alert'
 import { formatDate } from '@/utils/formatDate'
+import { downloadCertificate } from '@/lib/certificate'
 import { useState } from 'react'
+import type { CertificateVerification } from '@/features/courses/types/certificate.types'
 
 interface Certificate {
   id: string
@@ -20,10 +23,15 @@ interface Certificate {
   certificateCode: string
 }
 
+type VerifyOutcome = CertificateVerification | { valid: false }
+
 export default function CertificatesPage() {
   usePageTitle('Certificates')
   const queryClient = useQueryClient()
   const [generatingCourseId, setGeneratingCourseId] = useState<string | null>(null)
+  const [verifyingId, setVerifyingId] = useState<string | null>(null)
+  const [verifyOutcome, setVerifyOutcome] = useState<VerifyOutcome | null>(null)
+  const [verifyError, setVerifyError] = useState('')
 
   const { data: certificates, isLoading } = useQuery({
     queryKey: ['certificates'],
@@ -44,6 +52,20 @@ export default function CertificatesPage() {
     onError: () => setGeneratingCourseId(null),
   })
 
+  const verifyMutation = useMutation({
+    mutationFn: (code: string) => dashboardService.verifyCertificate(code) as Promise<VerifyOutcome>,
+    onSuccess: (data) => {
+      setVerifyOutcome(data)
+      setVerifyError('')
+      setVerifyingId(null)
+    },
+    onError: (err: any) => {
+      setVerifyOutcome(null)
+      setVerifyError(err?.message ?? 'Could not verify this certificate. Please try again.')
+      setVerifyingId(null)
+    },
+  })
+
   const completedCourses = gradeBook?.filter(g => g.completed) ?? []
   const earnedCertIds = new Set(certificates?.map(c => c.courseId) ?? [])
   const eligibleForCert = completedCourses.filter(c => !earnedCertIds.has(c.courseId))
@@ -51,6 +73,25 @@ export default function CertificatesPage() {
   return (
     <div>
       <PageHeader title="Certificates" subtitle="View and download your course completion certificates" />
+
+      {/* Verification feedback */}
+      {verifyOutcome && (
+        <div className="mb-5" role="status">
+          <Alert
+            type={'valid' in verifyOutcome && verifyOutcome.valid ? 'success' : 'error'}
+            title={'valid' in verifyOutcome && verifyOutcome.valid ? 'Certificate verified' : 'Certificate invalid'}
+            message={'valid' in verifyOutcome && verifyOutcome.valid
+              ? `Verified for ${verifyOutcome.studentName} — ${verifyOutcome.courseTitle}, ${verifyOutcome.finalPercentage}% (${verifyOutcome.letterGrade}), issued ${verifyOutcome.issuedAt}.`
+              : 'This certificate code could not be verified. The code is invalid or has not been issued.'}
+            onClose={() => setVerifyOutcome(null)}
+          />
+        </div>
+      )}
+      {verifyError && (
+        <div className="mb-5">
+          <Alert type="error" title="Verification failed" message={verifyError} onClose={() => setVerifyError('')} />
+        </div>
+      )}
 
       {isLoading ? (
         <div className="space-y-3">
@@ -123,11 +164,22 @@ export default function CertificatesPage() {
                       </div>
                     </div>
                     <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex gap-2">
-                      <Button variant="secondary" size="sm" className="flex-1">
+                      <Button variant="secondary" size="sm" className="flex-1" onClick={() => downloadCertificate(cert)}>
                         <Download className="w-3.5 h-3.5" aria-hidden="true" />
-                        Download PDF
+                        Download
                       </Button>
-                      <Button variant="ghost" size="sm" className="flex-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex-1"
+                        loading={verifyMutation.isPending && verifyingId === cert.id}
+                        onClick={() => {
+                          setVerifyingId(cert.id)
+                          setVerifyOutcome(null)
+                          setVerifyError('')
+                          verifyMutation.mutate(cert.certificateCode)
+                        }}
+                      >
                         <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
                         Verify
                       </Button>
