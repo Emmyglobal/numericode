@@ -37,11 +37,6 @@ export const dashboardHandlers = [
   }),
   http.get('/api/assignments', () => HttpResponse.json({ success: true, data: assignmentsData })),
   http.get('/api/announcements', () => HttpResponse.json({ success: true, data: announcementsData })),
-  http.get('/api/resources', () => HttpResponse.json({ success: true, data: [
-    { id: 'res1', courseId: 'c1', courseTitle: 'Foundation Mathematics', title: 'Number Systems PDF', type: 'pdf', url: '#' },
-    { id: 'res2', courseId: 'c2', courseTitle: 'JavaScript for Beginners', title: 'Variables Cheatsheet', type: 'pdf', url: '#' },
-    { id: 'res3', courseId: 'c2', courseTitle: 'JavaScript for Beginners', title: 'JS Video Tutorial', type: 'video', url: '#' },
-  ]})),
   http.get('/api/live-classes', () => HttpResponse.json({ success: true, data: [
     { id: 'lc1', courseId: 'c1', courseTitle: 'Foundation Mathematics', subject: 'mathematics', title: 'Algebra Q&A Session', date: '2026-07-05T10:00:00', duration: 60, meetUrl: '#', status: 'upcoming' },
     { id: 'lc3', courseId: 'c2', courseTitle: 'JavaScript for Beginners', subject: 'programming', title: 'JavaScript Q&A', date: '2026-07-04T14:00:00', duration: 60, meetUrl: '#', status: 'upcoming' },
