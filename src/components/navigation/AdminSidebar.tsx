@@ -25,7 +25,7 @@ export function AdminSidebar() {
       {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} aria-hidden="true" />}
       <aside id="admin-sidebar" aria-label="Admin navigation"
         className={cn('fixed top-0 left-0 h-full w-64 z-40 flex flex-col bg-brand-navy text-white transition-transform duration-300',
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0')}>
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full')}>
         <div className="flex items-center justify-between h-16 px-5 border-b border-blue-800">
           <div className="flex items-center gap-2 font-bold">
             <GraduationCap className="w-6 h-6 text-brand-sky" aria-hidden="true" />
@@ -39,7 +39,7 @@ export function AdminSidebar() {
             <NavLink key={to} to={to} end={end}
               className={({ isActive }) => cn('flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
                 isActive ? 'bg-brand-blue text-white' : 'text-blue-200 hover:bg-blue-800 hover:text-white')}
-              onClick={() => setSidebarOpen(false)} aria-label={label}>
+              onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }} aria-label={label}>
               <Icon className="w-5 h-5 shrink-0" aria-hidden="true" />{label}
             </NavLink>
           ))}

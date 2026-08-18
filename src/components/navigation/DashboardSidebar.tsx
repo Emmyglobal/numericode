@@ -51,7 +51,7 @@ export function DashboardSidebar() {
         aria-label="Dashboard navigation"
         className={cn(
           'fixed top-0 left-0 h-full w-64 z-40 flex flex-col bg-white dark:bg-surface-dark border-r border-gray-200 dark:border-gray-700 transition-transform duration-300',
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {/* Logo row */}
@@ -82,7 +82,7 @@ export function DashboardSidebar() {
                   ? 'bg-brand-light dark:bg-blue-900/30 text-brand-blue border-l-[3px] border-brand-blue pl-[calc(0.75rem-3px)]'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
               )}
-              onClick={() => setSidebarOpen(false)}
+              onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
               aria-label={label}
             >
               <Icon className="w-5 h-5 shrink-0" aria-hidden="true" />

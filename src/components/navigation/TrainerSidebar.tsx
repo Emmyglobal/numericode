@@ -33,7 +33,7 @@ export function TrainerSidebar() {
       {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} aria-hidden="true" />}
       <aside id="trainer-sidebar" aria-label="Trainer navigation"
         className={cn('fixed top-0 left-0 h-full w-64 z-40 flex flex-col bg-white dark:bg-surface-dark border-r border-gray-200 dark:border-gray-700 transition-transform duration-300',
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0')}>
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full')}>
         <div className="flex items-center justify-between h-16 px-5 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2 font-bold text-brand-navy dark:text-white">
             <GraduationCap className="w-6 h-6 text-teal" aria-hidden="true" />
@@ -48,7 +48,7 @@ export function TrainerSidebar() {
               className={({ isActive }) => cn('flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
                 isActive ? 'bg-teal-light dark:bg-teal-900/30 text-teal border-l-[3px] border-teal pl-[calc(0.75rem-3px)]'
                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800')}
-              onClick={() => setSidebarOpen(false)} aria-label={label}>
+              onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }} aria-label={label}>
               <Icon className="w-5 h-5 shrink-0" aria-hidden="true" />{label}
             </NavLink>
           ))}

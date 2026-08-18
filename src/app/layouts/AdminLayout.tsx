@@ -19,7 +19,7 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-bg dark:bg-bg-dark">
       <AdminSidebar />
       <DashboardTopBar title={titles[pathname] ?? 'Admin Panel'} />
-      <main className={`pt-16 min-h-screen transition-all duration-300 ${isSidebarOpen ? 'lg:pl-64 pl-64' : 'lg:pl-64 pl-0'}`}>
+      <main className={`pt-16 min-h-screen transition-all duration-300 ${isSidebarOpen ? 'pl-64' : 'pl-0'}`}>
         <div className="p-4 sm:p-6 lg:p-8"><Outlet /></div>
       </main>
       <AiStudyAssistant />

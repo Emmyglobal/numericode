@@ -5,18 +5,20 @@ import { NotificationBell } from './NotificationBell'
 
 export function DashboardTopBar({ title }: { title: string }) {
   const { isDark, toggleTheme } = useTheme()
-  const { setSidebarOpen } = useUIStore()
+  const { isSidebarOpen, toggleSidebar } = useUIStore()
 
   return (
     <header
       role="banner"
       aria-label="Dashboard header"
-      className="fixed top-0 left-0 lg:left-64 right-0 z-20 h-16 bg-white/95 dark:bg-surface-dark/95 backdrop-blur border-b border-gray-200 dark:border-gray-700 flex items-center px-4 sm:px-6 gap-4"
+      className={`fixed top-0 left-0 ${isSidebarOpen ? 'lg:left-64' : 'lg:left-0'} right-0 z-20 h-16 bg-white/95 dark:bg-surface-dark/95 backdrop-blur border-b border-gray-200 dark:border-gray-700 flex items-center px-4 sm:px-6 gap-4 transition-[left] duration-300`}
     >
       <button
         className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-        onClick={() => setSidebarOpen(true)}
-        aria-label="Open sidebar navigation"
+        onClick={toggleSidebar}
+        aria-expanded={isSidebarOpen}
+        aria-controls="sidebar"
+        aria-label={isSidebarOpen ? 'Close sidebar navigation' : 'Open sidebar navigation'}
       >
         <Menu className="w-5 h-5" aria-hidden="true" />
       </button>
