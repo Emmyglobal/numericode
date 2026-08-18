@@ -2,7 +2,7 @@ export type Subject = 'mathematics' | 'programming'
 export type Level   = 'beginner' | 'intermediate' | 'advanced'
 export type CourseAccessLevel = 'free' | 'premium'
 export interface Instructor { id: string; name: string; bio: string; avatarUrl?: string; credentials: string[] }
-export interface Resource   { id: string; title: string; type: 'pdf' | 'video' | 'link'; url: string }
+export interface Resource   { id: string; title: string; type: 'pdf' | 'video' | 'link' | 'file'; url: string }
 export interface Lesson     { id: string; title: string; content?: string; duration: number; isCompleted: boolean; resources: Resource[] }
 export interface Module     { id: string; title: string; lessons: Lesson[] }
 export interface LiveClass  { id: string; title: string; date: string; duration: number; meetUrl: string; status: 'upcoming'|'live'|'past' }

@@ -1,6 +1,6 @@
-# NumeriCode — Deployment Guide
+# NumeryCode — Deployment Guide
 
-> Step-by-step guide to deploying NumeriCode to production on Vercel.
+> Step-by-step guide to deploying NumeryCode to production on Vercel.
 > Total time: approximately 15 minutes.
 
 ---
@@ -21,16 +21,16 @@
 If the project is not already on GitHub:
 
 ```bash
-cd numericode
+cd numerycode
 
 # Initialise git (if not done already)
 git init
 git add .
-git commit -m "feat: NumeriCode Phase 8 — production-ready build"
+git commit -m "feat: NumeryCode Phase 8 — production-ready build"
 
-# Create a new repo on github.com named "numericode"
+# Create a new repo on github.com named "numerycode"
 # then connect and push:
-git remote add origin https://github.com/YOUR_USERNAME/numericode.git
+git remote add origin https://github.com/YOUR_USERNAME/numerycode.git
 git branch -M main
 git push -u origin main
 ```
@@ -58,11 +58,11 @@ Create a `.env` file locally (this is never committed):
 ```bash
 # .env
 VITE_API_BASE_URL=/api
-VITE_APP_NAME=NumeriCode
+VITE_APP_NAME=NumeryCode
 VITE_APP_ENV=production
 ```
 
-For the MVP, `VITE_API_BASE_URL=/api` keeps all requests relative — MSW handles them in development and the production build excludes MSW entirely via the alias stub. When you add a real backend in Phase 10, change this to `https://api.numericode.com`.
+For the MVP, `VITE_API_BASE_URL=/api` keeps all requests relative — MSW handles them in development and the production build excludes MSW entirely via the alias stub. When you add a real backend in Phase 10, change this to `https://api.numerycode.com`.
 
 ---
 
@@ -107,7 +107,7 @@ vercel
 # ? Set up and deploy? → Y
 # ? Which scope? → your account
 # ? Link to existing project? → N
-# ? Project name → numericode
+# ? Project name → numerycode
 # ? Directory → ./
 # ? Override build settings? → N
 
@@ -119,7 +119,7 @@ vercel --prod
 ### Option B — Vercel Dashboard (no CLI needed)
 
 1. Go to **vercel.com** → Log in → **Add New Project**
-2. Click **Import Git Repository** → select your `numericode` repo
+2. Click **Import Git Repository** → select your `numerycode` repo
 3. Vercel auto-detects Vite. Confirm settings:
    - **Framework Preset:** Vite
    - **Build Command:** `npm run build`
@@ -138,7 +138,7 @@ vercel --prod
 | Name | Value | Environment |
 |---|---|---|
 | `VITE_API_BASE_URL` | `/api` | Production, Preview, Development |
-| `VITE_APP_NAME` | `NumeriCode` | Production, Preview, Development |
+| `VITE_APP_NAME` | `NumeryCode` | Production, Preview, Development |
 | `VITE_APP_ENV` | `production` | Production only |
 
 3. After adding variables, go to **Deployments** → click the three dots on the latest → **Redeploy**.
@@ -196,10 +196,10 @@ Vercel automatically redeploys on push.
 ## Step 7 — Add a Custom Domain (Optional)
 
 1. Vercel Dashboard → your project → **Settings** → **Domains**
-2. Add your domain (e.g. `numericode.com`)
+2. Add your domain (e.g. `numerycode.com`)
 3. Vercel provides DNS records — add them at your domain registrar:
    - **A record:** `76.76.21.21`
-   - **CNAME:** `cname.vercel-dns.com` (for `www.numericode.com`)
+   - **CNAME:** `cname.vercel-dns.com` (for `www.numerycode.com`)
 4. Wait for DNS propagation (5 minutes to 48 hours)
 5. Vercel automatically provisions an SSL certificate via Let's Encrypt
 
@@ -218,8 +218,8 @@ Run through this checklist after every production deployment:
 
 ### Authentication & Role Routing
 - [ ] Log in as student (`kolade@gmail.com`) → redirects to `/dashboard`
-- [ ] Log in as trainer (`trainer@numericode.com`) → redirects to `/trainer`
-- [ ] Log in as admin (`emmanuel@numericode.com`) → redirects to `/admin`
+- [ ] Log in as trainer (`trainer@numerycode.com`) → redirects to `/trainer`
+- [ ] Log in as admin (`emmanuel@numerycode.com`) → redirects to `/admin`
 - [ ] Open `/trainer` while logged in as student → redirects to `/dashboard`
 - [ ] Open `/dashboard` while not logged in → redirects to `/login`
 
@@ -347,11 +347,11 @@ Variables prefixed with `VITE_` are embedded at build time. They are NOT availab
 
 ## What Comes Next — Connecting the Real Backend (Phase 10, Complete)
 
-The Phase 10 backend (Node.js + Express + TypeScript + PostgreSQL) is built, tested (55 tests against a real database), and deployment-ready — see the `numericode-api` repository's own `DEPLOYMENT.md` for deploying it to Railway or Render.
+The Phase 10 backend (Node.js + Express + TypeScript + PostgreSQL) is built, tested (55 tests against a real database), and deployment-ready — see the `numerycode-api` repository's own `DEPLOYMENT.md` for deploying it to Railway or Render.
 
 Once the backend is live:
 
-1. Deploy `numericode-api` first (see its `DEPLOYMENT.md`) and note its public URL
+1. Deploy `numerycode-api` first (see its `DEPLOYMENT.md`) and note its public URL
 2. In this frontend's Vercel project → Settings → Environment Variables, set:
    ```
    VITE_API_BASE_URL=https://your-api.up.railway.app/api

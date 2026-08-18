@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
  * Minimal Markdown renderer used for course notes and lesson content.
  *
  * No external dependency — it supports the block syntax used across the
- * NumeriCode course material (headings, bullet & numbered lists, HR, and
+ * NumeryCode course material (headings, bullet & numbered lists, HR, and
  * paragraphs) plus inline emphasis (`**bold**`, `*italic*`, `` `code` ``).
  * Everything is rendered as React elements (no dangerouslySetInnerHTML), so
  * no user-supplied HTML/Script can execute.

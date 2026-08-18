@@ -13,14 +13,14 @@ export const adminStats: AdminStats = {
 }
 
 export const adminUsers: AdminUser[] = [
-  { id: 'u1', name: 'Emmanuel Nwafor', email: 'emmanuel@numericode.com', role: 'admin',   status: 'active',    joinedAt: '2024-01-01', lastActive: '2026-07-01' },
+  { id: 'u1', name: 'Emmanuel Nwafor', email: 'emmanuel@numerycode.com', role: 'admin',   status: 'active',    joinedAt: '2024-01-01', lastActive: '2026-07-01' },
   { id: 'u2', name: 'Kolade Adebayo',  email: 'kolade@gmail.com',        role: 'student', status: 'active',    joinedAt: '2024-02-10', lastActive: '2026-06-30' },
   { id: 'u3', name: 'Amaka Okonkwo',   email: 'amaka@gmail.com',         role: 'student', status: 'active',    joinedAt: '2024-03-01', lastActive: '2026-06-29' },
   { id: 'u4', name: 'Chidi Obi',       email: 'chidi@gmail.com',         role: 'student', status: 'active',    joinedAt: '2024-03-15', lastActive: '2026-06-28' },
   { id: 'u5', name: 'Ngozi Eze',       email: 'ngozi@gmail.com',         role: 'student', status: 'active',    joinedAt: '2024-01-20', lastActive: '2026-07-01' },
   { id: 'u6', name: 'Emeka Nwosu',     email: 'emeka@gmail.com',         role: 'student', status: 'suspended', joinedAt: '2024-04-05', lastActive: '2026-06-25' },
-  { id: 'u7', name: 'Trainer One',     email: 'trainer1@numericode.com', role: 'trainer', status: 'active',    joinedAt: '2024-01-05', lastActive: '2026-07-01' },
-  { id: 'u8', name: 'Trainer Two',     email: 'trainer2@numericode.com', role: 'trainer', status: 'active',    joinedAt: '2024-02-01', lastActive: '2026-06-28' },
+  { id: 'u7', name: 'Trainer One',     email: 'trainer1@numerycode.com', role: 'trainer', status: 'active',    joinedAt: '2024-01-05', lastActive: '2026-07-01' },
+  { id: 'u8', name: 'Trainer Two',     email: 'trainer2@numerycode.com', role: 'trainer', status: 'active',    joinedAt: '2024-02-01', lastActive: '2026-06-28' },
   { id: 'u9', name: 'Ibrahim Musa',    email: 'ibrahim@gmail.com',       role: 'trainer', status: 'pending',   joinedAt: '2026-07-08', lastActive: '2026-07-08' },
 ]
 

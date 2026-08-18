@@ -105,8 +105,8 @@ export default function PendingApprovalPage() {
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-500">
             Need help? Contact support at{' '}
-            <a href="mailto:support@numericode.com" className="text-brand-blue hover:underline">
-              support@numericode.com
+            <a href="mailto:support@numerycode.com" className="text-brand-blue hover:underline">
+              support@numerycode.com
             </a>
           </p>
         </div>

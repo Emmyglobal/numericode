@@ -29,7 +29,7 @@ export function AdminSidebar() {
         <div className="flex items-center justify-between h-16 px-5 border-b border-blue-800">
           <div className="flex items-center gap-2 font-bold">
             <GraduationCap className="w-6 h-6 text-brand-sky" aria-hidden="true" />
-            <span>NumeriCode</span>
+            <span>NumeryCode</span>
             <span className="text-xs font-normal bg-red-600 text-white px-1.5 py-0.5 rounded ml-1">Admin</span>
           </div>
           <button className="lg:hidden p-1 rounded text-white/70 hover:text-white" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar"><X className="w-4 h-4" aria-hidden="true" /></button>

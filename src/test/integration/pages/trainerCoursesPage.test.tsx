@@ -25,7 +25,7 @@ describe('TrainerCoursesPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useAuthStore.setState({
-      user: { id: 'u7', name: 'Trainer One', email: 'trainer@numericode.com', role: 'trainer', createdAt: '2024-01-01' },
+      user: { id: 'u7', name: 'Trainer One', email: 'trainer@numerycode.com', role: 'trainer', createdAt: '2024-01-01' },
       token: 'token', isAuthenticated: true,
     })
   })

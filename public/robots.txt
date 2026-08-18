@@ -3,4 +3,4 @@ Allow: /
 Disallow: /dashboard
 Disallow: /trainer
 Disallow: /admin
-Sitemap: https://numericode.com/sitemap.xml
+Sitemap: https://numerycode.com/sitemap.xml

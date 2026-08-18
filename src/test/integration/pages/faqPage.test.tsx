@@ -12,7 +12,7 @@ describe('FaqPage', () => {
 
   it('renders all FAQ questions', () => {
     render(<FaqPage />)
-    expect(screen.getByText(/is numericode completely free/i)).toBeInTheDocument()
+    expect(screen.getByText(/is numerycode completely free/i)).toBeInTheDocument()
     expect(screen.getByText(/who are the courses designed for/i)).toBeInTheDocument()
     expect(screen.getByText(/how do live classes work/i)).toBeInTheDocument()
   })

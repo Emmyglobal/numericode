@@ -10,10 +10,10 @@ const patchMock = vi.fn().mockResolvedValue({ data: { success: true, data: {} } 
 vi.mock('@/lib/axios', () => ({
   api: {
     get: vi.fn().mockResolvedValue({ data: { success: true, data: [
-      { id:'u1', name:'Emmanuel Nwafor', email:'emmanuel@numericode.com', role:'admin',   status:'active',    joinedAt:'2024-01-01', lastActive:'2026-07-01' },
+      { id:'u1', name:'Emmanuel Nwafor', email:'emmanuel@numerycode.com', role:'admin',   status:'active',    joinedAt:'2024-01-01', lastActive:'2026-07-01' },
       { id:'u2', name:'Kolade Adebayo',  email:'kolade@gmail.com',        role:'student', status:'active',    joinedAt:'2024-02-10', lastActive:'2026-06-30' },
       { id:'u3', name:'Emeka Nwosu',     email:'emeka@gmail.com',         role:'student', status:'suspended', joinedAt:'2024-04-05', lastActive:'2026-06-25' },
-      { id:'u7', name:'Trainer One',     email:'trainer@numericode.com',  role:'trainer', status:'active',    joinedAt:'2024-01-05', lastActive:'2026-07-01' },
+      { id:'u7', name:'Trainer One',     email:'trainer@numerycode.com',  role:'trainer', status:'active',    joinedAt:'2024-01-05', lastActive:'2026-07-01' },
       { id:'u9', name:'Ibrahim Musa',    email:'ibrahim@gmail.com',       role:'trainer', status:'pending',   joinedAt:'2026-07-08', lastActive:'2026-07-08' },
     ]}}),
     patch: (...args: unknown[]) => patchMock(...args),
@@ -23,7 +23,7 @@ vi.mock('@/lib/axios', () => ({
 describe('AdminUsersPage', () => {
   beforeEach(() => {
     useAuthStore.setState({
-      user: { id:'u1', name:'Emmanuel', email:'admin@numericode.com', role:'admin', createdAt:'2024-01-01' },
+      user: { id:'u1', name:'Emmanuel', email:'admin@numerycode.com', role:'admin', createdAt:'2024-01-01' },
       token: 'token', isAuthenticated: true,
     })
   })

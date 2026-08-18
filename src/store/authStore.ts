@@ -27,6 +27,6 @@ export const useAuthStore = create<AuthState>()(
       setToken: (token) => set({ token, isAuthenticated: true }),
       logout: () => set({ user: null, token: null, isAuthenticated: false }),
     }),
-    { name: 'numericode-auth' }
+    { name: 'numerycode-auth' }
   )
 )

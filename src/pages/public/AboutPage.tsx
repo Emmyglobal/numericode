@@ -11,14 +11,14 @@ export default function AboutPage() {
   usePageTitle('About Us')
   return (
     <div>
-      <div className="bg-gradient-to-r from-brand-navy to-brand-blue text-white py-16"><SectionWrapper className="py-0"><h1 className="text-4xl font-bold mb-3">About NumeriCode</h1><p className="text-blue-200 max-w-xl">Our story, mission, and the people behind the platform.</p></SectionWrapper></div>
+      <div className="bg-gradient-to-r from-brand-navy to-brand-blue text-white py-16"><SectionWrapper className="py-0"><h1 className="text-4xl font-bold mb-3">About NumeryCode</h1><p className="text-blue-200 max-w-xl">Our story, mission, and the people behind the platform.</p></SectionWrapper></div>
       <SectionWrapper>
         <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
           <div>
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Our Story</h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">NumeriCode was born out of a simple observation: too many talented young people in Nigeria and across Africa were being left behind because quality education in mathematics and programming was inaccessible.</p>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">We set out to change that. By combining live instruction with self-paced learning, NumeriCode gives every student — regardless of background — access to world-class teaching in two of the most in-demand skills of the 21st century.</p>
-            <p className="text-gray-600 dark:text-gray-400">Today, hundreds of students across Africa are using NumeriCode to build skills, pass exams, and launch careers.</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">NumeryCode was born out of a simple observation: too many talented young people in Nigeria and across Africa were being left behind because quality education in mathematics and programming was inaccessible.</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">We set out to change that. By combining live instruction with self-paced learning, NumeryCode gives every student — regardless of background — access to world-class teaching in two of the most in-demand skills of the 21st century.</p>
+            <p className="text-gray-600 dark:text-gray-400">Today, hundreds of students across Africa are using NumeryCode to build skills, pass exams, and launch careers.</p>
           </div>
           <div className="rounded-2xl bg-brand-light dark:bg-blue-900/20 p-10 flex flex-col items-center text-center">
             <div className="text-7xl font-bold text-brand-blue/20 mb-4">∑ + &lt;/&gt;</div>
@@ -45,13 +45,13 @@ export default function AboutPage() {
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">Nwafor Ugochukwu Emmanuel</h3>
               <p className="text-brand-blue text-sm mb-3">Founder & Lead Instructor</p>
               <div className="flex flex-wrap gap-2 mb-4">{['B.Sc Mathematics', 'Full-Stack Developer', '10+ Years Teaching', 'Curriculum Designer'].map(c => <span key={c} className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded px-2 py-1">{c}</span>)}</div>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">A mathematics educator and software developer passionate about closing the STEM skills gap in Africa. Emmanuel has taught over 500 students and builds every NumeriCode course with both mathematical rigour and real-world application in mind.</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">A mathematics educator and software developer passionate about closing the STEM skills gap in Africa. Emmanuel has taught over 500 students and builds every NumeryCode course with both mathematical rigour and real-world application in mind.</p>
             </div>
           </div>
         </div>
 
         <div className="mt-12 text-center bg-brand-blue rounded-2xl py-12 px-6 text-white">
-          <h2 className="text-2xl font-bold mb-3">Join the NumeriCode Community</h2>
+          <h2 className="text-2xl font-bold mb-3">Join the NumeryCode Community</h2>
           <p className="text-blue-100 mb-6 max-w-md mx-auto">Start learning today — completely free. Your first live class is waiting.</p>
           <Link to="/register"><Button className="bg-white text-brand-blue hover:bg-blue-50 font-bold" size="lg">Get Started Free</Button></Link>
         </div>

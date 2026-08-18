@@ -1,4 +1,4 @@
-# NumeriCode
+# NumeryCode
 
 > **Where Mathematics Meets Code**
 >
@@ -8,8 +8,8 @@
 ## Quick Start
 
 ```bash
-unzip files.zip          # or: tar -xzf numericode-phase8-optimised.tar.gz
-cd numericode
+unzip files.zip          # or: tar -xzf numerycode-phase8-optimised.tar.gz
+cd numerycode
 npm install
 npm run dev              # → http://localhost:5173
 ```
@@ -25,8 +25,8 @@ Click any account on the login page to fill the credentials automatically.
 | Role    | Email                       | Password    | Portal after login |
 |---------|-----------------------------|-------------|-------------------|
 | Student | `kolade@gmail.com`          | password123 | `/dashboard`      |
-| Trainer | `trainer@numericode.com`    | password123 | `/trainer`        |
-| Admin   | `emmanuel@numericode.com`   | password123 | `/admin`          |
+| Trainer | `trainer@numerycode.com`    | password123 | `/trainer`        |
+| Admin   | `emmanuel@numerycode.com`   | password123 | `/admin`          |
 
 Or **register a new account** — it works immediately and creates a student account.
 
@@ -34,7 +34,7 @@ Or **register a new account** — it works immediately and creates a student acc
 
 ## What This Project Is
 
-NumeriCode was built from scratch following a complete Software Development Life Cycle across 9 phases:
+NumeryCode was built from scratch following a complete Software Development Life Cycle across 9 phases:
 
 | Phase | Name | Deliverable |
 |---|---|---|
@@ -249,4 +249,4 @@ npm run test:coverage # Tests + coverage report
 ## Prepared by
 
 **Nwafor Ugochukwu Emmanuel**
-Full-Stack Developer · NumeriCode Project · July 2026
+Full-Stack Developer · NumeryCode Project · July 2026

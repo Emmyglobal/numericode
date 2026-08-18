@@ -37,7 +37,7 @@ export function certificateToHtml(c: Certificate): string {
 <body>
   <div class="cert">
     <div class="badge" aria-hidden="true">&#127891;</div>
-    <div class="brand">NumeriCode</div>
+    <div class="brand">NumeryCode</div>
     <h1>Certificate of Completion</h1>
     <div class="rule"></div>
     <p class="line">This is to certify that</p>
@@ -47,8 +47,8 @@ export function certificateToHtml(c: Certificate): string {
     <p class="grade">Final grade: ${escapeHtml(c.finalPercentage)}% (${escapeHtml(c.letterGrade)})</p>
     <p class="line">Issued on ${escapeHtml(c.issuedAt)}</p>
     <div class="meta">Certificate Code: <strong>${escapeHtml(c.certificateCode)}</strong><br />
-      This certificate can be verified on NumeriCode.</div>
-    <div class="footer">© ${new Date().getFullYear()} NumeriCode · Learning Platform</div>
+      This certificate can be verified on NumeryCode.</div>
+    <div class="footer">© ${new Date().getFullYear()} NumeryCode · Learning Platform</div>
   </div>
 </body>
 </html>`

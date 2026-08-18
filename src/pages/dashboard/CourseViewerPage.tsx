@@ -28,7 +28,13 @@ function downloadLessonNotes(lesson: Lesson) {
 
 async function downloadLessonResource(r: { title: string; url: string; type: string }) {
   const isPlaceholder = !r.url || r.url === '#'
-  const ext = isPlaceholder ? 'txt' : r.type === 'pdf' ? 'pdf' : r.type === 'video' ? 'mp4' : 'txt'
+  // Derive the real extension from the stored URL so any uploaded file type
+  // downloads with the correct extension.
+  let ext = 'txt'
+  if (!isPlaceholder) {
+    const urlExt = r.url.split('?')[0].split('.').pop()?.toLowerCase()
+    if (urlExt && /^[a-z0-9]{1,5}$/.test(urlExt)) ext = urlExt
+  }
   const fallback = `RESOURCE — ${r.title}\n\n(No file is attached to this resource yet.)`
   await downloadUrl(r.url, sanitizeFilename(r.title, 'resource', ext), fallback)
 }

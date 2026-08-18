@@ -11,7 +11,7 @@ export default function AdminSettingsPage() {
   const handleSave = (e: React.FormEvent) => { e.preventDefault(); setSaved(true); setTimeout(()=>setSaved(false),3000) }
 
   const sections = [
-    { title: 'Platform Information', fields: [{ label: 'Platform Name', defaultValue: 'NumeriCode' }, { label: 'Tagline', defaultValue: 'Where Mathematics Meets Code' }, { label: 'Contact Email', defaultValue: 'hello@numericode.com', type: 'email' }] },
+    { title: 'Platform Information', fields: [{ label: 'Platform Name', defaultValue: 'NumeryCode' }, { label: 'Tagline', defaultValue: 'Where Mathematics Meets Code' }, { label: 'Contact Email', defaultValue: 'hello@numerycode.com', type: 'email' }] },
     { title: 'Enrolment Settings', fields: [{ label: 'Default Course Status', defaultValue: 'draft' }, { label: 'Max Students Per Course', defaultValue: '50', type: 'number' }] },
   ]
 

@@ -17,7 +17,7 @@ const stagger = (delay = 0.08) => ({ show: { transition: { staggerChildren: dela
 const stats = [{ value: '10+', label: 'Courses' }, { value: '500+', label: 'Students' }, { value: '50+', label: 'Live Classes' }, { value: '100%', label: 'Free' }]
 const steps = [{ icon: BookOpen, title: 'Browse Courses', desc: 'Explore our curated Mathematics and Programming tracks.' }, { icon: Users, title: 'Register Free', desc: 'Create your account in under 60 seconds.' }, { icon: Video, title: 'Learn Live', desc: 'Attend live classes and ask questions in real time.' }]
 const testimonials = [
-  { name: 'Kolade A.', role: 'Student, Age 14', quote: 'NumeriCode made algebra finally click for me. The live classes are the best part!', color: 'from-teal-500 to-emerald-500' },
+  { name: 'Kolade A.', role: 'Student, Age 14', quote: 'NumeryCode made algebra finally click for me. The live classes are the best part!', color: 'from-teal-500 to-emerald-500' },
   { name: 'Amaka O.', role: 'Student, Age 11', quote: 'I used to be scared of maths. Now I actually look forward to my lessons every week.', color: 'from-purple-500 to-indigo-500' },
   { name: 'Chidi E.', role: 'Parent', quote: 'The progress reports and live sessions keep me involved in my son\'s learning journey.', color: 'from-amber-500 to-orange-500' },
   { name: 'Tolu B.', role: 'Student, Age 16', quote: 'The programming track is incredible — I built my first website in a month!', color: 'from-rose-500 to-pink-500' },
@@ -73,7 +73,7 @@ export default function LandingPage() {
               <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
                 Mathematics & Code, <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-sky to-teal-300">Taught Live</span>
               </h1>
-              <p className="text-lg text-blue-200 max-w-lg">Join NumeriCode for live online classes in Mathematics and Programming. Learn at your own pace, guided by real instructors.</p>
+              <p className="text-lg text-blue-200 max-w-lg">Join NumeryCode for live online classes in Mathematics and Programming. Learn at your own pace, guided by real instructors.</p>
               <div className="flex flex-wrap gap-3 pt-2">
                 <Link to="/register"><Button size="lg" className="shadow-lg shadow-brand-blue/30 hover:scale-105 transition-transform"><Sparkles className="w-5 h-5 mr-1" /> Get Started Free <ArrowRight className="w-5 h-5" /></Button></Link>
                 <Link to="/courses"><Button variant="secondary" size="lg" className="border-white text-white hover:bg-white/10">Browse Courses</Button></Link>
@@ -244,7 +244,7 @@ export default function LandingPage() {
         </div>
         <div className="relative max-w-3xl mx-auto px-4 py-16 text-center text-white">
           <h2 className="text-3xl font-bold mb-4">Ready to Start Learning?</h2>
-          <p className="text-blue-100 mb-8">Join NumeriCode today — it's completely free.</p>
+          <p className="text-blue-100 mb-8">Join NumeryCode today — it's completely free.</p>
           <Link to="/register"><Button size="lg" className="bg-white text-brand-blue hover:bg-blue-50 font-bold shadow-lg hover:scale-105 transition-transform">Start Learning Today <ArrowRight className="w-5 h-5" /></Button></Link>
         </div>
       </div>

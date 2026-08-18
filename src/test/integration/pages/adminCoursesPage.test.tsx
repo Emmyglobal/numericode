@@ -13,7 +13,7 @@ vi.mock('@/lib/axios', () => ({
     get: vi.fn().mockImplementation((url: string) => {
       if (url === '/admin/trainers') {
         return Promise.resolve({ data: { success: true, data: [
-          { id: 'u7', name: 'Trainer One', email: 'trainer@numericode.com' },
+          { id: 'u7', name: 'Trainer One', email: 'trainer@numerycode.com' },
         ]}})
       }
       return Promise.resolve({ data: { success: true, data: [
@@ -30,7 +30,7 @@ describe('AdminCoursesPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useAuthStore.setState({
-      user: { id: 'u1', name: 'Emmanuel', email: 'admin@numericode.com', role: 'admin', createdAt: '2024-01-01' },
+      user: { id: 'u1', name: 'Emmanuel', email: 'admin@numerycode.com', role: 'admin', createdAt: '2024-01-01' },
       token: 'token', isAuthenticated: true,
     })
   })

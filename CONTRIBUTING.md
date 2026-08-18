@@ -1,4 +1,4 @@
-# NumeriCode — Developer Onboarding Guide
+# NumeryCode — Developer Onboarding Guide
 
 > Read this before touching any code. It takes 15 minutes and will save you hours.
 
@@ -12,7 +12,7 @@ node --version   # must be >= 18
 npm --version    # must be >= 9
 
 # Clone / extract and install
-cd numericode
+cd numerycode
 npm install
 
 # Start the dev server
@@ -370,11 +370,11 @@ describe('NewPage', () => {
 ```bash
 # .env.example — commit this
 VITE_API_BASE_URL=/api
-VITE_APP_NAME=NumeriCode
+VITE_APP_NAME=NumeryCode
 VITE_APP_ENV=development
 
 # .env — never commit this
-VITE_API_BASE_URL=https://api.numericode.com
+VITE_API_BASE_URL=https://api.numerycode.com
 ```
 
 Access in code: `import.meta.env.VITE_API_BASE_URL`

@@ -47,7 +47,7 @@ export const dashboardHandlers = [
     { id: 'lc3', courseId: 'c2', courseTitle: 'JavaScript for Beginners', subject: 'programming', title: 'JavaScript Q&A', date: '2026-07-04T14:00:00', duration: 60, meetUrl: '#', status: 'upcoming' },
   ]})),
   http.get('/api/profile', () => HttpResponse.json({ success: true, data: {
-    id: 'u1', name: 'Emmanuel Nwafor', email: 'emmanuel@numericode.com', bio: 'Passionate learner on a journey through mathematics and programming.', createdAt: '2024-01-01'
+    id: 'u1', name: 'Emmanuel Nwafor', email: 'emmanuel@numerycode.com', bio: 'Passionate learner on a journey through mathematics and programming.', createdAt: '2024-01-01'
   }})),
   http.put('/api/profile', async ({ request }) => {
     const body = await request.json()

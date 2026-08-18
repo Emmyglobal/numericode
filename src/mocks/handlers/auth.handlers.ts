@@ -3,8 +3,8 @@ import { http, HttpResponse } from 'msw'
 interface MockUser { id: string; name: string; email: string; role: 'student'|'trainer'|'admin'; status: 'active'|'pending'|'suspended'; createdAt: string }
 
 const users: MockUser[] = [
-  { id: 'u1', name: 'Emmanuel Nwafor', email: 'emmanuel@numericode.com', role: 'admin',   status: 'active', createdAt: '2024-01-01' },
-  { id: 'u7', name: 'Trainer One',     email: 'trainer@numericode.com',  role: 'trainer', status: 'active', createdAt: '2024-01-05' },
+  { id: 'u1', name: 'Emmanuel Nwafor', email: 'emmanuel@numerycode.com', role: 'admin',   status: 'active', createdAt: '2024-01-01' },
+  { id: 'u7', name: 'Trainer One',     email: 'trainer@numerycode.com',  role: 'trainer', status: 'active', createdAt: '2024-01-05' },
   { id: 'u2', name: 'Kolade Adebayo',  email: 'kolade@gmail.com',        role: 'student', status: 'active', createdAt: '2024-02-10' },
 ]
 

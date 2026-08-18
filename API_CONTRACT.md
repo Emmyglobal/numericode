@@ -1,4 +1,4 @@
-# NumeriCode — API Contract
+# NumeryCode — API Contract
 
 All endpoints are served under the base URL `/api` (configured via `VITE_API_BASE_URL`).
 
@@ -629,7 +629,7 @@ Create and send a new announcement.
 ```json
 {
   "title":    "Platform Maintenance Tonight",
-  "body":     "NumeriCode will be down from 2am–4am WAT.",
+  "body":     "NumeryCode will be down from 2am–4am WAT.",
   "audience": "all"
 }
 ```
@@ -659,7 +659,7 @@ type AnnouncementAudience = 'all' | 'students' | 'trainers'
 
 When you add a real backend in Phase 10:
 
-1. Set `VITE_API_BASE_URL=https://api.numericode.com` in `.env`
+1. Set `VITE_API_BASE_URL=https://api.numerycode.com` in `.env`
 2. The `src/mocks/browser.stub.ts` alias in `vite.config.ts` already ensures MSW does not load in production
 3. No frontend code changes are needed — the Axios instance and all service functions are already written
 4. Add real JWT verification on the backend — the `Authorization: Bearer <token>` header is already sent by the Axios interceptor

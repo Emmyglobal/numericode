@@ -7,12 +7,12 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 
 const faqs = [
-  { q: 'Is NumeriCode completely free?',              a: 'Yes! All courses, live classes, and learning resources on NumeriCode are completely free to access. Just register and start learning.' },
-  { q: 'Who are the courses designed for?',           a: 'NumeriCode is designed for secondary school students, self-learners, and anyone looking to build strong foundations in Mathematics or Programming, from beginners to intermediate learners.' },
+  { q: 'Is NumeryCode completely free?',              a: 'Yes! All courses, live classes, and learning resources on NumeryCode are completely free to access. Just register and start learning.' },
+  { q: 'Who are the courses designed for?',           a: 'NumeryCode is designed for secondary school students, self-learners, and anyone looking to build strong foundations in Mathematics or Programming, from beginners to intermediate learners.' },
   { q: 'How do live classes work?',                   a: 'Live classes are hosted on Zoom or Google Meet. When a class is scheduled, a Join button appears on your dashboard. Click it to join the session. You can ask questions in real time.' },
   { q: 'What if I miss a live class?',               a: 'We understand life gets busy. While recordings are a planned future feature, you can catch the next scheduled session for that topic. Check the Live Classes page for upcoming dates.' },
   { q: 'Do I get a certificate when I finish?',      a: "Certificates are on our roadmap and will be available soon. We'll notify all enrolled students when this feature launches." },
-  { q: 'Can I use NumeriCode on my phone?',          a: 'Yes! NumeriCode is fully responsive and works on any device — phone, tablet, or desktop.' },
+  { q: 'Can I use NumeryCode on my phone?',          a: 'Yes! NumeryCode is fully responsive and works on any device — phone, tablet, or desktop.' },
   { q: 'How do I reset my password?',                a: "Click Forgot password on the login page, enter your email address, and we will send you a reset link." },
 ]
 
@@ -25,7 +25,7 @@ export default function FaqPage() {
       <div className="bg-gradient-to-r from-brand-navy to-brand-blue text-white py-16">
         <SectionWrapper className="py-0">
           <h1 className="text-4xl font-bold mb-2">Frequently Asked Questions</h1>
-          <p className="text-blue-200">Everything you need to know about NumeriCode.</p>
+          <p className="text-blue-200">Everything you need to know about NumeryCode.</p>
         </SectionWrapper>
       </div>
 

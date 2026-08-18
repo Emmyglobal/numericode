@@ -37,7 +37,7 @@ export function TrainerSidebar() {
         <div className="flex items-center justify-between h-16 px-5 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2 font-bold text-brand-navy dark:text-white">
             <GraduationCap className="w-6 h-6 text-teal" aria-hidden="true" />
-            <span>NumeriCode</span>
+            <span>NumeryCode</span>
             <span className="text-xs font-normal bg-teal-light dark:bg-teal-900/30 text-teal px-1.5 py-0.5 rounded ml-1">Trainer</span>
           </div>
           <button className="lg:hidden p-1 rounded" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar"><X className="w-4 h-4" aria-hidden="true" /></button>

@@ -22,9 +22,9 @@ export function PublicNavbar() {
     <header role="banner" className="sticky top-0 z-50 bg-white/95 dark:bg-surface-dark/95 backdrop-blur border-b border-gray-200 dark:border-gray-700 shadow-card">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
 
-        <Link to="/" className="flex items-center gap-2 text-brand-navy dark:text-white font-bold text-xl" aria-label="NumeriCode home">
+        <Link to="/" className="flex items-center gap-2 text-brand-navy dark:text-white font-bold text-xl" aria-label="NumeryCode home">
           <GraduationCap className="w-7 h-7 text-brand-blue" aria-hidden="true" />
-          NumeriCode
+          NumeryCode
         </Link>
 
         <nav role="navigation" aria-label="Main navigation" className="hidden md:flex items-center gap-8">

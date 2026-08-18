@@ -19,10 +19,10 @@ vi.mock('@/services/auth.service', () => ({
       if (email === 'kolade@gmail.com' && password.length >= 6) {
         return { user: { id: 'u2', name: 'Kolade', email, role: 'student', createdAt: '2024-01-01' }, token: 'mock-token' }
       }
-      if (email === 'trainer@numericode.com' && password.length >= 6) {
+      if (email === 'trainer@numerycode.com' && password.length >= 6) {
         return { user: { id: 'u7', name: 'Trainer', email, role: 'trainer', createdAt: '2024-01-01' }, token: 'mock-token' }
       }
-      if (email === 'emmanuel@numericode.com' && password.length >= 6) {
+      if (email === 'emmanuel@numerycode.com' && password.length >= 6) {
         return { user: { id: 'u1', name: 'Emmanuel', email, role: 'admin', createdAt: '2024-01-01' }, token: 'mock-token' }
       }
       throw new Error('Invalid email or password')
@@ -82,7 +82,7 @@ describe('LoginPage', () => {
   it('logs in trainer and navigates to /trainer', async () => {
     const user = userEvent.setup()
     render(<LoginPage />)
-    await user.type(screen.getByLabelText(/email address/i), 'trainer@numericode.com')
+    await user.type(screen.getByLabelText(/email address/i), 'trainer@numerycode.com')
     await user.type(screen.getByLabelText(/^password$/i), 'password123')
     await user.click(screen.getByRole('button', { name: /log in/i }))
     await waitFor(() => {
@@ -94,7 +94,7 @@ describe('LoginPage', () => {
   it('logs in admin and navigates to /admin', async () => {
     const user = userEvent.setup()
     render(<LoginPage />)
-    await user.type(screen.getByLabelText(/email address/i), 'emmanuel@numericode.com')
+    await user.type(screen.getByLabelText(/email address/i), 'emmanuel@numerycode.com')
     await user.type(screen.getByLabelText(/^password$/i), 'password123')
     await user.click(screen.getByRole('button', { name: /log in/i }))
     await waitFor(() => {

@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react'
 import { useAuthStore } from '@/store/authStore'
 
 const mockUser = {
-  id: 'u1', name: 'Emmanuel Nwafor', email: 'emmanuel@numericode.com',
+  id: 'u1', name: 'Emmanuel Nwafor', email: 'emmanuel@numerycode.com',
   role: 'admin' as const, createdAt: '2024-01-01',
 }
 

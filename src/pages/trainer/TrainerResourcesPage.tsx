@@ -18,17 +18,17 @@ interface ResourceItem {
   courseId: string
   courseTitle: string
   title: string
-  type: 'pdf' | 'video' | 'link'
+  type: 'pdf' | 'video' | 'link' | 'file'
   url: string
 }
 
-const typeIcons = { pdf: FileText, video: Video, link: LinkIcon }
-const typeColors = { pdf: 'text-red-600 bg-red-50 dark:bg-red-900/20', video: 'text-purple-600 bg-purple-50 dark:bg-purple-900/20', link: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' }
+const typeIcons = { pdf: FileText, video: Video, link: LinkIcon, file: FileText }
+const typeColors = { pdf: 'text-red-600 bg-red-50 dark:bg-red-900/20', video: 'text-purple-600 bg-purple-50 dark:bg-purple-900/20', link: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20', file: 'text-gray-600 bg-gray-50 dark:bg-gray-900/20' }
 
 interface ResourceFormData {
   lessonId: string
   title: string
-  type: 'pdf' | 'video' | 'link'
+  type: 'pdf' | 'video' | 'link' | 'file'
   url: string
 }
 
@@ -179,7 +179,7 @@ export default function TrainerResourcesPage() {
               <div>
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Type <span className="text-red-500">*</span></label>
                 <div className="flex gap-3 mt-1">
-                  {(['pdf', 'video', 'link'] as const).map(type => (
+                  {(['pdf', 'video', 'link', 'file'] as const).map(type => (
                     <label key={type} className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="radio"

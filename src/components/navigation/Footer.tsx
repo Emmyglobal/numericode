@@ -7,13 +7,13 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="md:col-span-1">
-            <div className="flex items-center gap-2 font-bold text-xl mb-3"><GraduationCap className="w-6 h-6 text-brand-sky" />NumeriCode</div>
+            <div className="flex items-center gap-2 font-bold text-xl mb-3"><GraduationCap className="w-6 h-6 text-brand-sky" />NumeryCode</div>
             <p className="text-sm text-blue-200">Where Mathematics meets Code. Learn live, grow faster.</p>
             <div className="flex gap-3 mt-4">
               <a href="https://wa.me/2347031992338" target="_blank" rel="noreferrer" aria-label="WhatsApp" className="text-blue-300 hover:text-white transition-colors"><MessageCircle className="w-5 h-5" /></a>
               <a href={import.meta.env.VITE_LINKEDIN_URL || '/contact'} target={import.meta.env.VITE_LINKEDIN_URL ? '_blank' : undefined} rel="noreferrer" aria-label="LinkedIn" className="text-blue-300 hover:text-white transition-colors"><Link2 className="w-5 h-5" /></a>
               <a href={import.meta.env.VITE_FACEBOOK_URL || '/contact'} target={import.meta.env.VITE_FACEBOOK_URL ? '_blank' : undefined} rel="noreferrer" aria-label="Facebook" className="text-blue-300 hover:text-white transition-colors"><UsersRound className="w-5 h-5" /></a>
-              <a href="mailto:hello@numericode.com" aria-label="Email" className="text-blue-300 hover:text-white transition-colors"><Mail className="w-5 h-5" /></a>
+              <a href="mailto:hello@numerycode.com" aria-label="Email" className="text-blue-300 hover:text-white transition-colors"><Mail className="w-5 h-5" /></a>
             </div>
           </div>
           {[
@@ -27,7 +27,7 @@ export function Footer() {
             </div>
           ))}
         </div>
-        <div className="border-t border-blue-800 pt-6 text-center text-xs text-blue-400">© 2026 NumeriCode. Built by Nwafor Ugochukwu Emmanuel</div>
+        <div className="border-t border-blue-800 pt-6 text-center text-xs text-blue-400">© 2026 NumeryCode. Built by Nwafor Ugochukwu Emmanuel</div>
       </div>
     </footer>
   )

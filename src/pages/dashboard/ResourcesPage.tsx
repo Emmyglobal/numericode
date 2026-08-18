@@ -9,11 +9,17 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { downloadUrl, sanitizeFilename } from '@/lib/download'
 import type { ResourceItem } from '@/features/resources/types'
 
-const typeIcon = { pdf: FileText, video: VideoIcon, link: LinkIcon }
+const typeIcon = { pdf: FileText, video: VideoIcon, link: LinkIcon, file: FileText }
 
 async function handleDownload(r: ResourceItem) {
   const isPlaceholder = !r.url || r.url === '#'
-  const ext = isPlaceholder ? 'txt' : r.type === 'pdf' ? 'pdf' : r.type === 'video' ? 'mp4' : 'txt'
+  // Derive the real extension from the stored URL so any uploaded file type
+  // downloads with the correct extension.
+  let ext = 'txt'
+  if (!isPlaceholder) {
+    const urlExt = r.url.split('?')[0].split('.').pop()?.toLowerCase()
+    if (urlExt && /^[a-z0-9]{1,5}$/.test(urlExt)) ext = urlExt
+  }
   const fallback =
     `RESOURCE — ${r.title}\nCourse: ${r.courseTitle}\nType: ${r.type}\n\n` +
     '(This environment has no file attached to this resource yet.)'
