@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
 import { aiService } from '@/services/ai.service'
+import { QuestionFileUpload } from '@/components/shared/QuestionFileUpload'
+import { toAssignmentQuestions, type ImportedQuestion } from '@/utils/questionImport'
 import type { AssignmentQuestion, AssignmentType } from '@/features/assignments/types'
 
 export interface AssignmentDraftValues {
@@ -62,6 +64,7 @@ export function AssignmentFormModal({ courses, isSubmitting, error, onClose, onS
   const [passingScore, setPassingScore] = useState(10)
   const [description, setDescription] = useState('')
   const [questions, setQuestions] = useState<AssignmentQuestion[]>([newQuestion('theory')])
+  const [importedQuestionCount, setImportedQuestionCount] = useState(0)
   const [aiGenerated, setAiGenerated] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
@@ -100,6 +103,13 @@ export function AssignmentFormModal({ courses, isSubmitting, error, onClose, onS
     } finally {
       setAiLoading(false)
     }
+  }
+
+  const handleImported = (imported: ImportedQuestion[]) => {
+    const mapped = toAssignmentQuestions(imported)
+    setQuestions(mapped)
+    setImportedQuestionCount(mapped.length)
+    setAiGenerated(false)
   }
 
   const handleSubmit = () => {
@@ -213,6 +223,17 @@ export function AssignmentFormModal({ courses, isSubmitting, error, onClose, onS
             <Button variant="secondary" size="sm" onClick={() => setQuestions(qs => [...qs, newQuestion('theory')])}>
               <Plus className="w-4 h-4" aria-hidden="true" /> Add question
             </Button>
+          </div>
+          <div className="mb-4">
+            <QuestionFileUpload
+              onParsed={handleImported}
+              onCleared={() => setImportedQuestionCount(0)}
+            />
+            {importedQuestionCount > 0 && (
+              <p className="mt-2 text-xs text-brand-blue dark:text-brand-sky">
+                {importedQuestionCount} question{importedQuestionCount === 1 ? '' : 's'} loaded from the file — edit or remove them below, then publish.
+              </p>
+            )}
           </div>
           {fieldErrors.questions && <p role="alert" className="text-xs text-red-600 dark:text-red-400 mb-2">{fieldErrors.questions}</p>}
           {!questions.length && <p className="text-sm text-gray-400">No questions yet — add one above.</p>}

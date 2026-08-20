@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { quizzesService, type Quiz } from '@/services/quizzes.service'
+import { quizzesService, type Quiz, type QuizQuestionInput } from '@/services/quizzes.service'
 import { api } from '@/lib/axios'
+import { QuestionFileUpload } from '@/components/shared/QuestionFileUpload'
+import { toQuizQuestions, countObjective, type ImportedQuestion } from '@/utils/questionImport'
 import type { ApiResponse } from '@/types/api.types'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { AiContentGenerator } from '@/components/shared/AiContentGenerator'
@@ -10,7 +12,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
-import { Plus, Trash2, ClipboardList, X } from 'lucide-react'
+import { Plus, Trash2, ClipboardList, X, Sparkles } from 'lucide-react'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 interface TrainerCourse { id: string; title: string }
@@ -27,6 +29,8 @@ export default function TrainerQuizzesPage() {
   const [description, setDescription] = useState('')
   const [timeLimit, setTimeLimit] = useState('')
   const [passingScore, setPassingScore] = useState('70')
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestionInput[]>([])
+  const [questionsNote, setQuestionsNote] = useState('')
 
   const { data: courses } = useQuery({
     queryKey: ['trainer', 'courses'],
@@ -92,6 +96,8 @@ export default function TrainerQuizzesPage() {
     setDescription('')
     setTimeLimit('')
     setPassingScore('70')
+    setQuizQuestions([])
+    setQuestionsNote('')
   }
 
   const openCreate = () => {
@@ -103,7 +109,27 @@ export default function TrainerQuizzesPage() {
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault()
     if (!courseId || !quizTitle.trim()) return
-    createMutation.mutate()
+    createMutation.mutate({
+      courseId,
+      title: quizTitle,
+      description,
+      timeLimit: timeLimit ? Number(timeLimit) : undefined,
+      passingScore: passingScore ? Number(passingScore) : 70,
+      maxAttempts: 1,
+      shuffleQuestions: false,
+      showResults: true,
+      questions: quizQuestions,
+    })
+  }
+
+  const handleUploadedQuestions = (imported: ImportedQuestion[]) => {
+    const mapped = toQuizQuestions(imported)
+    setQuizQuestions(mapped)
+    const objective = countObjective(imported)
+    setQuestionsNote(
+      `${mapped.length} question${mapped.length === 1 ? '' : 's'} loaded from the file` +
+      ` — ${objective} objective ${objective === 1 ? 'question is' : 'questions are'} auto-graded. Review and click Create Quiz.`
+    )
   }
 
   const handleAiQuizGenerated = (questions: Array<{ questionText: string; questionType: string; options: unknown; correctAnswer: string | null; points: number; position: number }>) => {
@@ -115,18 +141,8 @@ export default function TrainerQuizzesPage() {
       points: q.points || 1,
       position: q.position,
     }))
-    createMutation.mutate({
-      courseId,
-      title: quizTitle || 'AI Generated Quiz',
-      description: description || 'Quiz generated with AI',
-      timeLimit: timeLimit ? Number(timeLimit) : undefined,
-      passingScore: passingScore ? Number(passingScore) : 70,
-      maxAttempts: 1,
-      shuffleQuestions: false,
-      showResults: true,
-      questions: mapped,
-    })
-    setSuccessMessage(`AI generated quiz with ${mapped.length} questions.`)
+    setQuizQuestions(mapped)
+    setQuestionsNote(`AI generated ${mapped.length} questions. Review them, then click Create Quiz.`)
   }
 
   return (
@@ -229,6 +245,29 @@ export default function TrainerQuizzesPage() {
                 <Input label="Time Limit (min)" type="number" value={timeLimit} onChange={e => setTimeLimit(e.target.value)} placeholder="e.g. 30" />
                 <Input label="Passing Score %" type="number" value={passingScore} onChange={e => setPassingScore(e.target.value)} placeholder="70" />
               </div>
+
+              <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Questions</label>
+                <div className="mt-2">
+                  <QuestionFileUpload
+                    onParsed={handleUploadedQuestions}
+                    onCleared={() => { setQuizQuestions([]); setQuestionsNote('') }}
+                  />
+                </div>
+                {quizQuestions.length > 0 && (
+                  <p className="mt-2 text-xs text-brand-blue dark:text-brand-sky">
+                    {quizQuestions.length} question{quizQuestions.length === 1 ? '' : 's'} loaded — objective questions are auto-graded for students.
+                  </p>
+                )}
+              </div>
+
+              {questionsNote && (
+                <div className="flex items-center gap-2 text-xs text-teal dark:text-teal">
+                  <Sparkles className="w-4 h-4" aria-hidden="true" />
+                  <span>{questionsNote}</span>
+                </div>
+              )}
+
               <div className="flex justify-end">
                 <AiContentGenerator mode="quiz" onQuizGenerated={handleAiQuizGenerated} buttonLabel="Generate with AI" />
               </div>
