@@ -3,6 +3,7 @@ import { authHandlers }    from './handlers/auth.handlers'
 import { coursesHandlers } from './handlers/courses.handlers'
 import { dashboardHandlers }from './handlers/dashboard.handlers'
 import { resourcesHandlers } from './handlers/resources.handlers'
+import { quizzesHandlers } from './handlers/quizzes.handlers'
 import { aiHandlers }      from './handlers/ai.handlers'
 import { trainerHandlers } from './handlers/trainer.handlers'
 import { adminHandlers }   from './handlers/admin.handlers'
@@ -15,6 +16,7 @@ export const worker = setupWorker(
   ...coursesHandlers,
   ...dashboardHandlers,
   ...resourcesHandlers,
+  ...quizzesHandlers,
   ...aiHandlers,
   ...trainerHandlers,
   ...adminHandlers,

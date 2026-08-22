@@ -12,6 +12,8 @@ import { Markdown } from '@/components/ui/Markdown'
 import { downloadText, downloadUrl, sanitizeFilename } from '@/lib/download'
 import { LearningBoard } from '@/components/shared/LearningBoard'
 import { CollaborativeCodeEditor } from '@/components/shared/CollaborativeCodeEditor'
+import { LessonQuiz } from '@/components/shared/LessonQuiz'
+import { quizzesService, type Quiz } from '@/services/quizzes.service'
 import type { EnrolledCourse, Lesson } from '@/features/courses/types'
 
 function downloadCourseNotes(course: EnrolledCourse) {
@@ -53,6 +55,13 @@ export default function CourseViewerPage() {
   const activeLesson: Lesson | undefined = allLessons.find(l => l.id === activeLessonId) ?? allLessons[0]
   const activeIndex  = allLessons.findIndex(l => l.id === activeLesson?.id)
   const totalLessons = allLessons.length
+
+  // Quizzes attached to the active lesson (each trainer-added quiz appears here).
+  const { data: lessonQuizzes, isLoading: quizzesLoading } = useQuery({
+    queryKey: ['lesson-quizzes', activeLesson?.id],
+    queryFn:  () => quizzesService.listByLesson(activeLesson!.id),
+    enabled:  Boolean(activeLesson?.id),
+  })
 
   if (isLoading || !course) {
     return (
@@ -231,6 +240,22 @@ export default function CourseViewerPage() {
               </ul>
             </section>
           )}
+
+          {/* Lesson quizzes — trainer-added MCQ/objective questions per lesson */}
+          <section aria-label="Lesson quiz" className="mb-8">
+            <h2 className="font-semibold text-gray-900 dark:text-white mb-3 text-lg">Lesson Quiz</h2>
+            {quizzesLoading ? (
+              <Skeleton className="h-24 w-full" />
+            ) : (lessonQuizzes?.length ?? 0) > 0 ? (
+              <div className="space-y-4">
+                {lessonQuizzes!.map(quiz => (
+                  <LessonQuiz key={quiz.id} quiz={quiz} />
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">No quiz for this lesson yet.</p>
+            )}
+          </section>
 
           {/* Lesson navigation */}
           <nav

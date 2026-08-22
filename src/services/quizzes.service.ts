@@ -14,7 +14,7 @@ export interface QuizQuestion {
 }
 
 export interface QuizQuestionInput {
-  questionText: string; questionType: 'multiple_choice' | 'true_false' | 'essay' | 'fill_blank'
+  questionText: string; questionType: QuizQuestion['questionType']
   options?: unknown; correctAnswer?: string; points: number; position: number
 }
 
@@ -32,6 +32,9 @@ export const quizzesService = {
   // Quiz CRUD
   listByCourse: (courseId: string) =>
     api.get<ApiResponse<Quiz[]>>(`/quizzes/courses/${courseId}/quizzes`).then(r => r.data.data),
+
+  listByLesson: (lessonId: string) =>
+    api.get<ApiResponse<Quiz[]>>(`/quizzes/lessons/${lessonId}`).then(r => r.data.data),
 
   get: (quizId: string) =>
     api.get<ApiResponse<Quiz & { questions: QuizQuestion[] }>>(`/quizzes/quizzes/${quizId}`).then(r => r.data.data),
