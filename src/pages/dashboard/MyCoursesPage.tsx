@@ -1,10 +1,11 @@
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { BookOpen, Check, GraduationCap, Search } from 'lucide-react'
+import { BookOpen, Check, GraduationCap, PlayCircle, Search } from 'lucide-react'
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { dashboardService } from '@/services/dashboard.service'
 import { coursesService, type AvailableCourseForEnrollment } from '@/services/courses.service'
-import { CourseCard } from '@/components/shared/CourseCard'
+import { EnrolledCourseCard } from '@/components/shared/EnrolledCourseCard'
 import { CourseCardSkeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -16,6 +17,7 @@ import type { EnrolledCourse } from '@/features/courses/types'
 export default function MyCoursesPage() {
   usePageTitle('My Courses')
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
   // ── My existing courses ──────────────────────────────────────────────────
   const { data: courses, isLoading } = useQuery({
@@ -81,11 +83,45 @@ export default function MyCoursesPage() {
     enrollMutation.mutate()
   }
 
+  // ── Helpers for the "Continue Learning" hero ─────────────────────────────
+  const activeCourse = courses?.find(c => c.progress > 0 && c.progress < 100)
+    ?? courses?.find(c => c.progress === 0)
+  const activeLessons = activeCourse?.modules.flatMap(m => m.lessons) ?? []
+  const activeNext = activeLessons.find(l => !l.isCompleted) ?? activeLessons[0]
+
   return (
     <div className="space-y-10">
       {/* My Courses */}
       <div>
         <PageHeader title="My Courses" subtitle="Track your progress across all enrolled courses" />
+
+        {/* Continue Learning hero */}
+        {!isLoading && activeCourse && (
+          <div className="mb-8 rounded-2xl border border-brand-light dark:border-blue-900 bg-gradient-to-r from-brand-light/70 to-white dark:from-blue-900/20 to-surface-dark p-6 shadow-card">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-brand-blue uppercase tracking-wide mb-1">Continue Learning</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{activeCourse.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1.5">
+                  {activeNext ? `Next up: ${activeNext.title}` : 'You’ve finished every lesson — review again or revisit your notes.'}
+                </p>
+                <div className="mt-4">
+                  <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    <span>Course progress</span><span>{activeCourse.progress}%</span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                    <div className={cn('h-full rounded-full', activeCourse.progress >= 100 ? 'bg-green-600' : 'bg-brand-blue')} style={{ width: `${activeCourse.progress}%` }} />
+                  </div>
+                </div>
+              </div>
+              <Button size="md" className="shrink-0" onClick={() => navigate(`/dashboard/courses/${activeCourse.id}?lesson=${activeNext?.id ?? ''}`)}>
+                <PlayCircle className="w-4 h-4" aria-hidden />
+                {activeCourse.progress >= 100 ? 'Review course' : 'Resume course'}
+              </Button>
+            </div>
+          </div>
+        )}
+
         {isLoading ? (
           <div className="grid sm:grid-cols-2 gap-6">
             {[...Array(2)].map((_, i) => <CourseCardSkeleton key={i} />)}
@@ -98,7 +134,7 @@ export default function MyCoursesPage() {
           />
         ) : (
           <div className="grid sm:grid-cols-2 gap-6">
-            {courses.map(c => <CourseCard key={c.id} course={c} linkBase="/dashboard/courses" />)}
+            {courses.map(c => <EnrolledCourseCard key={c.id} course={c} />)}
           </div>
         )}
       </div>

@@ -1,6 +1,6 @@
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { CheckCircle, BookOpen, ChevronLeft, ChevronRight, Download, Menu, X } from 'lucide-react'
 import { dashboardService } from '@/services/dashboard.service'
 import { ProgressBar } from '@/components/ui/ProgressBar'
@@ -45,6 +45,7 @@ export default function CourseViewerPage() {
   const { id } = useParams<{ id: string }>()
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null)
   const [sidebarOpen,    setSidebarOpen]    = useState(false)
+  const [searchParams] = useSearchParams()
 
   const { data: course, isLoading } = useQuery({
     queryKey: ['dashboard', 'courses', id],
@@ -55,6 +56,19 @@ export default function CourseViewerPage() {
   const activeLesson: Lesson | undefined = allLessons.find(l => l.id === activeLessonId) ?? allLessons[0]
   const activeIndex  = allLessons.findIndex(l => l.id === activeLesson?.id)
   const totalLessons = allLessons.length
+
+  // Deep-link support: /dashboard/courses/:id?lesson=<id> opens a specific lesson
+  // (used by "Resume course" and per-lesson notes links from the My Courses screen).
+  useEffect(() => {
+    if (!course || activeLessonId) return
+    const target = searchParams.get('lesson')
+    if (target && allLessons.some(l => l.id === target)) {
+      setActiveLessonId(target)
+    } else {
+      const firstOpen = allLessons.find(l => !l.isCompleted)
+      setActiveLessonId(firstOpen?.id ?? allLessons[0]?.id ?? null)
+    }
+  }, [course, allLessons, searchParams, activeLessonId])
 
   // Quizzes attached to the active lesson (each trainer-added quiz appears here).
   const { data: lessonQuizzes, isLoading: quizzesLoading } = useQuery({
