@@ -12,6 +12,7 @@ const titles: Record<string, string> = {
   '/trainer/assignments': 'Assignments', '/trainer/profile': 'Profile',
   '/trainer/boards': 'Lesson Boards',
   '/trainer/code-editor': 'Code Editor',
+  '/trainer/messages': 'Messages',
 }
 
 export default function TrainerLayout() {

@@ -52,7 +52,15 @@ export default function CourseViewerPage() {
     queryFn:  () => dashboardService.getCourse(id!) as Promise<EnrolledCourse>,
   })
 
-  const allLessons = useMemo(() => course?.modules.flatMap(m => m.lessons) ?? [], [course])
+  // Defensive: the real API can return courses with modules:null / no lessons,
+  // and a misconfigured production baseURL may even resolve to the SPA HTML
+  // (via vercel.json rewrites). Guard everything so the viewer never crashes.
+  const allLessons = useMemo(() => {
+    if (!Array.isArray(course?.modules)) return []
+    return course!.modules.flatMap(m =>
+      Array.isArray(m?.lessons) ? m.lessons : [],
+    )
+  }, [course])
   const activeLesson: Lesson | undefined = allLessons.find(l => l.id === activeLessonId) ?? allLessons[0]
   const activeIndex  = allLessons.findIndex(l => l.id === activeLesson?.id)
   const totalLessons = allLessons.length

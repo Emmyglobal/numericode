@@ -59,7 +59,7 @@ async function createMockResource(request: Request): Promise<MockResource> {
     title,
     type,
     // Simulate a persistent file URL for uploads (mirrors backend /uploads).
-    url: file ? `https://numericode-api.onrender.com/uploads/${file.name}` : url,
+    url: file ? `https://numerycode-api.onrender.com/uploads/${file.name}` : url,
   }
   mockResources = [created, ...mockResources]
   return created

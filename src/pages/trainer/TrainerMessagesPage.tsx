@@ -1,21 +1,28 @@
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { messagingService, type Message } from '@/services/messaging.service'
-import { dashboardService } from '@/services/dashboard.service'
+import { messagingService } from '@/services/messaging.service'
+import { api } from '@/lib/axios'
 import { useAuthStore } from '@/store/authStore'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Alert } from '@/components/ui/Alert'
-import { Send, Mail, Users, Plus, X, MessageSquare } from 'lucide-react'
-import type { EnrolledCourse } from '@/features/courses/types'
+import { Avatar } from '@/components/ui/Avatar'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { Send, Plus, X, MessageSquare, Mail } from 'lucide-react'
 
 interface Conversation {
-  userId: string; userName: string; lastMessage: string; lastDate: string; unreadCount: number
+  userId: string
+  userName: string
+  lastMessage: string
+  lastDate: string
+  unreadCount: number
 }
 
-export default function MessagesPage() {
+export default function TrainerMessagesPage() {
+  usePageTitle('Messages — Trainer')
   const currentUserId = useAuthStore(s => s.user?.id)
+  const queryClient = useQueryClient()
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [newMessage, setNewMessage] = useState('')
   const [showCompose, setShowCompose] = useState(false)
@@ -24,26 +31,29 @@ export default function MessagesPage() {
   const [composeBody, setComposeBody] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const queryClient = useQueryClient()
 
-  const { data: enrolledCourses } = useQuery({
-    queryKey: ['dashboard', 'courses'],
-    queryFn: () => dashboardService.getMyCourses() as Promise<EnrolledCourse[]>,
-  })
-
+  // All messages where the trainer is sender or receiver.
   const { data: messagesData, isLoading } = useQuery({
     queryKey: ['messages'],
     queryFn: () => messagingService.getMessages(1, 100),
   })
 
-  // Build conversations from messages (group by the other participant)
+  // The trainer's students (for composing to a student with no prior thread).
+  const { data: students } = useQuery({
+    queryKey: ['trainer', 'students'],
+    queryFn: async () => {
+      const r = await api.get<{ data: { id: string; name: string; email: string }[] }>('/trainer/students')
+      return r.data.data
+    },
+  })
+
+  // Build conversations grouped by the OTHER participant (student), so both
+  // sent and received messages collapse into a single thread per student.
   const conversations = useMemo(() => {
     if (!messagesData?.messages || !currentUserId) return [] as Conversation[]
     const convMap = new Map<string, Conversation>()
 
     for (const msg of messagesData.messages) {
-      // Use the other participant's ID as the key (not the sender) so both
-      // sent and received messages collapse into a single thread.
       const isMine = msg.senderId === currentUserId
       const otherId = isMine ? msg.receiverId : msg.senderId
       const otherName = isMine ? msg.receiverName : msg.senderName
@@ -58,7 +68,6 @@ export default function MessagesPage() {
         })
       } else {
         const conv = convMap.get(otherId)!
-        // Update last message if newer
         if (new Date(msg.createdAt) > new Date(conv.lastDate)) {
           conv.lastMessage = msg.body
           conv.lastDate = msg.createdAt
@@ -66,43 +75,55 @@ export default function MessagesPage() {
         if (!isMine && !msg.isRead) conv.unreadCount++
       }
     }
-    
+
     return Array.from(convMap.values())
       .sort((a, b) => new Date(b.lastDate).getTime() - new Date(a.lastDate).getTime())
-  }, [messagesData])
+  }, [messagesData, currentUserId])
 
-  // Get conversation messages
-  const conversationMessages = useMemo(() => {
-    if (!selectedUserId || !messagesData?.messages) return [] as Message[]
-    return messagesData.messages
-      .filter(m => (m.senderId === selectedUserId || m.receiverId === selectedUserId))
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-  }, [selectedUserId, messagesData])
+  // Thread for the selected student. getConversation returns the ASC thread and
+  // marks inbound messages as read on the server.
+  const { data: conversationMessages = [], refetch: refetchConversation } = useQuery({
+    queryKey: ['conversation', selectedUserId],
+    queryFn: () => messagingService.getConversation(selectedUserId!),
+    enabled: Boolean(selectedUserId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['messages'] })
+    },
+  })
 
   const sendMutation = useMutation({
     mutationFn: (data: { receiverId: string; subject?: string; body: string }) =>
       messagingService.sendMessage(data),
     onSuccess: () => {
+      refetchConversation()
       queryClient.invalidateQueries({ queryKey: ['messages'] })
       setNewMessage('')
-      setSuccess('Message sent!')
     },
-    onError: (err: Error) => {
-      setError(err.message)
-    },
+    onError: (err: Error) => setError(err.message),
   })
 
-  const handleSendMessage = () => {
+  const handleReply = () => {
     if (!newMessage.trim() || !selectedUserId) return
+    setError('')
+    setSuccess('')
     sendMutation.mutate({ receiverId: selectedUserId, body: newMessage.trim() })
+  }
+
+  const openConversation = (userId: string) => {
+    setSelectedUserId(userId)
+    setError('')
+    setSuccess('')
+    setNewMessage('')
   }
 
   const handleCompose = (e: React.FormEvent) => {
     e.preventDefault()
     if (!composeReceiverId || !composeBody.trim()) {
-      setError('Please select a recipient and enter a message')
+      setError('Please select a student and enter a message')
       return
     }
+    setError('')
+    setSuccess('')
     sendMutation.mutate(
       { receiverId: composeReceiverId, subject: composeSubject.trim() || undefined, body: composeBody.trim() },
       {
@@ -112,28 +133,17 @@ export default function MessagesPage() {
           setComposeSubject('')
           setComposeBody('')
           setSelectedUserId(composeReceiverId)
+          setSuccess('Message sent to your student.')
         },
       }
     )
   }
 
-  // Get unique instructors from enrolled courses for compose
-  const availableRecipients = useMemo(() => {
-    if (!enrolledCourses) return [] as { id: string; name: string }[]
-    const instructors = new Map<string, { id: string; name: string }>()
-    for (const course of enrolledCourses) {
-      if (course.instructor && course.instructor.id && !instructors.has(course.instructor.id)) {
-        instructors.set(course.instructor.id, { id: course.instructor.id, name: course.instructor.name })
-      }
-    }
-    return Array.from(instructors.values())
-  }, [enrolledCourses])
-
   return (
     <div>
       <PageHeader
         title="Messages"
-        subtitle="Communicate with instructors and peers"
+        subtitle="Conversations with your students"
         actions={
           <Button onClick={() => { setShowCompose(true); setError(''); setSuccess('') }}>
             <Plus className="w-4 h-4 mr-1" /> New Message
@@ -160,9 +170,9 @@ export default function MessagesPage() {
         <div className="text-center py-12">
           <Mail className="w-16 h-16 mx-auto text-gray-300 mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No messages yet</h3>
-          <p className="text-gray-500 mb-4">Start a conversation with your instructors or classmates.</p>
+          <p className="text-gray-500 mb-4">When students message you, their conversations appear here.</p>
           <Button onClick={() => setShowCompose(true)}>
-            <Plus className="w-4 h-4 mr-1" /> Compose Message
+            <Plus className="w-4 h-4 mr-1" /> Message a Student
           </Button>
         </div>
       ) : (
@@ -173,21 +183,24 @@ export default function MessagesPage() {
             {conversations.map(conv => (
               <button
                 key={conv.userId}
-                onClick={() => { setSelectedUserId(conv.userId); setError(''); setSuccess('') }}
-                className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                onClick={() => openConversation(conv.userId)}
+                className={`w-full text-left p-3 rounded-lg border transition-colors flex items-center gap-3 ${
                   selectedUserId === conv.userId
-                    ? 'border-brand-blue bg-blue-50 dark:bg-blue-900/20'
+                    ? 'border-teal bg-teal-light/60 dark:bg-teal-900/20'
                     : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-surface-dark hover:border-gray-300'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <p className="font-medium text-sm text-gray-900 dark:text-white">{conv.userName}</p>
-                  {conv.unreadCount > 0 && (
-                    <span className="bg-brand-blue text-white text-xs rounded-full px-2 py-0.5">{conv.unreadCount}</span>
-                  )}
+                <Avatar name={conv.userName} size="sm" aria-hidden="true" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-sm text-gray-900 dark:text-white truncate">{conv.userName}</p>
+                    {conv.unreadCount > 0 && (
+                      <span className="bg-teal text-white text-xs rounded-full px-2 py-0.5 shrink-0">{conv.unreadCount}</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 truncate mt-0.5">{conv.lastMessage}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{new Date(conv.lastDate).toLocaleString()}</p>
                 </div>
-                <p className="text-xs text-gray-500 truncate mt-1">{conv.lastMessage}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{new Date(conv.lastDate).toLocaleDateString()}</p>
               </button>
             ))}
           </div>
@@ -197,11 +210,12 @@ export default function MessagesPage() {
             {selectedUserId ? (
               <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-surface-dark">
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
-                  Conversation with {conversations.find(c => c.userId === selectedUserId)?.userName || 'User'}
+                  Conversation with {conversations.find(c => c.userId === selectedUserId)?.userName || 'Student'}
                 </h3>
+
                 <div className="space-y-3 mb-4 max-h-96 overflow-y-auto">
                   {conversationMessages.length === 0 ? (
-                    <p className="text-sm text-gray-400 text-center py-4">No messages in this conversation yet.</p>
+                    <p className="text-sm text-gray-400 text-center py-4">Say hello to start this conversation.</p>
                   ) : (
                     conversationMessages.map(message => {
                       const isMine = message.senderId === currentUserId
@@ -210,13 +224,18 @@ export default function MessagesPage() {
                           key={message.id}
                           className={`p-3 rounded-lg max-w-[80%] ${
                             isMine
-                              ? 'bg-brand-blue text-white ml-auto'
+                              ? 'bg-teal text-white ml-auto'
                               : 'bg-gray-100 dark:bg-gray-800'
                           }`}
                         >
+                          {message.subject && (
+                            <p className={`text-xs font-semibold mb-1 ${isMine ? 'text-teal-100' : 'text-gray-500'}`}>
+                              {message.subject}
+                            </p>
+                          )}
                           <p className="text-sm">{message.body}</p>
-                          <p className={`text-xs mt-1 ${isMine ? 'text-blue-200' : 'text-gray-500'}`}>
-                            {new Date(message.createdAt).toLocaleString()}
+                          <p className={`text-xs mt-1 ${isMine ? 'text-teal-100' : 'text-gray-500'}`}>
+                            {message.senderName} · {new Date(message.createdAt).toLocaleString()}
                           </p>
                         </div>
                       )
@@ -228,11 +247,11 @@ export default function MessagesPage() {
                     type="text"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                    placeholder="Type a message..."
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                    onKeyDown={(e) => e.key === 'Enter' && handleReply()}
+                    placeholder="Type a reply..."
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal"
                   />
-                  <Button onClick={handleSendMessage} loading={sendMutation.isPending}>
+                  <Button onClick={handleReply} loading={sendMutation.isPending}>
                     <Send className="w-4 h-4" />
                   </Button>
                 </div>
@@ -246,6 +265,7 @@ export default function MessagesPage() {
           </div>
         </div>
       )}
+
 
       {/* Compose Modal */}
       {showCompose && (
@@ -266,13 +286,13 @@ export default function MessagesPage() {
                   onChange={e => setComposeReceiverId(e.target.value)}
                   className="h-11 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 text-sm text-gray-900 dark:text-gray-100"
                 >
-                  <option value="">Select a recipient…</option>
-                  {availableRecipients.map(r => (
-                    <option key={r.id} value={r.id}>{r.name} (Instructor)</option>
+                  <option value="">Select a student…</option>
+                  {(students ?? []).map(s => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.email})</option>
                   ))}
                 </select>
-                {availableRecipients.length === 0 && (
-                  <p className="text-xs text-amber-600 mt-1">No instructors found from your enrolled courses.</p>
+                {(!students || students.length === 0) && (
+                  <p className="text-xs text-amber-600 mt-1">No students are enrolled in your courses yet.</p>
                 )}
               </div>
               <div>
@@ -307,3 +327,4 @@ export default function MessagesPage() {
     </div>
   )
 }
+

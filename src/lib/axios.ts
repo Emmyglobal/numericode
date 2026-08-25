@@ -8,7 +8,7 @@ import { useAuthStore } from '@/store/authStore'
 // and be rewritten to index.html — silently returning no data. We therefore
 // prefer an absolute configured URL and otherwise fall back to the live API.
 // Change this constant if you deploy the backend somewhere else.
-const PROD_API_BASE_URL = 'https://numericode-api.onrender.com/api'
+const PROD_API_BASE_URL = 'https://numerycode-api.onrender.com/api'
 
 function resolveBaseUrl(): string {
   if (import.meta.env.PROD) {
