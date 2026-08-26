@@ -121,4 +121,16 @@ describe('CourseViewerPage repro', () => {
       expect(screen.getByText(/No lessons yet/i)).toBeInTheDocument()
     })
   })
+
+  it('shows a clear error state (not an infinite spinner) when the course fetch fails', async () => {
+    // Regression: a 404/500 from getCourse left the page stuck on skeletons
+    // forever with no message — surfacing as "the course won't load".
+    vi.mocked(dashboardService.getCourse).mockRejectedValue(new Error('Enrolled course not found'))
+    renderPage()
+    await waitFor(() => {
+      expect(screen.getByText(/Can't open this course/i)).toBeInTheDocument()
+      expect(screen.getByText(/Enrolled course not found/i)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Try again/i })).toBeInTheDocument()
+    })
+  })
 })

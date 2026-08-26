@@ -86,7 +86,13 @@ export default function MyCoursesPage() {
   // ── Helpers for the "Continue Learning" hero ─────────────────────────────
   const activeCourse = courses?.find(c => c.progress > 0 && c.progress < 100)
     ?? courses?.find(c => c.progress === 0)
-  const activeLessons = activeCourse?.modules.flatMap(m => m.lessons) ?? []
+    // Defensive: the real `getMyCourses` list endpoint returns flat course
+  // summaries WITHOUT nested `modules`/`lessons` (only `getCourse` does).
+  // Accessing `.modules.flatMap(...)` on `undefined` threw
+  // "Cannot read properties of undefined (reading 'flatMap')" and crashed the
+  // whole My Courses page via the layout error boundary. Mirror the guard used
+  // in CourseViewerPage so a missing modules array degrades gracefully.
+  const activeLessons = activeCourse?.modules?.flatMap(m => m.lessons ?? []) ?? []
   const activeNext = activeLessons.find(l => !l.isCompleted) ?? activeLessons[0]
 
   return (

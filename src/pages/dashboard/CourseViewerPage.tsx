@@ -1,4 +1,4 @@
-import { useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useState, useMemo, useEffect } from 'react'
 import { CheckCircle, BookOpen, ChevronLeft, ChevronRight, Download, Menu, X } from 'lucide-react'
@@ -48,9 +48,11 @@ export default function CourseViewerPage() {
   const [sidebarOpen,    setSidebarOpen]    = useState(false)
   const [searchParams] = useSearchParams()
 
-  const { data: course, isLoading } = useQuery({
+  const { data: course, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['dashboard', 'courses', id],
     queryFn:  () => dashboardService.getCourse(id!) as Promise<EnrolledCourse>,
+    retry: 1,
+    retryDelay: 500,
   })
 
   // Defensive: the real API can return courses with modules:null / no lessons,
@@ -85,6 +87,30 @@ export default function CourseViewerPage() {
     queryFn:  () => quizzesService.listByLesson(activeLesson!.id),
     enabled:  Boolean(activeLesson?.id),
   })
+
+  if (isError || (!isLoading && !course)) {
+    // Course failed to load (404 not enrolled, 500, or backend unreachable).
+    // Show a clear, actionable state instead of an infinite spinner / blank page.
+    const message =
+      (error instanceof Error ? error.message : '') ||
+      'We could not load this course. It may not be published yet, or you may no longer be enrolled.'
+
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="max-w-md w-full text-center rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-surface-dark p-10">
+          <BookOpen className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" aria-hidden="true" />
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Can&apos;t open this course</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{message}</p>
+          <div className="flex items-center justify-center gap-3">
+            <Link to="/dashboard/courses">
+              <Button variant="secondary">Back to My Courses</Button>
+            </Link>
+            <Button onClick={() => refetch()}>Try again</Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (isLoading || !course) {
     return (

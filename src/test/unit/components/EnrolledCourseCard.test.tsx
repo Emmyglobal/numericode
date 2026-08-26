@@ -81,6 +81,20 @@ describe('EnrolledCourseCard', () => {
   it('marks completed lessons with a check and strike-through', () => {
     renderCard()
     const done = screen.getByText('Introduction to Numbers')
-    expect(done.className).toContain('text-gray-500')
+        expect(done.className).toContain('text-gray-500')
+  })
+
+  it('does not crash when the list endpoint omits modules (regression)', () => {
+    // The real GET /dashboard/courses endpoint returns flat summaries without a
+    // `modules` array. Rendering such a course must not throw.
+    const flatCourse = { ...course, modules: undefined } as unknown as EnrolledCourse
+    render(
+      <MemoryRouter>
+        <EnrolledCourseCard course={flatCourse} />
+      </MemoryRouter>,
+    )
+    expect(screen.getByText('Foundation Mathematics')).toBeInTheDocument()
+    expect(screen.getByText(/0 lessons/)).toBeInTheDocument()
+    expect(screen.queryByText(/modules/)).not.toBeInTheDocument()
   })
 })

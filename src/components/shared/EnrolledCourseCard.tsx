@@ -61,9 +61,12 @@ interface EnrolledCourseCardProps { course: EnrolledCourse }
 export function EnrolledCourseCard({ course }: EnrolledCourseCardProps) {
   const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null)
 
-  const allLessons = course.modules.flatMap(m => m.lessons)
+    // Defensive: the /dashboard/courses list endpoint returns flat summaries
+  // without `modules`; guard so a single card never crashes the whole page.
+  const courseModules = Array.isArray(course.modules) ? course.modules : []
+  const allLessons = courseModules.flatMap(m => m.lessons ?? [])
   const nextLesson = allLessons.find(l => !l.isCompleted) ?? allLessons[0]
-  const modulesWithLessons = course.modules.filter(m => m.lessons.length > 0)
+  const modulesWithLessons = courseModules.filter(m => Array.isArray(m.lessons) && m.lessons.length > 0)
   const meta = subjectMeta[course.subject] ?? { glyph: '&', band: 'bg-brand-blue' }
 
   const toggleLesson = (id: string) => setExpandedLessonId(prev => prev === id ? null : id)
@@ -114,7 +117,7 @@ export function EnrolledCourseCard({ course }: EnrolledCourseCardProps) {
 
           <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
             <span className="flex items-center gap-1"><BookOpen className="w-3.5 h-3.5" aria-hidden />{allLessons.length} lessons</span>
-            {course.modules.length > 0 && <span>{course.modules.length} modules</span>}
+                        {courseModules.length > 0 && <span>{courseModules.length} modules</span>}
           </div>
 
           {/* Lesson list with expandable notes */}
