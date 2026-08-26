@@ -99,7 +99,7 @@ export function GradeBook() {
                 </tr>
                 {/* Itemised scores — every written quiz and assignment, always visible */}
                 {hasBreakdown && (
-                                    <tr className="border-t border-gray-100 dark:border-gray-800">
+                  <tr className="border-t border-gray-100 dark:border-gray-800">
                     <td colSpan={3} className="bg-gray-50/60 px-4 py-3 dark:bg-gray-800/30">
                       <div className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
                         {quizzes.length > 0 && (
@@ -146,7 +146,7 @@ export function GradeBook() {
                         )}
                       </div>
                     </td>
-                                  </tr>
+                  </tr>
                 )}
               </Fragment>
             )

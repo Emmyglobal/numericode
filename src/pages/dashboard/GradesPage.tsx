@@ -3,6 +3,7 @@ import { gradingService, type GradeReport } from '@/services/grading.service'
 import { dashboardService } from '@/services/dashboard.service'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { GradeBook } from '@/features/assignments/components/GradeBook'
 import { Trophy, TrendingUp, BookOpen } from 'lucide-react'
 import type { EnrolledCourse } from '@/features/courses/types'
 
@@ -90,6 +91,12 @@ export default function GradesPage() {
           ))}
         </div>
       )}
+
+      {/* Grade Book — itemised quiz & assignment scores alongside course grades */}
+      <section className="mt-8" aria-labelledby="gradebook-title">
+        <h2 id="gradebook-title" className="mb-3 text-lg font-bold text-gray-900 dark:text-white">Grade Book</h2>
+        <GradeBook />
+      </section>
     </div>
   )
 }

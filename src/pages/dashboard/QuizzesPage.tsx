@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { GradeBook } from '@/features/assignments/components/GradeBook'
 import { ClipboardList, Clock, Play } from 'lucide-react'
 import type { EnrolledCourse } from '@/features/courses/types'
 
@@ -85,6 +86,12 @@ export default function QuizzesPage() {
           ))}
         </div>
       )}
+
+      {/* Grade Book — per-course summary plus every written quiz & assignment score */}
+      <section className="mt-8" aria-labelledby="gradebook-title">
+        <h2 id="gradebook-title" className="mb-3 text-lg font-bold text-gray-900 dark:text-white">Grade Book</h2>
+        <GradeBook />
+      </section>
     </div>
   )
 }
