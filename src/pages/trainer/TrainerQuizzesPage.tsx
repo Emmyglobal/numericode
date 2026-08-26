@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { quizzesService, type Quiz, type QuizQuestionInput } from '@/services/quizzes.service'
+import { coursesService } from '@/services/courses.service'
 import { api } from '@/lib/axios'
 import { QuestionFileUpload } from '@/components/shared/QuestionFileUpload'
 import { toQuizQuestions, countObjective, type ImportedQuestion } from '@/utils/questionImport'
@@ -12,7 +13,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
-import { Plus, Trash2, ClipboardList, X, Sparkles } from 'lucide-react'
+import { Plus, Trash2, ClipboardList, X, Sparkles, Lock } from 'lucide-react'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 interface TrainerCourse { id: string; title: string }
@@ -99,6 +100,34 @@ export default function TrainerQuizzesPage() {
     setQuizQuestions([])
     setQuestionsNote('')
   }
+
+    // Which quiz (if any) currently gates each course as its prerequisite.
+  const { data: prereqMap } = useQuery({
+    queryKey: ['trainer-prereq-map'],
+    queryFn: async () => {
+      const map: Record<string, string | null> = {}
+      for (const course of courses ?? []) {
+        try {
+          map[course.id] = (await coursesService.getPrerequisiteQuiz(course.id)).prerequisiteQuizId
+        } catch {
+          map[course.id] = null
+        }
+      }
+      return map
+    },
+    enabled: Boolean(courses),
+  })
+
+  // Attach/detach a course-level prerequisite quiz. Passing students must score
+  // at least the quiz's passing mark before the course lessons unlock.
+  const togglePrereq = useMutation({
+    mutationFn: ({ quiz, detach }: { quiz: Quiz; detach: boolean }) =>
+      coursesService.setPrerequisiteQuiz(quiz.courseId, detach ? null : quiz.id),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['trainer-prereq-map'] })
+      setSuccessMessage(result.message ?? 'Prerequisite quiz updated.')
+    },
+  })
 
   const openCreate = () => {
     resetForm()
@@ -189,6 +218,32 @@ export default function TrainerQuizzesPage() {
                   </div>
                 </div>
                 <div className="flex gap-2 ml-4">
+                  {prereqMap?.[quiz.courseId] === quiz.id ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        if (confirm('Remove this quiz as the course prerequisite? Students will no longer need to pass it.')) {
+                          togglePrereq.mutate({ quiz, detach: true })
+                        }
+                      }}
+                      loading={togglePrereq.isPending}
+                      title="This quiz currently gates the course. Click to remove the requirement."
+                    >
+                      <Lock className="w-3.5 h-3.5" aria-hidden="true" />
+                      Prerequisite ✓
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => togglePrereq.mutate({ quiz, detach: false })}
+                      loading={togglePrereq.isPending}
+                      title="Require students to pass this quiz before the course lessons unlock."
+                    >
+                      Set as Prerequisite
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"

@@ -66,6 +66,50 @@ let quizzes: MockQuiz[] = [
   },
 ]
 
+// Course-level prerequisite quiz for the Sequences & Series course (c-seq).
+// Mirrors the seeded backend quiz; lessonId is empty because it gates the whole
+// course rather than a single lesson.
+const SEQ_QUESTIONS: Array<[string, string[], number]> = [
+  ['Find the 10th term of the AP: 3, 7, 11, 15, …', ['36', '39', '43', '40'], 1],
+  ['What is the common difference of the AP: 5, 9, 13, 17, …?', ['3', '4', '5', '9'], 1],
+  ['Find the sum of the first 15 terms of an AP with a = 4 and d = 3.', ['360', '375', '390', '345'], 1],
+  ['An AP has first term 2 and common difference 5. What is the 20th term?', ['95', '97', '102', '92'], 1],
+  ['Find the 6th term of the GP: 2, 6, 18, 54, …', ['162', '486', '324', '972'], 1],
+  ['What is the common ratio of the GP: 81, 27, 9, 3, …?', ['1/3', '3', '1/9', '1/27'], 0],
+  ['Find the sum of the first 5 terms of a GP with a = 3 and r = 2.', ['93', '96', '90', '81'], 0],
+  ['Find the sum to infinity of a GP with a = 8 and r = 1/2.', ['4', '8', '16', '32'], 2],
+  ['Three numbers in AP have a sum of 27. What is the middle number?', ['8', '9', '10', '13.5'], 1],
+  ['Chidi saves ₦500 in the first month and increases his saving by ₦100 every month after. How much has he saved after 12 months?', ['₦12,600', '₦11,600', '₦13,200', '₦12,000'], 0],
+  ['If x − 2, x + 1, and 2x + 3 are consecutive terms of an AP, find x.', ['1', '2', '3', '0'], 0],
+  ['What is the next term in the sequence: 1, 4, 9, 16, …?', ['20', '25', '21', '24'], 1],
+  ['What is the next term in the sequence: 2, 3, 5, 8, 13, …?', ['18', '20', '21', '19'], 2],
+  ['How many terms of the AP 2, 5, 8, … must be added to give a sum of 950?', ['22', '25', '28', '20'], 1],
+  ['Find the geometric mean of 4 and 16.', ['10', '8', '6', '12'], 1],
+  ['Find the arithmetic mean of 12 and 20.', ['16', '15', '18', '14'], 0],
+  ['Evaluate: Σ (2n + 1) for n = 1 to 5.', ['30', '33', '35', '40'], 2],
+  ['An AP has first term 5 and last term 41 across 10 terms. Find the common difference.', ['3', '4', '5', '3.6'], 1],
+  ['How many terms are in the GP: 3, 6, 12, …, 384?', ['7', '8', '9', '6'], 1],
+  ['Which of these sequences is geometric?', ['2, 4, 6, 8', '3, 9, 27, 81', '1, 3, 6, 10', '5, 10, 15, 20'], 1],
+]
+const OPT_IDS = ['a', 'b', 'c', 'd']
+const seqPrereqQuiz: MockQuiz = {
+  id: 'seq-prereq-quiz', courseId: 'c-seq', lessonId: '',
+  title: 'Sequences & Series — SS2 Practice Quiz',
+  description: 'Twenty questions covering arithmetic progressions, geometric progressions, sums, means, and sigma notation.',
+  timeLimit: 20, passingScore: 60, maxAttempts: 99, shuffleQuestions: false, showResults: true,
+  questionCount: SEQ_QUESTIONS.length, attemptCount: 0, createdAt: new Date().toISOString(),
+  questions: SEQ_QUESTIONS.map(([text, options, correct], i) => ({
+    id: `seq-q${i + 1}`,
+    questionText: text,
+    questionType: 'multiple_choice' as const,
+    options: options.map((text, oi) => ({ id: OPT_IDS[oi], text, isCorrect: oi === correct })),
+    correctAnswer: OPT_IDS[correct],
+    points: 5,
+    position: i + 1,
+  })),
+}
+quizzes = [seqPrereqQuiz, ...quizzes]
+
 let attempts: MockAttempt[] = []
 
 function ok<T>(data: T): ApiResponse<T> {

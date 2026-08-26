@@ -14,6 +14,7 @@ import { LearningBoard } from '@/components/shared/LearningBoard'
 import { CollaborativeCodeEditor } from '@/components/shared/CollaborativeCodeEditor'
 import { LessonQuiz } from '@/components/shared/LessonQuiz'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
+import { PrerequisiteQuizGate } from '@/components/shared/PrerequisiteQuizGate'
 import { quizzesService, type Quiz } from '@/services/quizzes.service'
 import type { EnrolledCourse, Lesson } from '@/features/courses/types'
 
@@ -112,11 +113,24 @@ export default function CourseViewerPage() {
     )
   }
 
-  if (isLoading || !course) {
+    if (isLoading || !course) {
     return (
       <div className="space-y-4" aria-label="Loading course viewer…">
         {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
       </div>
+    )
+  }
+
+  // ── Prerequisite quiz gate ───────────────────────────────────────────────────
+  // When the course declares a course-level prerequisite quiz that this student
+  // has NOT passed yet, render ONLY the quiz — no lessons, no sidebar. Passing
+  // triggers a refetch; the server then flips isPrerequisiteQuizPassed to true.
+  if (course.prerequisiteQuiz && !course.prerequisiteQuiz.isPrerequisiteQuizPassed) {
+    return (
+      <PrerequisiteQuizGate
+        quiz={course.prerequisiteQuiz}
+        onPassed={() => refetch()}
+      />
     )
   }
 

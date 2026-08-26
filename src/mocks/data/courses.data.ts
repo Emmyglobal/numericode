@@ -287,8 +287,65 @@ Let's turn maths into code!`,
         { id: 'l38', title: 'Your First Coding Project', duration: 45, isCompleted: false, resources: [] },
       ]},
     ],
-    liveClasses: [
+        liveClasses: [
       { id: 'lc7', title: 'Maths-to-Code: Boolean Logic Q&A', date: '2026-07-15T10:00:00', duration: 60, meetUrl: 'https://meet.google.com/math-to-code', status: 'upcoming' },
     ],
+  },
+  {
+    id: 'c-seq', subject: 'mathematics', level: 'beginner', lessonCount: 8,
+    title: 'Sequences & Series — SS2 Practice', createdAt: '2024-03-05',
+    description: 'Arithmetic and geometric progressions, sums, means, and sigma notation — with a prerequisite quiz that must be passed to unlock the lessons.',
+    content: `# Sequences & Series — SS2 Practice
+
+Welcome! This course covers arithmetic progressions (AP), geometric progressions (GP), series, means, and sigma notation.
+
+## What You'll Learn
+
+- **Sequences & APs**: common difference, nth term, and arithmetic series sums
+- **Geometric Progressions**: common ratio, nth term, finite and infinite sums
+- **Means**: arithmetic and geometric means, and when to use each
+- **Sigma Notation**: reading and evaluating Σ expressions
+
+## Prerequisite
+
+Before the lessons unlock, you must pass the **SS2 Practice Quiz** — twenty questions covering everything above. You can retake it; your best score counts.`,
+    outcomes: ['Identify AP and GP sequences','Calculate terms and sums','Apply sigma notation','Use arithmetic and geometric means'],
+    instructor: { id: 'i1', name: 'Mr. Emmanuel Nwafor', bio: 'Mathematics educator with 10+ years teaching secondary and tertiary students across Nigeria.', credentials: ['B.Sc Mathematics – UNILAG', 'PGDE Education – UI', '10+ Years Teaching'] },
+    modules: [
+      { id: 'm-seq1', title: 'Introduction to Sequences', lessons: [
+        { id: 'l-seq1', title: 'What Is a Sequence?', duration: 15, isCompleted: false, resources: [],
+          content: `# What Is a Sequence?\n\nA **sequence** is an ordered list of numbers that follows a rule.\n\n- The numbers are called **terms**: a₁, a₂, a₃, …\n- A rule like "add 4 each time" gives 3, 7, 11, 15, …\n\n## Example\n\nThe sequence 1, 4, 9, 16, … is the perfect squares: its nth term is n².\n\n> Check yourself: what are the next two terms? (Answer: 25 and 36.)` },
+        { id: 'l-seq2', title: 'Recognising APs and GPs', duration: 20, isCompleted: false, resources: [],
+          content: `# Recognising APs and GPs\n\nTwo families appear everywhere:\n\n- **Arithmetic progression (AP)**: constant *difference* d → a, a+d, a+2d, …\n- **Geometric progression (GP)**: constant *ratio* r → a, ar, ar², …\n\nTo classify: subtract consecutive terms (AP if equal) or divide them (GP if equal).\n\n**Example:** 81, 27, 9, 3 → ratios all ⅓, so it's a GP with r = ⅓.` },
+      ]},
+      { id: 'm-seq2', title: 'Arithmetic Progressions', lessons: [
+        { id: 'l-seq3', title: 'Finding the nth Term', duration: 25, isCompleted: false, resources: [],
+          content: `# Finding the nth Term of an AP\n\n$$T_n = a + (n-1)d$$\n\nwhere **a** = first term, **d** = common difference.\n\n## Worked example\n\nAP: 3, 7, 11, 15, … → a = 3, d = 4.\n\nT₁₀ = 3 + 9(4) = **39**.` },
+        { id: 'l-seq4', title: 'Sum of an Arithmetic Series', duration: 30, isCompleted: false, resources: [],
+          content: `# Sum of an Arithmetic Series\n\n$$S_n = \\tfrac{n}{2}\\big[2a + (n-1)d\\big]\$$\n\n## Worked example\n\na = 4, d = 3, n = 15:\n\nS₁₅ = 7.5 × [8 + 14(3)] = 7.5 × 50 = **375**.` },
+      ]},
+      { id: 'm-seq3', title: 'Geometric Progressions', lessons: [
+        { id: 'l-seq5', title: 'Finding the Common Ratio', duration: 25, isCompleted: false, resources: [],
+          content: `# Finding the Common Ratio\n\nFor a GP, r = T₂ ÷ T₁ (any term divided by the one before it).\n\n## Worked example\n\nGP: 2, 6, 18, 54 → r = 6/2 = **3**, so T₆ = a·r⁵ = 2 × 243 = **486**.` },
+        { id: 'l-seq6', title: 'Sum to Infinity', duration: 30, isCompleted: false, resources: [],
+          content: `# Sum to Infinity\n\nWhen |r| < 1:\n\n$$S_\\infty = \\frac{a}{1-r}$$\n\n## Worked example\n\na = 8, r = ½ → S∞ = 8 / ½ = **16**.` },
+      ]},
+      { id: 'm-seq4', title: 'Series and Sigma Notation', lessons: [
+        { id: 'l-seq7', title: 'Sigma Notation', duration: 35, isCompleted: false, resources: [],
+          content: `# Sigma Notation\n\nΣ means "add up". For example:\n\n$$\\sum_{n=1}^{5} (2n+1) = 3+5+7+9+11 = 35$$\n\nSubstitute each n from the lower limit to the upper limit, then add.` },
+        { id: 'l-seq8', title: 'Word Problems on Series', duration: 40, isCompleted: false, resources: [],
+          content: `# Word Problems on Series\n\nTranslate savings/growth stories into APs or GPs.\n\n## Worked example\n\nChidi saves ₦500 in month 1 and adds ₦100 more each month (an AP with a = 500, d = 100):\n\nS₁₂ = 6[1000 + 11(100)] = **₦12,600** after 12 months.` },
+      ]},
+    ],
+    liveClasses: [
+      { id: 'lc8', title: 'Sequences & Series Q&A', date: '2026-07-18T10:00:00', duration: 60, meetUrl: 'https://meet.google.com/seq-series', status: 'upcoming' },
+    ],
+    prerequisiteQuiz: {
+      id: 'seq-prereq-quiz',
+      title: 'Sequences & Series — SS2 Practice Quiz',
+      description: 'Twenty questions covering arithmetic progressions, geometric progressions, sums, means, and sigma notation.',
+      passingScore: 60,
+      isPrerequisiteQuizPassed: false,
+    },
   },
 ]

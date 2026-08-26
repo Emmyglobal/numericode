@@ -6,6 +6,8 @@ import { announcementsData } from '@/mocks/data/announcements.data'
 const enrolledCourses = [
   { ...coursesData[0], progress: 42, enrolledAt: '2024-02-01' },
   { ...coursesData[1], progress: 25, enrolledAt: '2024-02-15' },
+  // Prerequisite-gated course — student must pass its quiz before lessons unlock.
+  { ...coursesData.find(c => c.id === 'c-seq')!, progress: 0, enrolledAt: '2024-03-05' },
 ]
 
 let mockCertificates = [
@@ -49,10 +51,39 @@ export const dashboardHandlers = [
     return HttpResponse.json({ success: true, data: body })
   }),
 
-  // Grade book — drives certificate eligibility
+  // Grade book — drives certificate eligibility. Each entry now carries the
+// itemised scores shown on the student grade screen: EVERY quiz (best attempt)
+// and assignment in that course.
   http.get('/api/gradebook', () => HttpResponse.json({ success: true, data: [
-    { courseId: 'c1', courseTitle: 'Foundation Mathematics', completed: true, finalPercentage: 92, letterGrade: 'A' },
-    { courseId: 'c2', courseTitle: 'JavaScript for Beginners', completed: false, finalPercentage: 45, letterGrade: 'D' },
+    {
+      courseId: 'c1', courseTitle: 'Foundation Mathematics', completed: true, finalPercentage: 92, letterGrade: 'A',
+      quizzes: [
+        { quizId: 'q1', title: 'Numbers & Arithmetic Quiz', score: 85, passed: true, attemptCount: 2, passingScore: 60 },
+        { quizId: 'q2', title: 'Fractions & Decimals Quiz', score: null, passed: false, attemptCount: 0, passingScore: 70 },
+      ],
+      assignments: [
+        { assignmentId: 'a1', title: 'Fractions Worksheet', status: 'graded', score: 18, totalMarks: 20, percentage: 90, submitted: true, written: true },
+        { assignmentId: 'a3', title: 'Number Patterns Quiz', status: 'pending', score: null, totalMarks: 100, percentage: null, submitted: true, written: false },
+      ],
+    },
+    {
+      courseId: 'c2', courseTitle: 'JavaScript for Beginners', completed: false, finalPercentage: 45, letterGrade: 'D',
+      quizzes: [
+        { quizId: 'q3', title: 'Functions & Scope Quiz', score: 40, passed: false, attemptCount: 1, passingScore: 50 },
+      ],
+      assignments: [
+        { assignmentId: 'a2', title: 'Build a Calculator', status: 'overdue', score: null, totalMarks: 50, percentage: null, submitted: true, written: false },
+      ],
+    },
+    {
+      courseId: 'c-seq', courseTitle: 'Sequences & Series — SS2 Practice', completed: false, finalPercentage: 0, letterGrade: 'F',
+      quizzes: [
+        { quizId: 'seq-prereq-quiz', title: 'Sequences & Series — SS2 Practice Quiz', score: null, passed: false, attemptCount: 0, passingScore: 60 },
+      ],
+      assignments: [
+        { assignmentId: 'a-seq', title: 'Sequences & Series Assignment', status: 'pending', score: null, totalMarks: 100, percentage: null, submitted: false, written: false },
+      ],
+    },
   ]})),
 
   // Certificates

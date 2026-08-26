@@ -18,4 +18,13 @@ export const coursesService = {
   deleteSession: async (id: string) => { const { data } = await api.delete<ApiResponse<{ deleted: boolean }>>(`/trainer/sessions/${id}`); return data.data },
   getTrainerSessions: async () => { const { data } = await api.get<ApiResponse<TrainerSession[]>>('/trainer/sessions'); return data.data },
   getTrainerStudents: async () => { const { data } = await api.get<ApiResponse<TrainerStudent[]>>('/trainer/students'); return data.data },
+  /** Which quiz (if any) currently gates a course. */
+  getPrerequisiteQuiz: async (courseId: string) => { const { data } = await api.get<ApiResponse<{ courseId: string; prerequisiteQuizId: string | null }>>(`/courses/${courseId}/prerequisite-quiz`); return data.data },
+  /** Attach ({ quizId }) or detach ({ quizId: null }) a course's prerequisite quiz. Trainer/admin only. */
+  setPrerequisiteQuiz: async (courseId: string, quizId: string | null) => {
+    const { data } = await api.put<ApiResponse<{ courseId: string; prerequisiteQuizId: string | null; message?: string }>>(
+      `/courses/${courseId}/prerequisite-quiz`, { quizId },
+    )
+    return data.data
+  },
 }
