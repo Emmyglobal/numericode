@@ -97,4 +97,28 @@ describe('CourseViewerPage repro', () => {
       expect(screen.getByText(/Foundation Mathematics/)).toBeInTheDocument()
     })
   })
+
+  it('does not crash when the API returns modules: null (legacy/older backend)', async () => {
+    // Regression: the sidebar rendered `course.modules.map(...)` directly, which
+    // threw on `null` and (with no boundary) produced a black page; with the
+    // layout boundary it surfaced as "This page couldn't load."
+    vi.mocked(dashboardService.getCourse).mockResolvedValue({ ...fullCourse, modules: null as unknown as typeof fullCourse.modules })
+    renderPage()
+    await waitFor(() => {
+      expect(screen.getByText(/Foundation Mathematics/)).toBeInTheDocument()
+      expect(screen.getByText(/No lessons yet/i)).toBeInTheDocument()
+    })
+  })
+
+  it('does not crash when a module has no lessons array', async () => {
+    vi.mocked(dashboardService.getCourse).mockResolvedValue({
+      ...fullCourse,
+      modules: [{ id: 'm1', title: 'Numbers', lessons: null }] as unknown as typeof fullCourse.modules,
+    })
+    renderPage()
+    await waitFor(() => {
+      expect(screen.getByText(/Foundation Mathematics/)).toBeInTheDocument()
+      expect(screen.getByText(/No lessons yet/i)).toBeInTheDocument()
+    })
+  })
 })

@@ -134,20 +134,20 @@ export default function CourseViewerPage() {
 
         {/* Lesson nav */}
         <nav aria-label="Course lessons" className="p-2">
-          {course.modules.map(mod => (
-            <div key={mod.id} className="mb-3">
+          {(course.modules ?? []).map(mod => (
+            <div key={mod?.id ?? Math.random()} className="mb-3">
               <p className="px-3 py-2 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
-                {mod.title}
+                {mod?.title ?? 'Module'}
               </p>
-              {mod.lessons.map((l, lessonIdx) => {
-                const isActive = l.id === activeLesson?.id
-                const globalIdx = allLessons.findIndex(al => al.id === l.id) + 1
+              {(mod?.lessons ?? []).map((l, lessonIdx) => {
+                const isActive = l?.id === activeLesson?.id
+                const globalIdx = allLessons.findIndex(al => al.id === l?.id) + 1
                 return (
                   <button
-                    key={l.id}
-                    onClick={() => { setActiveLessonId(l.id); setSidebarOpen(false) }}
+                    key={l?.id ?? lessonIdx}
+                    onClick={() => { if (l?.id) { setActiveLessonId(l.id); setSidebarOpen(false) } }}
                     aria-current={isActive ? 'true' : undefined}
-                    aria-label={`Lesson ${globalIdx}: ${l.title}${l.isCompleted ? ' (completed)' : ''}`}
+                    aria-label={`Lesson ${globalIdx}: ${l?.title ?? 'Untitled'}${l?.isCompleted ? ' (completed)' : ''}`}
                     className={cn(
                       'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm transition-colors',
                       isActive
@@ -155,11 +155,11 @@ export default function CourseViewerPage() {
                         : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
                     )}
                   >
-                    {l.isCompleted
+                    {l?.isCompleted
                       ? <CheckCircle className="w-4 h-4 text-green-600 shrink-0" aria-hidden="true" />
                       : <BookOpen    className="w-4 h-4 shrink-0 text-gray-300"  aria-hidden="true" />
                     }
-                    <span className="flex-1 truncate">{lessonIdx + 1}. {l.title}</span>
+                    <span className="flex-1 truncate">{lessonIdx + 1}. {l?.title ?? 'Untitled'}</span>
                   </button>
                 )
               })}
@@ -185,6 +185,17 @@ export default function CourseViewerPage() {
         </div>
 
         <article className="max-w-3xl mx-auto p-6 sm:p-10">
+          {/* No lessons in this course yet — show a friendly empty state instead of an empty/broken layout */}
+          {totalLessons === 0 ? (
+            <div className="py-16 text-center">
+              <BookOpen className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" aria-hidden="true" />
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No lessons yet</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                This course doesn&apos;t have any lessons published yet. Check back soon.
+              </p>
+            </div>
+          ) : (
+          <>
           {/* Lesson meta */}
           <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">
             Lesson {activeIndex + 1} of {totalLessons} ·{' '}
@@ -251,7 +262,7 @@ export default function CourseViewerPage() {
                 Lesson Resources
               </h2>
               <ul className="space-y-2">
-                {activeLesson!.resources.map(r => (
+                {activeLesson!.resources.filter(Boolean).map(r => (
                   <li
                     key={r.id}
                     className="flex items-center justify-between gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700"
@@ -277,7 +288,7 @@ export default function CourseViewerPage() {
               <Skeleton className="h-24 w-full" />
             ) : (lessonQuizzes?.length ?? 0) > 0 ? (
               <div className="space-y-4">
-                {lessonQuizzes!.map(quiz => (
+                {lessonQuizzes!.filter(Boolean).map(quiz => (
                   <ErrorBoundary key={quiz.id} label="Lesson quiz">
                     <LessonQuiz quiz={quiz} />
                   </ErrorBoundary>
@@ -311,6 +322,8 @@ export default function CourseViewerPage() {
               <ChevronRight className="w-4 h-4" aria-hidden="true" />
             </Button>
           </nav>
+          </>
+          )}
         </article>
       </main>
     </div>
