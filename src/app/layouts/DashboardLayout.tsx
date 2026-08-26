@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { DashboardSidebar } from '@/components/navigation/DashboardSidebar'
 import { DashboardTopBar } from '@/components/navigation/DashboardTopBar'
 import { SkipLink } from '@/components/shared/SkipLink'
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { useScrollTop } from '@/hooks/useScrollTop'
 import { useUIStore } from '@/store/uiStore'
 import { AiStudyAssistant } from '@/components/shared/AiStudyAssistant'
@@ -31,7 +32,9 @@ export default function DashboardLayout() {
       <DashboardTopBar title={title} />
       <main id="main-content" tabIndex={-1} className={`pt-16 min-h-screen focus:outline-none transition-all duration-300 ${isSidebarOpen ? 'pl-64' : 'pl-0'}`}>
         <div className="p-4 sm:p-6 lg:p-8">
-          <Outlet />
+          <ErrorBoundary label="This page">
+            <Outlet />
+          </ErrorBoundary>
         </div>
       </main>
       <AiStudyAssistant />

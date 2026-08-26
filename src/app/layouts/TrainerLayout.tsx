@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { TrainerSidebar } from '@/components/navigation/TrainerSidebar'
 import { DashboardTopBar } from '@/components/navigation/DashboardTopBar'
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { useScrollTop } from '@/hooks/useScrollTop'
 import { useUIStore } from '@/store/uiStore'
 import { AiStudyAssistant } from '@/components/shared/AiStudyAssistant'
@@ -24,7 +25,11 @@ export default function TrainerLayout() {
       <TrainerSidebar />
       <DashboardTopBar title={titles[pathname] ?? 'Trainer Portal'} />
       <main className={`pt-16 min-h-screen transition-all duration-300 ${isSidebarOpen ? 'pl-64' : 'pl-0'}`}>
-        <div className="p-4 sm:p-6 lg:p-8"><Outlet /></div>
+        <div className="p-4 sm:p-6 lg:p-8">
+          <ErrorBoundary label="This page">
+            <Outlet />
+          </ErrorBoundary>
+        </div>
       </main>
       <AiStudyAssistant />
     </div>

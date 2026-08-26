@@ -13,6 +13,7 @@ import { downloadText, downloadUrl, sanitizeFilename } from '@/lib/download'
 import { LearningBoard } from '@/components/shared/LearningBoard'
 import { CollaborativeCodeEditor } from '@/components/shared/CollaborativeCodeEditor'
 import { LessonQuiz } from '@/components/shared/LessonQuiz'
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { quizzesService, type Quiz } from '@/services/quizzes.service'
 import type { EnrolledCourse, Lesson } from '@/features/courses/types'
 
@@ -232,10 +233,16 @@ export default function CourseViewerPage() {
           {activeLesson && (
             <section aria-label="Learning workspace" className="mb-8">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Take Notes</h2>
-              <LearningBoard lessonId={activeLesson.id} />
+              <ErrorBoundary label="Learning board">
+                <LearningBoard lessonId={activeLesson.id} />
+              </ErrorBoundary>
             </section>
           )}
-          {activeLesson && <CollaborativeCodeEditor lessonId={activeLesson.id} />}
+          {activeLesson && (
+            <ErrorBoundary label="Code editor">
+              <CollaborativeCodeEditor lessonId={activeLesson.id} />
+            </ErrorBoundary>
+          )}
 
           {/* Resources */}
           {(activeLesson?.resources?.length ?? 0) > 0 && (
@@ -271,7 +278,9 @@ export default function CourseViewerPage() {
             ) : (lessonQuizzes?.length ?? 0) > 0 ? (
               <div className="space-y-4">
                 {lessonQuizzes!.map(quiz => (
-                  <LessonQuiz key={quiz.id} quiz={quiz} />
+                  <ErrorBoundary key={quiz.id} label="Lesson quiz">
+                    <LessonQuiz quiz={quiz} />
+                  </ErrorBoundary>
                 ))}
               </div>
             ) : (
