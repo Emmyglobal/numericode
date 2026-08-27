@@ -70,22 +70,41 @@ export default function GradesPage() {
               {/* Grade Categories */}
               <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-surface-dark">
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Grade Breakdown</h3>
-                <div className="space-y-4">
-                  {report.categories.map((category, index) => (
-                    <div key={index}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{category.categoryName}</span>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">{category.averageScore.toFixed(1)}% (Weight: {category.weight}%)</span>
+                {report.categories.length > 0 ? (
+                  <div className="space-y-4">
+                    {report.categories.map((category, index) => (
+                      <div key={index}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{category.categoryName}</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">{category.averageScore.toFixed(1)}% (Weight: {category.weight}%)</span>
+                        </div>
+                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
+                          <div
+                            className="h-full bg-brand-blue rounded-full transition-all"
+                            style={{ width: `${Math.min(category.averageScore, 100)}%` }}
+                          />
+                        </div>
                       </div>
-                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
-                        <div
-                          className="h-full bg-brand-blue rounded-full transition-all"
-                          style={{ width: `${Math.min(category.averageScore, 100)}%` }}
-                        />
-                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  // No trainer-configured grade categories — show the actual
+                  // quiz/assignment averages that feed the overall grade.
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Quiz Average</p>
+                      <p className="text-xl font-bold text-gray-900 dark:text-white">
+                        {report.quizAverage != null ? `${report.quizAverage.toFixed(1)}%` : '—'}
+                      </p>
                     </div>
-                  ))}
-                </div>
+                    <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Assignment Average</p>
+                      <p className="text-xl font-bold text-gray-900 dark:text-white">
+                        {report.assignmentAverage != null ? `${report.assignmentAverage.toFixed(1)}%` : '—'}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}

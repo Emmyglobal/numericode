@@ -33,7 +33,11 @@ vi.mock('@/services/quizzes.service', () => ({
 }))
 
 vi.mock('@/services/grading.service', () => ({
-  gradingService: { getStudentGradeReport: vi.fn().mockResolvedValue({}) },
+  gradingService: { getStudentGradeReport: vi.fn().mockResolvedValue(
+    // Realistic report: no configured grade categories, but the student has
+    // taken quizzes — the fallback path that shows quiz/assignment averages.
+    { courseId: 'c1', categories: [], overallGrade: 80, letterGrade: 'B', quizAverage: 80, assignmentAverage: null },
+  ) },
 }))
 
 function setStudent() {
@@ -71,5 +75,15 @@ describe('GradesPage — Grade Book visible', () => {
     const heading = await screen.findByRole('heading', { name: /grade book/i })
     expect(heading).toBeInTheDocument()
     expect(screen.getByTestId('gradebook-wired')).toBeInTheDocument()
+  })
+
+  it('shows quiz-average performance (from taken quizzes) in the course grade breakdown', async () => {
+    render(<GradesPage />)
+    // Fallback breakdown surfaces the quiz average that feeds the overall grade.
+    expect(await screen.findByText(/Quiz Average/i)).toBeInTheDocument()
+    // 80.0% appears both as the overall grade AND the quiz average — expect >=1.
+    expect(screen.getAllByText('80.0%').length).toBeGreaterThan(0)
+    // Assignment average is null (no graded assignments) → shows an em dash.
+    expect(screen.getByText('—')).toBeInTheDocument()
   })
 })

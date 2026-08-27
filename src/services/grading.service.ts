@@ -19,6 +19,7 @@ export interface GradeReport {
   courseId: string; categories: Array<{
     categoryId: string; categoryName: string; weight: number; averageScore: number
   }>; overallGrade: number; letterGrade: string
+  quizAverage?: number | null; assignmentAverage?: number | null
 }
 
 export const gradingService = {
