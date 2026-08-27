@@ -13,12 +13,12 @@ function StatCard_Base({ icon, value, label, color = 'blue', className }: {
   }
   return (
     <div className={cn('flex items-center gap-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark p-5 shadow-card', className)}>
-      <div className={cn('flex h-12 w-12 items-center justify-center rounded-xl shrink-0', colors[color])}>
+      <div className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl sm:h-12 sm:w-12', colors[color])}>
         {icon}
       </div>
-      <div>
-        <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">{value}</p>
+        <p className="truncate text-sm text-gray-500 dark:text-gray-400">{label}</p>
       </div>
     </div>
   )

@@ -86,7 +86,7 @@ Let's start coding!`,
         { id: 'l8',  title: 'What is JavaScript?',      duration: 15, isCompleted: true,  resources: [] },
         { id: 'l9',  title: 'Variables & Data Types',   duration: 25, isCompleted: true,  resources: [{ id: 'r2', title: 'Variables Cheatsheet', type: 'pdf', url: '#' }] },
         { id: 'l10', title: 'Operators & Expressions',  duration: 30, isCompleted: false, resources: [] },
-      ]},
+        ]},
       { id: 'm5', title: 'Control Flow', lessons: [
         { id: 'l11', title: 'If/Else Statements', duration: 28, isCompleted: false, resources: [] },
         { id: 'l12', title: 'Loops – for and while', duration: 35, isCompleted: false, resources: [] },
@@ -99,6 +99,77 @@ Let's start coding!`,
     liveClasses: [
       { id: 'lc3', title: 'JavaScript Q&A', date: '2026-07-04T14:00:00', duration: 60, meetUrl: 'https://zoom.us/j/123456', status: 'upcoming' },
     ],
+  },
+  {
+    id: 'html-css-course', subject: 'programming', level: 'beginner', lessonCount: 18,
+    title: 'HTML & CSS Fundamentals', createdAt: '2024-02-20',
+    description: 'A hands-on introduction to building web pages with HTML5 and styling them with modern CSS — structure, layout, colour, and accessibility.',
+    content: `# HTML & CSS Fundamentals
+
+Welcome! This project-based course walks you through building and styling real web pages from the markup up.
+
+## What You'll Learn
+
+- **HTML**: structure pages with headings, paragraphs, lists, links, images, tables, and accessible forms
+- **CSS**: style with the cascade, selectors, the box model, colours, web fonts, Flexbox and Grid
+- **Responsive design**: make layouts adapt to any screen with media queries
+- **Accessibility**: write markup that works for everyone, including screen readers
+
+## Course Structure
+
+- 6 modules of short lessons (18 lessons total)
+- Hands-on practice at every step
+- A final portfolio project: a responsive personal profile page
+
+## Prerequisites
+
+- A web browser (Chrome or Firefox recommended)
+- A text editor (VS Code, recommended)
+- No prior coding experience needed`,
+    outcomes: ['Build semantic HTML pages','Apply CSS styling and layout with Flexbox and Grid','Create responsive, mobile-friendly designs','Write accessible markup with alt text and labels','Build a complete personal profile page project'],
+    instructor: { id: 'i1', name: 'Mr. Emmanuel Nwafor', bio: 'Full-stack developer and educator. Has trained 200+ students in web development from scratch.', credentials: ['B.Sc Computer Science', 'Full-Stack Developer', '5+ Years Teaching'] },
+    modules: [
+      { id: 'm-html', title: 'HTML Foundations', lessons: [
+        { id: 'l-h1', title: 'What is HTML and the Web', duration: 12, isCompleted: false, resources: [] },
+        { id: 'l-h2', title: 'HTML Boilerplate and Doctype', duration: 10, isCompleted: false, resources: [] },
+        { id: 'l-h3', title: 'Elements, Tags, Attributes, and Nesting', duration: 18, isCompleted: false, resources: [] },
+      ] },
+      { id: 'm-text', title: 'Text, Links and Media', lessons: [
+        { id: 'l-h4', title: 'Headings, Paragraphs, and Text Formatting', duration: 15, isCompleted: false, resources: [] },
+        { id: 'l-h5', title: 'Links, Anchors and URLs', duration: 12, isCompleted: false, resources: [] },
+        { id: 'l-h6', title: 'Images, Alt Text, and Media', duration: 15, isCompleted: false, resources: [] },
+      ] },
+      { id: 'm-lists', title: 'Lists, Tables and Structure', lessons: [
+        { id: 'l-h7', title: 'Ordered, Unordered and Description Lists', duration: 14, isCompleted: false, resources: [] },
+        { id: 'l-h8', title: 'Tables: Rows, Headers and Structure', duration: 18, isCompleted: false, resources: [] },
+        { id: 'l-h9', title: 'Divs, Spans and the Box Model', duration: 12, isCompleted: false, resources: [] },
+      ] },
+      { id: 'm-css', title: 'CSS Foundations', lessons: [
+        { id: 'l-h10', title: 'The Cascade and Selectors', duration: 16, isCompleted: false, resources: [] },
+        { id: 'l-h11', title: 'Colours, Units and Web Fonts', duration: 14, isCompleted: false, resources: [] },
+        { id: 'l-h12', title: 'Comments and Organising CSS', duration: 10, isCompleted: false, resources: [] },
+      ] },
+      { id: 'm-layout', title: 'Layout and Visuals', lessons: [
+        { id: 'l-h13', title: 'Box Model: margin, border, padding', duration: 18, isCompleted: false, resources: [] },
+        { id: 'l-h14', title: 'Flexbox Layout', duration: 20, isCompleted: false, resources: [] },
+        { id: 'l-h15', title: 'CSS Grid Layout', duration: 22, isCompleted: false, resources: [] },
+      ] },
+      { id: 'm-final', title: 'Polish and Practice', lessons: [
+        { id: 'l-h16', title: 'Responsive Images and Media Queries', duration: 18, isCompleted: false, resources: [] },
+        { id: 'l-h17', title: 'Forms and Inputs Styling', duration: 14, isCompleted: false, resources: [] },
+        { id: 'l-h18', title: 'Final Project: Personal Profile Page', duration: 24, isCompleted: false, resources: [] },
+      ] },
+    ],
+    liveClasses: [
+      { id: 'lc-html', title: 'HTML/CSS Q&A', date: '2026-07-06T15:00:00', duration: 60, meetUrl: 'https://zoom.us/j/654321', status: 'upcoming' },
+    ],
+    prerequisiteQuiz: {
+      id: 'html-css-prereq-quiz',
+      title: 'HTML & CSS Foundations Quiz',
+      description: 'A short check of HTML/CSS fundamentals before you begin.',
+      passingScore: 60,
+      isPrerequisiteQuizPassed: false,
+    },
   },
   {
     id: 'c3', subject: 'mathematics', level: 'intermediate', lessonCount: 28,
@@ -831,6 +902,166 @@ An inner let total hides an outer total inside its block — same name, differen
 3. Predict whether an arrow inside a loop sees the loop variable — then test.
 
 (Scope questions dominate JS interviews — master these early.)`,
+  l_h1: `# What is HTML and the Web
+
+HTML (HyperText Markup Language) is the markup language that gives content structure and meaning on the web. The browser reads HTML and renders it as a page.
+
+## Tags and elements
+
+An element usually has an opening tag, content, and a closing tag: <p>This is a paragraph.</p>
+Some elements are void/self-closing and have no content: <img src="cat.jpg" alt="A cat">.
+
+## Structure of a page
+
+<!DOCTYPE html> declares HTML5. Inside <html> lives <head> (metadata: title, charset, links) and <body> (visible content). Browsers rely on this structure.
+
+## What markup is NOT
+
+HTML describes structure and meaning — not appearance. Colours, fonts, and layout come from CSS, but the order and type of content come from HTML.
+
+## Practice
+1. Identify three tags on any webpage (View → Inspect).
+2. Write the skeleton of an HTML5 page.
+3. Explain the difference between an opening and closing tag.
+
+(Mark the structure — the CSS comes next.)`,
+  l_h2: `# HTML Boilerplate and Doctype
+
+Every HTML page should start with the same basic structure. Minimal HTML5 template:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Page title</title>
+</head>
+<body>
+  <h1>Hello world</h1>
+</body>
+</html>
+
+## Breaking it down
+- <!DOCTYPE html> triggers standards mode — always first.
+- <html lang="en"> wraps all content; lang aids screen readers/search.
+- <meta charset="UTF-8"> ensures text displays correctly.
+
+## Practice
+1. Save as practice.html, open in a browser.
+2. Add your name in an <h1> inside <body>.
+3. Change the <title> and confirm the tab label updates.
+
+(Get this skeleton right once; every page starts cleanly.)`,
+  l_h3: `# Elements, Tags, Attributes, and Nesting
+
+HTML is built from elements: usually a start tag, content, and an end tag — <p>This is a paragraph.</p>.
+
+## Attributes
+
+Attributes live inside the opening tag:
+<img src="sunrise.jpg" alt="A sunrise over the water">
+- src — the image file path (required for img).
+- alt — replacement text (required, almost always).
+- href — the destination of a link.
+- class, id — general-purpose hooks for CSS/JS.
+
+## Nesting
+
+Elements can contain other elements:
+<ul>
+  <li>First item</li>
+  <li>Second item</li>
+</ul>
+
+Rules: close an element before closing its container; indent nested elements; never let tags overlap (<p><b>text</p></b> is wrong).
+
+## Checking your work
+
+A single stray tag can shift a whole page. Use the browser inspector to read the element tree — if indentation looks wrong, your nesting probably is.
+
+## Practice
+1. Nest an image inside a <figure> with a <figcaption>.
+2. Add both a class and an id to the same heading.
+3. Intentionally break nesting, then fix it.
+
+(The inspector is your map — learn to read it.)`,
+  l_h4: `# Headings, Paragraphs, and Text Formatting
+
+Good markup says what each part IS, not how it looks.
+
+## Headings — <h1> to <h6>
+
+<h1> is the page's main title — one per page. h2 marks a major section; h3 a subsection, etc. Use levels in order; don't skip to h4 just to shrink size — CSS handles appearance.
+
+## Paragraphs — <p>
+
+Wrap every text paragraph in <p>. Browsers add spacing; never fake paragraphs with <br>.
+
+## Inline formatting
+- <strong> or <b> — bold (strong carries importance for screen readers).
+- <em> or <i> — italic/emphasis.
+- <code> — code samples.
+- <br> — a line break (use sparingly).
+- <hr> — a thematic/content divider.
+
+## Practice
+1. Mark up a short article: one h1, two h2s, three paragraphs.
+2. Wrap a term in <strong>, a warning in <em>, code in <code>.
+3. Inspect: confirm you have a single h1.
+
+(Structure drives CSS, accessibility, and SEO.)`,
+  l_h5: `# Links, Anchors, and URLs
+
+The <a> (anchor) links a destination (href) with readable link text.
+
+## Absolute vs relative
+- Absolute: <a href="https://numerycode.com">NumeryCode</a>
+- Relative: <a href="lessons.html">Lessons</a>
+- Root-relative: <a href="/about/">About</a>
+
+## Email links
+<a href="mailto:hello@example.com">Email us</a>
+
+## Link states
+Links have five CSS pseudo-classes: a:link, a:visited, a:hover, a:focus, a:active.
+
+## Good link text
+Prefer "Read the HTML Foundations lesson" over "click here" — link lists are read out of context by keyboard/screen-reader users.
+
+## Opening a new tab
+<a href="https://example.com" target="_blank" rel="noopener">External site</a> — always add rel="noopener".
+
+## Practice
+1. Build a list of useful links with descriptive text.
+2. Link to an email address.
+3. Link to another page on your site via a relative URL.
+
+(Links are promises — let the text match the destination.)`,
+  l_h6: `# Images, Alt Text, and Media
+
+Images use <img> — a void/self-closing element needing src and alt.
+
+<img src="profile.jpg" alt="Ada, smiling, wearing a red top">
+
+## Writing alt text
+- Informative: describe purpose — "Bar chart of monthly sales, peaking in December".
+- Decorative: alt="" so screen readers skip it.
+- Functional (linked image): alt = the link's destination.
+- Never "image of…" — the screen reader already knows it's an image.
+
+## Dimensions and loading
+<img src="hero.jpg" alt="..." width="1200" height="400" loading="lazy"> — setting width/height reserves space so the page doesn't jump; loading="lazy" defers off-screen images.
+
+## Other media
+- <figure><img><figcaption> captions an image.
+- <audio controls> / <video controls> embed sound/video with native controls.
+- <source> offers multiple formats/codecs.
+
+## Practice
+1. Add an informative image with descriptive alt text.
+2. Add a decorative image with empty alt.
+3. Group an image and caption in a <figure>.
+
+(Alt text = accessibility, SEO, and fallback. Write it for someone who can't see the picture.)`,
 }
 
 // Attach notes onto each mock lesson so every course in dev mode renders

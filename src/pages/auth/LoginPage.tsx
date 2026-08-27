@@ -48,7 +48,13 @@ export default function LoginPage() {
   return (
     <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-lg p-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome back</h1>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-sm text-brand-blue hover:underline"
+        >
+          <span aria-hidden>←</span> Back to home
+        </Link>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mt-4">Welcome back</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Sign in to continue learning</p>
       </div>
 

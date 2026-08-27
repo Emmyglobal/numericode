@@ -1,7 +1,7 @@
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, BookOpen, Video, Users, Star, ChevronRight, Code2, Calculator, Play, Sparkles, ShieldCheck, Clock3 } from 'lucide-react'
+import { ArrowRight, BookOpen, Video, Users, Star, ChevronRight, Code2, Calculator, Play, Sparkles, ShieldCheck, Clock3, GraduationCap } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { SectionWrapper } from '@/components/shared/SectionWrapper'
@@ -15,7 +15,13 @@ const fadeUp = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } }
 const stagger = (delay = 0.08) => ({ show: { transition: { staggerChildren: delay } } })
 
 const stats = [{ value: '10+', label: 'Courses' }, { value: '500+', label: 'Students' }, { value: '50+', label: 'Live Classes' }, { value: '100%', label: 'Free' }]
-const steps = [{ icon: BookOpen, title: 'Browse Courses', desc: 'Explore our curated Mathematics and Programming tracks.' }, { icon: Users, title: 'Register Free', desc: 'Create your account in under 60 seconds.' }, { icon: Video, title: 'Learn Live', desc: 'Attend live classes and ask questions in real time.' }]
+const steps = [{ icon: BookOpen, title: 'Browse Courses', desc: 'Explore our curated Mathematics and Programming tracks.' }, { icon: Users, title: 'Register Free', desc: 'Create your account in under 60 seconds.' }, { icon: Video, title: 'Learn Your Way', desc: 'Join live classes or study at your own pace, any time.' }]
+// Three audiences the platform serves — learners, parents/guardians and registered trainers.
+const audiences = [
+  { icon: BookOpen, title: 'Learners & Students', desc: 'Structured online courses in Mathematics, Programming and practical technology skills — with live classes, self-paced lessons, quizzes, assignments and progress tracking.', cta: 'Start learning free', to: '/register' },
+  { icon: Users, title: 'Parents & Guardians', desc: 'Give your child a safe, structured path into mathematics and coding — with clear progress reports and live sessions you can follow along.', cta: 'Explore courses', to: '/courses' },
+  { icon: GraduationCap, title: 'Registered Trainers', desc: 'Teach on your own schedule — build courses, host live classes, set quizzes and assignments, grade learners and manage your students, all in one platform.', cta: 'Apply to teach', to: '/register' },
+]
 const testimonials = [
   { name: 'Kolade A.', role: 'Student, Age 14', quote: 'NumeryCode made algebra finally click for me. The live classes are the best part!', color: 'from-teal-500 to-emerald-500' },
   { name: 'Amaka O.', role: 'Student, Age 11', quote: 'I used to be scared of maths. Now I actually look forward to my lessons every week.', color: 'from-purple-500 to-indigo-500' },
@@ -73,14 +79,15 @@ export default function LandingPage() {
               <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
                 Mathematics & Code, <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-sky to-teal-300">Taught Live</span>
               </h1>
-              <p className="text-lg text-blue-200 max-w-lg">Join NumeryCode for live online classes in Mathematics and Programming. Learn at your own pace, guided by real instructors.</p>
+              <p className="text-lg text-blue-200 max-w-lg">Learn Mathematics, Programming and practical technology skills through structured online courses, live classes and flexible self-paced study — guided by registered trainers.</p>
               <div className="flex flex-wrap gap-3 pt-2">
                 <Link to="/register"><Button size="lg" className="shadow-lg shadow-brand-blue/30 hover:scale-105 transition-transform"><Sparkles className="w-5 h-5 mr-1" /> Get Started Free <ArrowRight className="w-5 h-5" /></Button></Link>
                 <Link to="/courses"><Button variant="secondary" size="lg" className="border-white text-white hover:bg-white/10">Browse Courses</Button></Link>
               </div>
-              <div className="flex items-center gap-4 pt-2 text-sm text-blue-200">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-2 text-sm text-blue-200">
                 <span className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-teal-300" /> Trusted by parents</span>
-                <span className="flex items-center gap-1.5"><Clock3 className="w-4 h-4 text-teal-300" /> Live & on-demand</span>
+                <span className="flex items-center gap-1.5"><Clock3 className="w-4 h-4 text-teal-300" /> Live & self-paced</span>
+                <span className="flex items-center gap-1.5"><GraduationCap className="w-4 h-4 text-teal-300" /> Registered trainers</span>
               </div>
             </motion.div>
 
@@ -170,6 +177,26 @@ export default function LandingPage() {
         </div>
       </SectionWrapper>
 
+      {/* WHO IT'S FOR — learners, parents/guardians, registered trainers */}
+      <SectionWrapper>
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Built for Learners, Parents &amp; Trainers</h2>
+          <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">Whether you're learning, supporting a child's education, or teaching — NumeryCode gives you the structure and tools to grow.</p>
+        </div>
+        <div className="grid md:grid-cols-3 gap-6">
+          {audiences.map(a => (
+            <motion.div key={a.title} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark p-8 shadow-card hover:shadow-xl transition-shadow flex flex-col">
+              <div className="w-12 h-12 rounded-xl bg-brand-blue text-white flex items-center justify-center mb-4"><a.icon className="w-6 h-6" /></div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{a.title}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 flex-1">{a.desc}</p>
+              <Link to={a.to} className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-blue hover:underline">
+                {a.cta} <ArrowRight className="w-4 h-4" />
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </SectionWrapper>
+
       {/* AVAILABLE COURSES */}
       <div className="bg-gray-50 dark:bg-gray-900">
         <SectionWrapper>
@@ -221,7 +248,7 @@ export default function LandingPage() {
 
       {/* TESTIMONIALS */}
       <SectionWrapper>
-        <div className="text-center mb-12"><h2 className="text-3xl font-bold text-gray-900 dark:text-white">What Students Say</h2></div>
+        <div className="text-center mb-12"><h2 className="text-3xl font-bold text-gray-900 dark:text-white">What Our Community Says</h2></div>
         <div className="grid md:grid-cols-2 gap-6">
           {testimonials.map(t => (
             <motion.div key={t.name} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark p-6 shadow-card hover:shadow-xl transition-shadow">
@@ -244,7 +271,7 @@ export default function LandingPage() {
         </div>
         <div className="relative max-w-3xl mx-auto px-4 py-16 text-center text-white">
           <h2 className="text-3xl font-bold mb-4">Ready to Start Learning?</h2>
-          <p className="text-blue-100 mb-8">Join NumeryCode today — it's completely free.</p>
+          <p className="text-blue-100 mb-8">Learning is completely free — and registered trainers can apply to teach on NumeryCode.</p>
           <Link to="/register"><Button size="lg" className="bg-white text-brand-blue hover:bg-blue-50 font-bold shadow-lg hover:scale-105 transition-transform">Start Learning Today <ArrowRight className="w-5 h-5" /></Button></Link>
         </div>
       </div>
