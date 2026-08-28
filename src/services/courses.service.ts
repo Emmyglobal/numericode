@@ -2,7 +2,11 @@ import { api } from '@/lib/axios'
 import type { Course } from '@/features/courses/types'
 import type { ApiResponse } from '@/types/api.types'
 import type { TrainerStudent, TrainerLiveSession as TrainerSession } from '@/features/trainer/types'
-export interface AvailableTeacher { id: string; name: string; bio: string; avatarUrl?: string; subjects: Array<'mathematics' | 'programming'> }
+export interface AvailableTeacher { id: string; name: string; bio: string; avatarUrl?: string; subjects: Array<'mathematics' | 'programming'>; courses?: { id: string; title: string; subject: string; level: string }[] }
+export interface PublicTrainerProfile {
+  id: string; name: string; bio: string; avatarUrl?: string; subjects: string[]
+  courses: { id: string; title: string; subject: string; level: string; lessonCount: number }[]
+}
 export interface AvailableCourseForEnrollment { id: string; title: string; subject: string; level: string; instructorName: string; instructorId: string }
 export interface TrainerSessionInput { courseId: string; title: string; date: string; duration: number; meetUrl?: string; sessionType?: 'group' | 'individual'; studentIds?: string[]; extensionMinutes?: number }
 export interface EnrollResult { enrolledCourses: string[]; count: number }
@@ -11,6 +15,7 @@ export const coursesService = {
   getById:  async (id: string) => { const { data } = await api.get<ApiResponse<Course>>(`/courses/${id}`); return data.data },
   requestCourse: async (id: string) => { const { data } = await api.post<ApiResponse<{ id: string; status: string }>>(`/courses/${id}/request`); return data.data },
   getAvailableTeachers: async () => { const { data } = await api.get<ApiResponse<AvailableTeacher[]>>('/courses/teachers'); return data.data },
+  getTrainerProfile: async (id: string) => { const { data } = await api.get<ApiResponse<PublicTrainerProfile>>(`/courses/teachers/${id}`); return data.data },
   getAvailableForEnrollment: async (teacherId?: string) => { const { data } = await api.get<ApiResponse<AvailableCourseForEnrollment[]>>('/courses/available-for-enrollment', { params: teacherId ? { teacherId } : {} }); return data.data },
   enrollInCourses: async (courseIds: string[]) => { const { data } = await api.post<ApiResponse<EnrollResult>>('/courses/enroll', { courseIds }); return data.data },
   createSession: async (payload: TrainerSessionInput) => { const { data } = await api.post<ApiResponse<TrainerSession>>('/trainer/sessions', payload); return data.data },

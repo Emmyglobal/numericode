@@ -6,6 +6,10 @@ export interface RegisterPayload {
   guardianPhone?: string
   preferredTeacherId?: string
   subjects?: Array<'mathematics' | 'programming'>
+  /** Explicit policy acceptance — required by the backend before an account is created. */
+  termsAccepted: boolean
+  privacyPolicyAcknowledged: boolean
+  acceptableUseAccepted: boolean
 }
 export interface AuthResponse { user: AuthUser & { role: 'student' | 'trainer' | 'admin' }; token: string }
 

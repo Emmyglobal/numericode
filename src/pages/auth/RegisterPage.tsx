@@ -63,6 +63,7 @@ export default function RegisterPage() {
   const [pendingRole, setPendingRole] = useState('')
   const [teachers, setTeachers] = useState<AvailableTeacher[]>([])
   const [teachersError, setTeachersError] = useState('')
+  const [policyAccepted, setPolicyAccepted] = useState(false)
   const {
     register, handleSubmit, watch, setValue,
     formState: { errors, isSubmitting },
@@ -96,7 +97,19 @@ export default function RegisterPage() {
   const onSubmit = async (data: FormData) => {
     try {
       setError('')
-      const res = await authService.register(data)
+      // Explicit acceptance is mandatory. The unchecked (default) state blocks
+      // submission here AND is enforced again on the backend, so an account can
+      // never be created without consent.
+      if (!policyAccepted) {
+        setError('You must accept the Terms of Service, acknowledge the Privacy Policy, and agree to the Acceptable Use Policy before creating an account.')
+        return
+      }
+      const res = await authService.register({
+        ...data,
+        termsAccepted: policyAccepted,
+        privacyPolicyAcknowledged: policyAccepted,
+        acceptableUseAccepted: policyAccepted,
+      })
       if (isPendingApproval(res)) {
         setPendingMessage(res.message)
         setPendingRole(data.role)
@@ -303,6 +316,22 @@ export default function RegisterPage() {
           )}
         </div>
         <Input label="Confirm Password" type="password" placeholder="Repeat password" error={errors.confirmPassword?.message} autoComplete="new-password" required {...register('confirmPassword')} />
+        <div className="flex items-start gap-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark p-3">
+          <input
+            type="checkbox"
+            id="policy-acceptance"
+            checked={policyAccepted}
+            onChange={e => setPolicyAccepted(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-blue"
+          />
+          <label htmlFor="policy-acceptance" className="text-xs leading-relaxed text-gray-600 dark:text-gray-300 cursor-pointer select-none">
+            I agree to NumeryCode's{' '}
+            <Link to="/terms" className="font-semibold text-brand-blue underline underline-offset-2 hover:text-blue-700">Terms of Service</Link>, acknowledge the{' '}
+            <Link to="/privacy" className="font-semibold text-brand-blue underline underline-offset-2 hover:text-blue-700">Privacy Policy</Link>, and agree to follow the{' '}
+            <Link to="/acceptable-use" className="font-semibold text-brand-blue underline underline-offset-2 hover:text-blue-700">Acceptable Use Policy</Link>{' '}
+            (each as updated from time to time). This box is unchecked by default.
+          </label>
+        </div>
         <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
           Create {selectedRole === 'trainer' ? 'Trainer' : 'Student'} Account
         </Button>
