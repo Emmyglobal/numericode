@@ -129,19 +129,30 @@ Request a password reset link. Always returns success regardless of whether the 
 
 List all courses. Supports optional filtering via query parameters.
 
+Public endpoint — authentication is NOT required.
+
+The list endpoint returns a **slim catalogue payload** (no `modules`, `lessons`, `resources` or `liveClasses` hierarchy); the full nested hierarchy is returned only by `GET /courses/:id`.
+
 **Query parameters (all optional):**
 
-| Parameter | Type | Description |
-|---|---|---|
-| `subject` | `"mathematics" \| "programming"` | Filter by subject |
-| `q` | `string` | Search by title or description (case-insensitive) |
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `subject` | `"mathematics" \| "programming"` | — | Filter by subject |
+| `q` | `string` | — | Search by title or description (case-insensitive `ILIKE`) |
+| `accessLevel` | `"free" \| "premium"` | — | Filter by access level |
+| `level` | `"beginner" \| "intermediate" \| "advanced"` | — | Filter by difficulty level |
+| `instructorId` | `string` (UUID) | — | Filter by registered trainer id |
+| `sort` | `"newest" \| "title" \| "level"` | `newest` | Sort order |
+| `limit` | `integer` | `12` | Page size (clamped to 1–50) |
+| `offset` | `integer` | `0` | Pagination offset (must not be negative) |
 
 **Examples:**
 ```
 GET /api/courses
-GET /api/courses?subject=mathematics
+GET /api/courses?subject=mathematics&limit=12&offset=0
 GET /api/courses?q=algebra
-GET /api/courses?subject=programming&q=javascript
+GET /api/courses?subject=programming&q=javascript&sort=title&limit=24
+GET /api/courses?level=beginner&instructorId=48a6e3d4-…
 ```
 
 **Success `200`:**
@@ -152,54 +163,40 @@ GET /api/courses?subject=programming&q=javascript
     {
       "id":          "c1",
       "title":       "Foundation Mathematics",
-      "description": "Build a rock-solid foundation…",
+      "description": "Build a rock-solid foundation",
       "subject":     "mathematics",
       "level":       "beginner",
       "lessonCount": 24,
-      "outcomes":    ["Master arithmetic operations", "…"],
+      "outcomes":    ["Master arithmetic operations"],
+      "thumbnailUrl": "https://example.com/thumb.jpg",
       "createdAt":   "2024-01-10",
+      "accessLevel": "free",
+      "priceCents": 0,
+      "currency":    "NGN",
+      "premiumEnabled": true,
       "instructor": {
         "id":          "i1",
-        "name":        "Mr. Emmanuel Nwafor",
-        "bio":         "Mathematics educator…",
-        "credentials": ["B.Sc Mathematics – UNILAG", "…"]
-      },
-      "modules": [
-        {
-          "id":    "m1",
-          "title": "Numbers & Arithmetic",
-          "lessons": [
-            {
-              "id":          "l1",
-              "title":       "Introduction to Numbers",
-              "duration":    20,
-              "isCompleted": false,
-              "resources": [
-                { "id": "r1", "title": "Number Systems PDF", "type": "pdf", "url": "/files/r1.pdf" }
-              ]
-            }
-          ]
-        }
-      ],
-      "liveClasses": [
-        {
-          "id":       "lc1",
-          "title":    "Algebra Q&A Session",
-          "date":     "2026-07-05T10:00:00",
-          "duration": 60,
-          "meetUrl":  "https://meet.google.com/abc-defg-hij",
-          "status":   "upcoming"
-        }
-      ]
+        "name":        "Nwafor Emmanuel",
+        "bio":         "Registered Trainer",
+        "avatarUrl":   "https://example.com/avatar.png"
+      }
     }
-  ]
+  ],
+  "pagination": {
+    "total": 48,
+    "limit": 12,
+    "offset": 0,
+    "count": 12,
+    "hasMore": true
+  }
 }
 ```
 
-`level` is one of: `"beginner"` · `"intermediate"` · `"advanced"`
-`status` on live classes: `"upcoming"` · `"live"` · `"past"`
-`type` on resources: `"pdf"` · `"video"` · `"link"`
+> **Privacy note:** `instructor` exposes only `id`, `name`, `bio` and `avatarUrl`. Email, password and other private account fields are NEVER returned on public endpoints.
 
+`level` is one of: `"beginner"` · `"intermediate"` · `"advanced"`
+`accessLevel` is one of: `"free"` · `"premium"`
+`subject` is one of: `"mathematics"` · `"programming"`
 ---
 
 ### GET /courses/:id

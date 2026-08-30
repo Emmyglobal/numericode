@@ -1,5 +1,5 @@
 import { api } from '@/lib/axios'
-import type { Course } from '@/features/courses/types'
+import type { Course, CourseSummary } from '@/features/courses/types'
 import type { ApiResponse } from '@/types/api.types'
 import type { TrainerStudent, TrainerLiveSession as TrainerSession } from '@/features/trainer/types'
 export interface AvailableTeacher { id: string; name: string; bio: string; avatarUrl?: string; subjects: Array<'mathematics' | 'programming'>; courses?: { id: string; title: string; subject: string; level: string }[] }
@@ -10,8 +10,39 @@ export interface PublicTrainerProfile {
 export interface AvailableCourseForEnrollment { id: string; title: string; subject: string; level: string; instructorName: string; instructorId: string }
 export interface TrainerSessionInput { courseId: string; title: string; date: string; duration: number; meetUrl?: string; sessionType?: 'group' | 'individual'; studentIds?: string[]; extensionMinutes?: number }
 export interface EnrollResult { enrolledCourses: string[]; count: number }
+export interface CourseListParams {
+  subject?: string
+  q?: string
+  accessLevel?: 'free' | 'premium'
+  level?: string
+  instructorId?: string
+  sort?: 'newest' | 'title' | 'level'
+  limit?: number
+  offset?: number
+}
+
+export interface CourseListResponse {
+  data: CourseSummary[]
+  pagination: {
+    total: number
+    limit: number
+    offset: number
+    count: number
+    hasMore: boolean
+  }
+}
+
 export const coursesService = {
-  getAll:   async (params?: { subject?: string; q?: string; accessLevel?: 'free' | 'premium' }) => { const { data } = await api.get<ApiResponse<Course[]>>('/courses', { params }); return data.data },
+  getAll: async (params?: { subject?: string; q?: string; accessLevel?: 'free' | 'premium' }) => {
+    const { data } = await api.get<ApiResponse<Course[]>>('/courses', { params })
+    return data.data
+  },
+  /** Catalogue endpoint with pagination/sorting/level/trainer filtering.
+      Returns the full paginated envelope. */
+    getAllPaginated: async (params?: CourseListParams): Promise<CourseListResponse> => {
+    const { data } = await api.get('/courses', { params })
+    return data as unknown as CourseListResponse
+  },
   getById:  async (id: string) => { const { data } = await api.get<ApiResponse<Course>>(`/courses/${id}`); return data.data },
   requestCourse: async (id: string) => { const { data } = await api.post<ApiResponse<{ id: string; status: string }>>(`/courses/${id}/request`); return data.data },
   getAvailableTeachers: async () => { const { data } = await api.get<ApiResponse<AvailableTeacher[]>>('/courses/teachers'); return data.data },

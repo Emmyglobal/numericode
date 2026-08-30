@@ -27,3 +27,18 @@ export interface Course {
   prerequisiteQuiz?: PrerequisiteQuiz
 }
 export interface EnrolledCourse extends Course { progress: number; enrolledAt: string }
+
+/**
+ * Slim course payload returned by the public catalogue endpoint (Phase 1 API).
+ * Contains course-card fields only — no modules, lessons or resources (those
+ * belong to the Course Details experience). Instructor data is privacy-safe
+ * public trainer information (no email, no credentials list).
+ */
+export interface CourseSummary {
+  id: string; title: string; description: string; subject: Subject; level: Level
+  lessonCount: number; outcomes: string[]
+  thumbnailUrl?: string | null
+  accessLevel?: CourseAccessLevel; priceCents?: number | null; currency?: string | null
+  premiumEnabled?: boolean; createdAt: string
+  instructor: { id: string; name: string; bio: string; avatarUrl?: string | null }
+}

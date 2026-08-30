@@ -6,7 +6,7 @@ import { AppRouter } from '@/app/Router'
 
 // Mock all services so lazy-loaded pages render without real API calls
 vi.mock('@/services/courses.service', () => ({
-  coursesService: { getAll: vi.fn().mockResolvedValue([]), getById: vi.fn().mockResolvedValue(null) },
+  coursesService: { getAll: vi.fn().mockResolvedValue([]), getAllPaginated: vi.fn().mockResolvedValue({ data: [], pagination: { total: 0, limit: 12, offset: 0, count: 0, hasMore: false } }), getAvailableTeachers: vi.fn().mockResolvedValue([]), getById: vi.fn().mockResolvedValue(null) },
 }))
 vi.mock('@/services/dashboard.service', () => ({
   dashboardService: {
@@ -63,7 +63,7 @@ describe('Route Guards', () => {
 
   it('allows unauthenticated user on /courses', async () => {
     render(<AppRouter />, { routerProps: { initialEntries:['/courses'] } })
-    await waitFor(() => expect(screen.getByRole('heading', { name:/all courses/i })).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('heading', { name:/explore courses/i })).toBeInTheDocument())
   })
 
   it('allows unauthenticated user on /faq', async () => {
