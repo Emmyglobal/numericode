@@ -178,9 +178,36 @@ describe('RegisterPage', () => {
     await user.type(screen.getByLabelText(/email address/i), 'new@example.com')
     await user.type(screen.getByPlaceholderText('Min. 8 characters'), 'password123')
     await user.type(screen.getByPlaceholderText('Repeat password'), 'password123')
+    await user.click(screen.getByLabelText(/i agree to numerycode/i))
     await user.click(screen.getByRole('button', { name: /create .*account/i }))
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/trainer'))
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
+  })
+
+  it('blocks submission while the policy acceptance checkbox is unchecked', async () => {
+    const user = userEvent.setup()
+    render(<RegisterPage />)
+    await user.click(screen.getByText('Trainer'))
+    await user.type(screen.getByLabelText(/full name/i), 'No Consent User')
+    await user.type(screen.getByLabelText(/email address/i), 'noconsent@example.com')
+    await user.type(screen.getByPlaceholderText('Min. 8 characters'), 'password123')
+    await user.type(screen.getByPlaceholderText('Repeat password'), 'password123')
+    // Deliberately do NOT check the policy acceptance box.
+    await user.click(screen.getByRole('button', { name: /create .*account/i }))
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(/must accept the terms of service/i)
+    })
+    expect(mockNavigate).not.toHaveBeenCalled()
+    expect(useAuthStore.getState().isAuthenticated).toBe(false)
+  })
+
+  it('shows the terms, privacy and acceptable use links in the consent label', () => {
+    render(<RegisterPage />)
+    expect(screen.getByRole('link', { name: /terms of service/i })).toHaveAttribute('href', '/terms')
+    expect(screen.getByRole('link', { name: /privacy policy/i })).toHaveAttribute('href', '/privacy')
+    expect(screen.getByRole('link', { name: /acceptable use policy/i })).toHaveAttribute('href', '/acceptable-use')
+    // The acceptance checkbox must be unchecked by default.
+    expect(screen.getByLabelText(/i agree to numerycode/i)).not.toBeChecked()
   })
 
   it('shows error alert when email is already taken', async () => {
@@ -191,6 +218,7 @@ describe('RegisterPage', () => {
     await user.type(screen.getByLabelText(/email address/i), 'taken@example.com')
     await user.type(screen.getByPlaceholderText('Min. 8 characters'), 'password123')
     await user.type(screen.getByPlaceholderText('Repeat password'), 'password123')
+    await user.click(screen.getByLabelText(/i agree to numerycode/i))
     await user.click(screen.getByRole('button', { name: /create .*account/i }))
     await waitFor(() =>
       expect(screen.getByRole('alert')).toHaveTextContent(/already exists/i)

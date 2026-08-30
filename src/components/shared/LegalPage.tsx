@@ -6,6 +6,8 @@ interface LegalPageLayoutProps {
   title: string          // e.g. "Terms of Service" — drives <title> via usePageTitle
   version: string        // policy version, e.g. "1.0"
   updated: string        // human-readable "Last updated" label
+  description?: string   // meta description for SEO
+  canonical?: string     // canonical path for SEO, e.g. "/terms"
   children: ReactNode
 }
 
@@ -15,8 +17,8 @@ interface LegalPageLayoutProps {
  * version marker so visitors (and the consent audit trail) know which document
  * they read. Content is product/legal draft text — NOT legal advice.
  */
-export function LegalPageLayout({ title, version, updated, children }: LegalPageLayoutProps) {
-  usePageTitle(title)
+export function LegalPageLayout({ title, version, updated, description, canonical, children }: LegalPageLayoutProps) {
+  usePageTitle(title, { description, canonical })
 
   return (
     <div className="py-12 sm:py-16">

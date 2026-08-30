@@ -24,6 +24,6 @@ describe('usePageTitle hook', () => {
     const { unmount } = renderHook(() => usePageTitle('Profile'))
     expect(document.title).toBe('Profile | NumeryCode')
     unmount()
-    expect(document.title).toBe('NumeryCode — Mathematics & Code, Taught Live')
+    expect(document.title).toBe('NumeryCode | Learn Mathematics & Programming Online')
   })
 })

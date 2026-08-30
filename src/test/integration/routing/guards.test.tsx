@@ -58,7 +58,7 @@ describe('Route Guards', () => {
 
   it('allows unauthenticated user on landing page', async () => {
     render(<AppRouter />, { routerProps: { initialEntries:['/'] } })
-    await waitFor(() => expect(screen.getByText(/mathematics & code/i)).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText(/mathematics, code & skills/i)).toBeInTheDocument())
   })
 
   it('allows unauthenticated user on /courses', async () => {

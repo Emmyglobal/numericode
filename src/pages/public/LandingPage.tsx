@@ -28,10 +28,11 @@ const steps = [
   { icon: ClipboardCheck, title: 'Practice & Grow', desc: 'Complete lessons, exercises, quizzes, assignments and projects.' },
 ]
 // Three audiences the platform serves — learners, parents/guardians and registered trainers.
+// Copy matches the "Learn. Teach. Grow." positioning and the real learner/trainer journeys.
 const audiences = [
-  { icon: BookOpen, title: 'Learners & Students', desc: 'Structured online courses in Mathematics, Programming and practical technology skills — with live classes, self-paced lessons, quizzes, assignments and progress tracking.', cta: 'Start learning free', to: '/register' },
-  { icon: Users, title: 'Parents & Guardians', desc: 'Give your child a safe, structured path into mathematics and coding — with clear progress reports and live sessions you can follow along.', cta: 'Explore courses', to: '/courses' },
-  { icon: GraduationCap, title: 'Registered Trainers', desc: 'Teach on your own schedule — build courses, host live classes, set quizzes and assignments, grade learners and manage your students, all in one platform.', cta: 'Apply to teach', to: '/register' },
+  { icon: BookOpen, title: 'Students & Learners', desc: 'Build Mathematics, Programming and technology skills through structured online learning — with lessons, live sessions, quizzes, assignments and progress tracking where available.', cta: 'Explore Courses', to: '/courses' },
+  { icon: Users, title: 'Parents & Guardians', desc: 'Discover learning opportunities that help learners develop academic and digital skills, with guardian involvement built into student registration.', cta: 'Explore courses', to: '/courses' },
+  { icon: GraduationCap, title: 'Registered Trainers', desc: 'Join NumeryCode as a registered trainer and connect your teaching with learners through the platform’s course, session and learner-management tools.', cta: 'Become a Registered Trainer', to: '/register' },
 ]
 // Why Learn — truthful platform characteristics only, no invented claims.
 const whyLearn = [
@@ -63,7 +64,11 @@ const trainerSteps = [
 ]
 
 export default function LandingPage() {
-  usePageTitle('Home')
+  usePageTitle('Home', {
+    brand: true,
+    description: 'NumeryCode is an online learning platform for Mathematics, Programming and technology, connecting learners with structured courses and registered trainers.',
+    canonical: '/',
+  })
   const navigate = useNavigate()
   const { data: courses, isLoading } = useQuery({
     queryKey: ['available-courses'],
@@ -118,12 +123,12 @@ export default function LandingPage() {
           <motion.div variants={stagger()} initial="hidden" animate="show" className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div variants={fadeUp} className="space-y-6">
               <span className="inline-flex items-center gap-2 text-xs font-bold tracking-widest text-brand-sky uppercase bg-white/10 backdrop-blur px-3 py-1.5 rounded-full">
-                <Sparkles className="w-3.5 h-3.5" /> Learn · Code · Grow
+                <Sparkles className="w-3.5 h-3.5" /> Learn · Teach · Grow
               </span>
               <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
-                Mathematics & Code, <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-sky to-teal-300">Taught Live</span>
+                Mathematics, Code &amp; Skills <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-sky to-teal-300">for Your Next Level</span>
               </h1>
-              <p className="text-lg text-blue-200 max-w-lg">Learn Mathematics, Programming and practical technology skills through structured online courses, live classes and flexible self-paced study — guided by registered trainers.</p>
+              <p className="text-lg text-blue-200 max-w-lg">Learn Mathematics, Programming and practical technology skills through structured online courses, live learning and flexible self-paced study — guided by registered trainers.</p>
               <div className="flex flex-wrap gap-3 pt-2">
                 <Link to="/register"><Button size="lg" className="shadow-lg shadow-brand-blue/30 hover:scale-105 transition-transform"><Sparkles className="w-5 h-5 mr-1" /> Get Started Free <ArrowRight className="w-5 h-5" /></Button></Link>
                 <Link to="/courses"><Button variant="secondary" size="lg" className="border-white text-white hover:bg-white/10">Browse Courses</Button></Link>
@@ -132,6 +137,11 @@ export default function LandingPage() {
                 <span className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-teal-300" /> Trusted by parents</span>
                 <span className="flex items-center gap-1.5"><Clock3 className="w-4 h-4 text-teal-300" /> Live & self-paced</span>
                 <span className="flex items-center gap-1.5"><GraduationCap className="w-4 h-4 text-teal-300" /> Registered trainers</span>
+              </div>
+              <div className="pt-2">
+                <Link to="/register" className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-sky hover:text-white underline underline-offset-4 transition-colors">
+                  Are you a trainer? Become a Registered Trainer <ArrowRight className="w-4 h-4" />
+                </Link>
               </div>
             </motion.div>
 
@@ -207,10 +217,10 @@ export default function LandingPage() {
 
       <SectionWrapper className="py-0"><AdSlot slot={import.meta.env.VITE_ADSENSE_HOME_SLOT as string | undefined} /></SectionWrapper>
 
-      {/* TRACKS */}
+      {/* WHAT YOU CAN LEARN — the two real subject tracks on the platform */}
       <SectionWrapper>
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">What You Will Learn</h2>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">What You Can Learn</h2>
           <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto">Two powerful learning tracks, built for beginners to advanced students.</p>
         </div>
         <div className="grid md:grid-cols-2 gap-6">
@@ -244,11 +254,11 @@ export default function LandingPage() {
         </div>
       </SectionWrapper>
 
-      {/* WHO IT'S FOR — learners, parents/guardians, registered trainers */}
+      {/* LEARN. TEACH. GROW. — the two primary pathways plus parents/guardians */}
       <SectionWrapper>
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Built for Learners, Parents &amp; Trainers</h2>
-          <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">Whether you're learning, supporting a child's education, or teaching — NumeryCode gives you the structure and tools to grow.</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Learn. Teach. Grow.</h2>
+          <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">A platform for learners, parents and registered trainers — discover structured education, or share your expertise with learners who are ready to grow.</p>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           {audiences.map(a => (
@@ -417,7 +427,7 @@ export default function LandingPage() {
           <p className="text-blue-100 mb-8">Whether you're here to learn or to teach, NumeryCode gives you a platform to grow through online education.</p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link to="/register"><Button size="lg" className="bg-white text-brand-blue hover:bg-blue-50 font-bold shadow-lg hover:scale-105 transition-transform">Start Learning <ArrowRight className="w-5 h-5" /></Button></Link>
-            <Link to="/register"><Button size="lg" variant="secondary" className="border-white bg-white/10 text-white hover:bg-white/20 font-bold shadow-lg hover:scale-105 transition-transform">Become a Trainer <GraduationCap className="w-5 h-5" /></Button></Link>
+            <Link to="/register"><Button size="lg" variant="secondary" className="border-white bg-white/10 text-white hover:bg-white/20 font-bold shadow-lg hover:scale-105 transition-transform">Become a Registered Trainer <GraduationCap className="w-5 h-5" /></Button></Link>
           </div>
         </div>
       </div>

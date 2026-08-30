@@ -5,7 +5,7 @@ export function Footer() {
   return (
     <footer className="bg-brand-navy text-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-7 gap-8 mb-8">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2 font-bold text-xl mb-3"><GraduationCap className="w-6 h-6 text-brand-sky" />NumeryCode</div>
             <p className="text-sm text-blue-200">An online learning platform for Mathematics, Programming and technology — connecting learners with structured courses and registered trainers.</p>
@@ -18,9 +18,10 @@ export function Footer() {
           </div>
           {[
             { heading: 'Learn',    links: [{ to: '/courses', label: 'Courses' }, { to: '/courses?subject=mathematics', label: 'Mathematics' }, { to: '/courses?subject=programming', label: 'Programming' }] },
-            { heading: 'Teach',    links: [{ to: '/register', label: 'Become a Trainer' }, { to: '/about', label: 'Trainer Information' }] },
+            { heading: 'Teach',    links: [{ to: '/register', label: 'Become a Registered Trainer' }] },
             { heading: 'Company',  links: [{ to: '/about', label: 'About' }, { to: '/faq', label: 'FAQ' }, { to: '/contact', label: 'Contact' }] },
             { heading: 'Account',  links: [{ to: '/login', label: 'Log in' }, { to: '/register', label: 'Get Started' }] },
+            { heading: 'Legal',    links: [{ to: '/terms', label: 'Terms of Service' }, { to: '/privacy', label: 'Privacy Policy' }, { to: '/acceptable-use', label: 'Acceptable Use Policy' }] },
           ].map(col => (
             <div key={col.heading}>
               <h4 className="font-semibold mb-3 text-sm text-blue-200">{col.heading}</h4>
