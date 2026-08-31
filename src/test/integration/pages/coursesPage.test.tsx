@@ -168,6 +168,49 @@ describe('CoursesPage', () => {
     await waitFor(() => expect(lastCallParams()?.instructorId).toBe('i1'))
   })
 
+  it('restores the trainer filter from the URL and labels the active chip', async () => {
+    render(<CoursesPage />, { routerProps: { initialEntries: ['/courses?instructorId=i1'] } })
+    await waitFor(() => expect(screen.getByText('Registered Trainer: Emmanuel Nwafor')).toBeInTheDocument())
+    expect(lastCallParams()?.instructorId).toBe('i1')
+    expect(screen.getByRole('button', { name: /remove Registered Trainer: Emmanuel Nwafor filter/i })).toBeInTheDocument()
+  })
+
+  it('clears the trainer filter from the active chip and refetches unfiltered', async () => {
+    const user = userEvent.setup()
+    render(<CoursesPage />, { routerProps: { initialEntries: ['/courses?instructorId=i1'] } })
+    await waitFor(() => expect(screen.getByText('Registered Trainer: Emmanuel Nwafor')).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /remove Registered Trainer: Emmanuel Nwafor filter/i }))
+    await waitFor(() => expect(lastCallParams()?.instructorId).toBeUndefined())
+    expect(screen.queryByText('Registered Trainer: Emmanuel Nwafor')).not.toBeInTheDocument()
+  })
+
+  it('combines the trainer filter with subject, level and access server-side', async () => {
+    const user = userEvent.setup()
+    render(<CoursesPage />, { routerProps: { initialEntries: ['/courses?instructorId=i1'] } })
+    await waitFor(() => expect(screen.getByText('Course 1')).toBeInTheDocument())
+    await user.selectOptions(screen.getByLabelText('Level'), 'beginner')
+    await user.selectOptions(screen.getByLabelText('Access'), 'premium')
+    await user.click(screen.getByRole('button', { name: /show mathematics courses/i }))
+    await waitFor(() => {
+      const params = lastCallParams()
+      expect(params?.instructorId).toBe('i1')
+      expect(params?.subject).toBe('mathematics')
+      expect(params?.level).toBe('beginner')
+      expect(params?.accessLevel).toBe('premium')
+    })
+  })
+
+  it('resets to page 1 when the trainer filter changes', async () => {
+    const user = userEvent.setup()
+    render(<CoursesPage />)
+    await waitFor(() => expect(screen.getByText('Course 1')).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /next page/i }))
+    await waitFor(() => expect(lastCallParams()?.offset).toBe(12))
+    await user.selectOptions(screen.getByLabelText(/filter by registered trainer/i), 'i1')
+    await waitFor(() => expect(lastCallParams()?.instructorId).toBe('i1'))
+    expect(lastCallParams()?.offset).toBe(0)
+  })
+
   it('sorts through the API', async () => {
     const user = userEvent.setup()
     render(<CoursesPage />)

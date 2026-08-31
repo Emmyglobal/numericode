@@ -5,7 +5,9 @@ import type { TrainerStudent, TrainerLiveSession as TrainerSession } from '@/fea
 export interface AvailableTeacher { id: string; name: string; bio: string; avatarUrl?: string; subjects: Array<'mathematics' | 'programming'>; courses?: { id: string; title: string; subject: string; level: string }[] }
 export interface PublicTrainerProfile {
   id: string; name: string; bio: string; avatarUrl?: string; subjects: string[]
-  courses: { id: string; title: string; subject: string; level: string; lessonCount: number }[]
+  /** Published courses in the same slim CourseSummary shape used by the catalogue,
+      so shared CourseCard components can render them directly. */
+  courses: CourseSummary[]
 }
 export interface AvailableCourseForEnrollment { id: string; title: string; subject: string; level: string; instructorName: string; instructorId: string }
 export interface TrainerSessionInput { courseId: string; title: string; date: string; duration: number; meetUrl?: string; sessionType?: 'group' | 'individual'; studentIds?: string[]; extensionMinutes?: number }

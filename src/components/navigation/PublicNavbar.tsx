@@ -7,10 +7,11 @@ import { useTheme } from '@/hooks/useTheme'
 import { cn } from '@/utils/classNames'
 
 const navLinks = [
-  { to: '/courses', label: 'Courses' },
-  { to: '/about',   label: 'About'   },
-  { to: '/faq',     label: 'FAQ'     },
-  { to: '/contact', label: 'Contact' },
+  { to: '/courses',   label: 'Courses'   },
+  { to: '/trainers',  label: 'Trainers'  },
+  { to: '/about',     label: 'About'     },
+  { to: '/faq',       label: 'FAQ'       },
+  { to: '/contact',   label: 'Contact'   },
 ]
 
 export function PublicNavbar() {

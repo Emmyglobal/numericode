@@ -15,7 +15,8 @@ const AboutPage         = lazy(() => import('@/pages/public/AboutPage'))
 const CoursesPage       = lazy(() => import('@/pages/public/CoursesPage'))
 const CourseDetailPage  = lazy(() => import('@/pages/public/CourseDetailPage'))
 const TrainerProfilePage = lazy(() => import('@/pages/public/TrainerProfilePage'))
-const ContactPage       = lazy(() => import('@/pages/public/ContactPage'))
+const TrainersPage       = lazy(() => import('@/pages/public/TrainersPage'))
+const ContactPage        = lazy(() => import('@/pages/public/ContactPage'))
 const FaqPage           = lazy(() => import('@/pages/public/FaqPage'))
 // Legal pages
 const TermsPage         = lazy(() => import('@/pages/public/TermsPage'))
@@ -125,6 +126,7 @@ export function AppRouter() {
           <Route path="/about"       element={<AboutPage />} />
           <Route path="/courses"     element={<CoursesPage />} />
           <Route path="/courses/:id" element={<CourseDetailPage />} />
+          <Route path="/trainers"    element={<TrainersPage />} />
           <Route path="/trainers/:id" element={<TrainerProfilePage />} />
           <Route path="/contact"     element={<ContactPage />} />
           <Route path="/faq"         element={<FaqPage />} />

@@ -212,6 +212,68 @@ Get a single course by ID.
 
 ---
 
+### GET /courses/teachers
+
+List Registered Trainers with at least one course. Public endpoint — authentication is NOT required.
+
+Only **active** trainers (`users.status = 'active'`) are returned. Each trainer includes their subjects and only their **published** courses.
+
+**Success `200`:** `{ "success": true, "data": [ { "id", "name", "bio", "avatarUrl", "subjects": [], "courses": [ { "id", "title", "subject", "level" } ] } ] }`
+
+---
+
+### GET /courses/teachers/:id
+
+Get a single public Registered Trainer profile. Public endpoint — authentication is NOT required.
+
+Only **active** trainers with `role = 'trainer'` are reachable; inactive/suspended trainers return `404`. Only **published** courses are returned (draft and archived courses are never exposed). The `courses` array mirrors the slim `CourseSummary` catalogue shape so the frontend can render shared course cards.
+
+**Success `200`:**
+```json
+{
+  "success": true,
+  "data": {
+    "id":       "i1",
+    "name":     "Emmanuel Nwafor",
+    "bio":      "Experienced maths trainer.",
+    "avatarUrl": "https://example.com/avatar.png",
+    "subjects": ["mathematics"],
+    "courses": [
+      {
+        "id":            "c1",
+        "title":         "Foundation Mathematics",
+        "description":   "Build a rock-solid foundation",
+        "subject":       "mathematics",
+        "level":         "beginner",
+        "lessonCount":   24,
+        "outcomes":      ["Master arithmetic operations"],
+        "thumbnailUrl":  "https://example.com/thumb.jpg",
+        "accessLevel":   "free",
+        "priceCents":    0,
+        "currency":      "NGN",
+        "premiumEnabled": true,
+        "createdAt":     "2024-01-10",
+        "instructor": {
+          "id":   "i1",
+          "name": "Emmanuel Nwafor",
+          "bio":  "Experienced maths trainer.",
+          "avatarUrl": "https://example.com/avatar.png"
+        }
+      }
+    ]
+  }
+}
+```
+
+**Error `404`:**
+```json
+{ "success": false, "message": "Registered trainer not found" }
+```
+
+> **Privacy note:** trainer profiles expose only `id`, `name`, `bio`, `avatarUrl`, `subjects` and published-course summaries. Email, phone, password, account status history and other private account fields are NEVER returned on public endpoints.
+
+---
+
 ## Domain 3 — Student Dashboard
 
 All `/dashboard/*` and `/assignments`, `/announcements`, `/resources`, `/live-classes`, `/profile` endpoints require `role: "student"`.

@@ -160,7 +160,7 @@ export default function CoursesPage() {
     const trainerName = trainers?.find(t => t.id === instructorId)?.name
     chips.push({
       key: 'instructorId',
-      label: trainerName ?? 'Registered Trainer',
+      label: trainerName ? `Registered Trainer: ${trainerName}` : 'Registered Trainer',
       onRemove: () => updateParams({ instructorId: null }),
     })
   }
