@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { forumsService, type ForumThread, type ForumCategory } from '@/services/forums.service'
+import { forumsService, type ForumThread } from '@/services/forums.service'
 import { api } from '@/lib/axios'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/Button'

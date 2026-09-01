@@ -1,5 +1,5 @@
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { CheckCircle, BookOpen, Video, Users, Award } from 'lucide-react'
+import { BookOpen, Video, Users, Award } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'

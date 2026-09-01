@@ -5,6 +5,12 @@ import { render } from '@/test/utils'
 import { useAuthStore } from '@/store/authStore'
 import AdminCoursesPage from '@/pages/admin/AdminCoursesPage'
 
+// The page renders a responsive table (desktop) plus a mobile card list, so
+// course titles legitimately appear twice in the DOM. Scope title assertions
+// to the visible table to keep selectors unambiguous.
+const courseTable = () => screen.getByRole('table', { name: 'Course list' })
+const courseTitleInTable = (title: string) => within(courseTable()).getByText(title)
+
 const postMock  = vi.fn().mockResolvedValue({ data: { success: true, data: { id: 'new-course', status: 'draft' } } })
 const patchMock = vi.fn().mockResolvedValue({ data: { success: true, data: {} } })
 
@@ -38,8 +44,8 @@ describe('AdminCoursesPage', () => {
   it('renders page heading and existing courses', async () => {
     render(<AdminCoursesPage />)
     await waitFor(() => {
-      expect(screen.getByText('Foundation Mathematics')).toBeInTheDocument()
-      expect(screen.getByText('Python Programming')).toBeInTheDocument()
+      expect(courseTitleInTable('Foundation Mathematics')).toBeInTheDocument()
+      expect(courseTitleInTable('Python Programming')).toBeInTheDocument()
     })
   })
 
@@ -78,16 +84,16 @@ describe('AdminCoursesPage', () => {
 
   it('a draft course shows a Publish button', async () => {
     render(<AdminCoursesPage />)
-    await waitFor(() => screen.getByText('Python Programming'))
-    const rows = screen.getAllByRole('row')
+    await waitFor(() => courseTitleInTable('Python Programming'))
+    const rows = within(courseTable()).getAllByRole('row')
     const draftRow = rows.find(r => r.textContent?.includes('Python Programming'))
     expect(draftRow ? within(draftRow).getByRole('button', { name: /^publish$/i }) : null).toBeInTheDocument()
   })
 
   it('a published course does not show a Publish button', async () => {
     render(<AdminCoursesPage />)
-    await waitFor(() => screen.getByText('Foundation Mathematics'))
-    const rows = screen.getAllByRole('row')
+    await waitFor(() => courseTitleInTable('Foundation Mathematics'))
+    const rows = within(courseTable()).getAllByRole('row')
     const publishedRow = rows.find(r => r.textContent?.includes('Foundation Mathematics'))
     const buttonsInRow = publishedRow ? within(publishedRow).queryAllByRole('button') : []
     expect(buttonsInRow.some(b => /^publish$/i.test(b.textContent?.trim() ?? ''))).toBe(false)
@@ -96,8 +102,8 @@ describe('AdminCoursesPage', () => {
   it('clicking Publish on a draft course calls the status endpoint', async () => {
     const user = userEvent.setup()
     render(<AdminCoursesPage />)
-    await waitFor(() => screen.getByText('Python Programming'))
-    const rows = screen.getAllByRole('row')
+    await waitFor(() => courseTitleInTable('Python Programming'))
+    const rows = within(courseTable()).getAllByRole('row')
     const draftRow = rows.find(r => r.textContent?.includes('Python Programming'))!
     await user.click(within(draftRow).getByRole('button', { name: /^publish$/i }))
     await waitFor(() => {
@@ -108,8 +114,8 @@ describe('AdminCoursesPage', () => {
   it('clicking Archive calls the status endpoint with archived', async () => {
     const user = userEvent.setup()
     render(<AdminCoursesPage />)
-    await waitFor(() => screen.getByText('Foundation Mathematics'))
-    const archiveButtons = screen.getAllByRole('button', { name: /archive/i })
+    await waitFor(() => courseTitleInTable('Foundation Mathematics'))
+    const archiveButtons = within(courseTable()).getAllByRole('button', { name: /archive/i })
     await user.click(archiveButtons[0])
     await waitFor(() => expect(patchMock).toHaveBeenCalled())
   })

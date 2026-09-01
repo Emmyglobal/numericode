@@ -3,7 +3,7 @@ import { analyticsService } from '@/services/analytics.service'
 import { dashboardService } from '@/services/dashboard.service'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { BarChart3, Clock, MousePointer, TrendingUp, GraduationCap, MessageSquare, BookOpen, Trophy } from 'lucide-react'
+import { BarChart3, Clock, MousePointer, GraduationCap, MessageSquare, BookOpen, Trophy } from 'lucide-react'
 import type { EnrolledCourse } from '@/features/courses/types'
 
 export default function AnalyticsPage() {
@@ -47,8 +47,6 @@ export default function AnalyticsPage() {
   const totalInteractionsAllCourses = analyticsData?.reduce((sum, a) => sum + a.totalInteractions, 0) || 0
   const totalLessonsAccessed = analyticsData?.reduce((sum, a) => sum + a.lessonAnalytics.length, 0) || 0
   const totalQuizzesCompleted = analyticsData?.reduce((sum, a) => sum + a.quizMetrics.completedQuizzes, 0) || 0
-  const totalForumPosts = analyticsData?.reduce((sum, a) => sum + a.forumMetrics.postsMade, 0) || 0
-  const totalForumThreads = analyticsData?.reduce((sum, a) => sum + a.forumMetrics.threadsCreated, 0) || 0
 
   return (
     <div>

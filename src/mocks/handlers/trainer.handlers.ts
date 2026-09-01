@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { trainerStats, trainerCourses, trainerStudents, trainerSessions, trainerAssignments, trainerNotes } from '@/mocks/data/trainer.data'
+import type { TrainerLiveSession } from '@/features/trainer/types'
 
 let courses = [...trainerCourses]
 let sessions = [...trainerSessions]
@@ -38,12 +39,14 @@ export const trainerHandlers = [
 
   // ── Sessions CRUD ──────────────────────────────────────────────────────────
   http.post('/api/trainer/sessions', async ({ request }) => {
-    const body = await request.json() as { courseId: string; title: string; date: string; duration?: number; meetUrl?: string }
+    const body = await request.json() as { courseId: string; title: string; date: string; duration?: number; meetUrl?: string; sessionType?: 'group' | 'individual'; studentIds?: string[]; extensionMinutes?: number; startTime?: string; endTime?: string }
     const course = courses.find(c => c.id === body.courseId)
-    const newSession = {
+    const newSession: TrainerLiveSession = {
       id: `lc-${Date.now()}`, courseId: body.courseId, courseTitle: course?.title ?? 'Unknown',
       title: body.title, date: body.date, duration: body.duration ?? 60,
-      meetUrl: body.meetUrl ?? '', status: 'scheduled' as const, attendees: 0,
+      meetUrl: body.meetUrl ?? '', status: 'scheduled', attendees: 0,
+      sessionType: body.sessionType ?? 'group', studentIds: body.studentIds ?? [], extensionMinutes: body.extensionMinutes ?? 0,
+      startTime: body.startTime ?? body.date ?? null, endTime: body.endTime ?? null,
     }
     sessions = [newSession, ...sessions]
     return HttpResponse.json({ success: true, data: newSession }, { status: 201 })

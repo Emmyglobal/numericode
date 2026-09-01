@@ -20,7 +20,7 @@ const schema = z.object({
   email:           z.string().email('Enter a valid email'),
   password:        z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string(),
-  role:            z.enum(['student', 'trainer'], { required_error: 'Please select an account type' }),
+  role:            z.enum(['student', 'trainer'], { error: 'Please select an account type' }),
   guardianName:    z.string().optional(),
   guardianPhone:   z.string().optional(),
   preferredTeacherId:z.string().optional(),

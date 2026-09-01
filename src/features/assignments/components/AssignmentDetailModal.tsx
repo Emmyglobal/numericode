@@ -1,19 +1,9 @@
-import { useState } from 'react'
-import { X, Download, Paperclip, FileText, Check } from 'lucide-react'
+import { X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { Alert } from '@/components/ui/Alert'
 import { formatDate } from '@/utils/formatDate'
-import { assignmentsService } from '@/services/assignments.service'
-import { downloadAssignment, downloadSubmission } from '@/features/assignments/lib/download'
-import type { Assignment, AssignmentAnswer } from '@/features/assignments/types'
-
-const typeBadge: Record<string, { label: string; variant: 'pending' | 'submitted' }> = {
-  mcq: { label: 'MCQ', variant: 'pending' },
-  theory: { label: 'Theory', variant: 'submitted' },
-  subjective: { label: 'Subjective', variant: 'submitted' },
-  file: { label: 'File', variant: 'pending' },
-  related: { label: 'Related', variant: 'pending' },
-}
+import type { Assignment } from '@/features/assignments/types'
 
 export function AssignmentDetailModal({
   assignment, submitting, submitError, onClose, onSubmit,
@@ -22,7 +12,7 @@ export function AssignmentDetailModal({
   submitting?: boolean
   submitError?: string
   onClose: () => void
-  onSubmit: (answers: AssignmentAnswer[]) => void
+  onSubmit: () => void
 }) {
   return (
     <div className='fixed inset-0 z-50 flex items-center justify-center p-4'>
@@ -45,9 +35,12 @@ export function AssignmentDetailModal({
             <X className='h-4 w-4' aria-hidden='true' />
           </button>
         </div>
-        <div className='p-4 space-y-4'>{assignment.questions?.length > 0 ? <p>Questions will appear here</p> : <p>No questions</p>}</div>
+        <div className='p-4 space-y-4'>
+          {submitError && <Alert type='error' message={submitError} />}
+          {assignment.questions?.length > 0 ? <p>Questions will appear here</p> : <p>No questions</p>}
+        </div>
         <div className='sticky bottom-0 -mx-6 -mb-6 mt-6 px-6 py-4 bg-white dark:bg-surface-dark border-t border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-between gap-3'>
-          <div className='text-xs text-gray-500'>{submissionAnswers?.length ?? 0} / {assignment.questions?.length ?? 0} questions answered</div>
+          <div className='text-xs text-gray-500'>{assignment.questions?.length ?? 0} questions</div>
           <div className='flex items-center gap-2'>
             <Button variant='ghost' onClick={onClose}>Cancel</Button>
             <Button onClick={onSubmit} loading={submitting}>Submit</Button>

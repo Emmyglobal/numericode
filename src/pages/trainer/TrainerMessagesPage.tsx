@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { messagingService } from '@/services/messaging.service'
 import { api } from '@/lib/axios'
@@ -86,10 +86,15 @@ export default function TrainerMessagesPage() {
     queryKey: ['conversation', selectedUserId],
     queryFn: () => messagingService.getConversation(selectedUserId!),
     enabled: Boolean(selectedUserId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages'] })
-    },
   })
+
+  // When a conversation loads, the server marks inbound messages as read, so
+  // refresh the messages list to keep unread counts accurate.
+  useEffect(() => {
+    if (conversationMessages.length > 0) {
+      queryClient.invalidateQueries({ queryKey: ['messages'] })
+    }
+  }, [conversationMessages, queryClient])
 
   const sendMutation = useMutation({
     mutationFn: (data: { receiverId: string; subject?: string; body: string }) =>

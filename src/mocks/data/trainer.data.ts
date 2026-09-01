@@ -25,10 +25,10 @@ export const trainerStudents: TrainerStudent[] = [
 ]
 
 export const trainerSessions: TrainerLiveSession[] = [
-  { id: 'lc1', courseId: 'c1', courseTitle: 'Foundation Mathematics', title: 'Algebra Q&A Session', date: '2026-07-05T10:00:00', duration: 60, meetUrl: 'https://meet.google.com/abc-defg-hij', status: 'scheduled', attendees: 0 },
-  { id: 'lc2', courseId: 'c1', courseTitle: 'Foundation Mathematics', title: 'Fractions Deep Dive', date: '2026-07-12T10:00:00', duration: 60, meetUrl: 'https://meet.google.com/abc-defg-hij', status: 'scheduled', attendees: 0 },
-  { id: 'lc3', courseId: 'c2', courseTitle: 'JavaScript for Beginners', title: 'JavaScript Q&A', date: '2026-07-04T14:00:00', duration: 60, meetUrl: 'https://zoom.us/j/123456', status: 'scheduled', attendees: 0 },
-  { id: 'lc4', courseId: 'c3', courseTitle: 'Algebra & Equations', title: 'Quadratics Workshop', date: '2026-06-20T11:00:00', duration: 90, meetUrl: '#', status: 'completed', attendees: 11 },
+  { id: 'lc1', courseId: 'c1', courseTitle: 'Foundation Mathematics', title: 'Algebra Q&A Session', date: '2026-07-05T10:00:00', duration: 60, meetUrl: 'https://meet.google.com/abc-defg-hij', status: 'scheduled', attendees: 0, sessionType: 'group', studentIds: ['u2', 'u3'], extensionMinutes: 0, startTime: '2026-07-05T10:00:00', endTime: '2026-07-05T11:00:00' },
+  { id: 'lc2', courseId: 'c1', courseTitle: 'Foundation Mathematics', title: 'Fractions Deep Dive', date: '2026-07-12T10:00:00', duration: 60, meetUrl: 'https://meet.google.com/abc-defg-hij', status: 'scheduled', attendees: 0, sessionType: 'group', studentIds: ['u2'], extensionMinutes: 0, startTime: '2026-07-12T10:00:00', endTime: '2026-07-12T11:00:00' },
+  { id: 'lc3', courseId: 'c2', courseTitle: 'JavaScript for Beginners', title: 'JavaScript Q&A', date: '2026-07-04T14:00:00', duration: 60, meetUrl: 'https://zoom.us/j/123456', status: 'scheduled', attendees: 0, sessionType: 'group', studentIds: ['u4', 'u5'], extensionMinutes: 0, startTime: '2026-07-04T14:00:00', endTime: '2026-07-04T15:00:00' },
+  { id: 'lc4', courseId: 'c3', courseTitle: 'Algebra & Equations', title: 'Quadratics Workshop', date: '2026-06-20T11:00:00', duration: 90, meetUrl: '#', status: 'completed', attendees: 11, sessionType: 'group', studentIds: ['u3', 'u5'], extensionMinutes: 0, startTime: '2026-06-20T11:00:00', endTime: '2026-06-20T12:30:00' },
 ]
 
 export const trainerAssignments: TrainerAssignment[] = [

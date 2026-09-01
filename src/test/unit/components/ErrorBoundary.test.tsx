@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 
@@ -11,7 +11,7 @@ function Bomber({ boom = false }: { boom?: boolean }) {
 }
 
 // Silence the intentional console.error from componentDidCatch.
-const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
 
 describe('ErrorBoundary', () => {
   it('renders children when there is no error', () => {

@@ -145,7 +145,7 @@ export function AssignmentFormModal({ courses, isSubmitting, error, onClose, onS
           </button>
         </div>
 
-        {error && <Alert variant="error">{error}</Alert>}
+        {error && <Alert type="error" message={error} />}
 
         {/* AI integration */}
         <div className="mb-5 rounded-xl border border-brand-blue/30 bg-brand-light/40 dark:bg-blue-900/20 p-4">

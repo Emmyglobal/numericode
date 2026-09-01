@@ -66,7 +66,6 @@ export default function TrainerCoursesPage() {
   const handleEdit = (values: CourseFormValues) => {
     if (editingCourse) editMutation.mutate({ id: editingCourse.id, values })
   }
-  const openEdit = (course: TrainerCourse) => { setEditingCourse(course); setModalOpen(true) }
   const openCreate = () => { setEditingCourse(null); setModalOpen(true) }
   const openCourse = (course: TrainerCourse) => navigate(`/trainer/courses/${course.id}/builder`)
 

@@ -21,7 +21,6 @@ interface LessonQuizProps {
  */
 export function LessonQuiz({ quiz }: LessonQuizProps) {
   const [phase, setPhase] = useState<Phase>('info')
-  const [attemptId, setAttemptId] = useState<string | null>(null)
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [answers, setAnswers] = useState<Record<string, unknown>>({})
   const [result, setResult] = useState<QuizResult | null>(null)
@@ -43,7 +42,6 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
     setError('')
     try {
       const data = await quizzesService.startAttempt(quiz.id)
-      setAttemptId(data.attemptId)
       setQuestions(data.questions)
       setAnswers({})
       setSubmitted(false)
@@ -117,7 +115,7 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
               <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{quiz.title}</h3>
               <p className="text-sm text-gray-500 mb-3">{quiz.description}</p>
               <div className="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-400">
-                {quiz.timeLimit > 0 && (
+                                                                {(quiz.timeLimit ?? 0) > 0 && (
                   <span className="inline-flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" aria-hidden="true" /> {quiz.timeLimit} min
                   </span>
@@ -151,7 +149,7 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
         <div className="p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 dark:text-white">{quiz.title}</h3>
-            <Button variant="ghost" size="sm" onClick={() => { setAttemptId(null); setPhase('info') }}>
+            <Button variant="ghost" size="sm" onClick={() => { setPhase('info') }}>
               Quit
             </Button>
           </div>

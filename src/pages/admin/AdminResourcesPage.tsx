@@ -11,7 +11,6 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useDebounce } from '@/hooks/useDebounce'
-import { cn } from '@/utils/classNames'
 
 interface ResourceItem {
   id: string

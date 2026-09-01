@@ -1,7 +1,7 @@
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useQuery } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
-import { ExternalLink, Video, Clock, AlarmClock } from 'lucide-react'
+import { ExternalLink, Video, AlarmClock } from 'lucide-react'
 import { dashboardService } from '@/services/dashboard.service'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'

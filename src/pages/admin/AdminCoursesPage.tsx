@@ -137,10 +137,10 @@ export default function AdminCoursesPage() {
           </table>
         </div>}
 
-      {/* Mobile cards */}
-      {!isLoading && courses?.length > 0 && (
+            {/* Mobile cards */}
+      {!isLoading && (courses?.length ?? 0) > 0 && (
         <div className="md:hidden space-y-3">
-          {courses?.map(c => (
+          {courses!.map(c => (
             <div key={c.id} className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark p-4">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1 min-w-0">

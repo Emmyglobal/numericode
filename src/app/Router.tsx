@@ -87,11 +87,6 @@ function AuthGuard() {
   return <Navigate to="/dashboard" replace />
 }
 
-function ProtectedGuard() {
-  const { isAuthenticated } = useAuthStore()
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />
-}
-
 function RoleGuard({ role }: { role: 'student' | 'trainer' | 'admin' }) {
   const { isAuthenticated, user } = useAuthStore()
   if (!isAuthenticated) return <Navigate to="/login" replace />

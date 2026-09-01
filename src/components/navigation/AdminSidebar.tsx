@@ -2,7 +2,6 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, Users, BookOpen, Bell, BarChart3, Settings, GraduationCap, LogOut, X, Shield } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUIStore } from '@/store/uiStore'
-import { Avatar } from '@/components/ui/Avatar'
 import { cn } from '@/utils/classNames'
 
 const navItems = [

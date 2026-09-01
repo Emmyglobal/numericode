@@ -25,12 +25,12 @@ export const adminUsers: AdminUser[] = [
 ]
 
 export const adminCourses: AdminCourse[] = [
-  { id: 'c1', title: 'Foundation Mathematics',  subject: 'mathematics',  level: 'beginner',     instructor: 'Emmanuel Nwafor', status: 'published', enrolledCount: 18, createdAt: '2024-01-10' },
-  { id: 'c2', title: 'JavaScript for Beginners',subject: 'programming',  level: 'beginner',     instructor: 'Emmanuel Nwafor', status: 'published', enrolledCount: 21, createdAt: '2024-02-01' },
-  { id: 'c3', title: 'Algebra & Equations',     subject: 'mathematics',  level: 'intermediate', instructor: 'Emmanuel Nwafor', status: 'published', enrolledCount: 12, createdAt: '2024-03-05' },
-  { id: 'c4', title: 'Python Programming',       subject: 'programming',  level: 'intermediate', instructor: 'Trainer One',     status: 'draft',     enrolledCount: 0,  createdAt: '2024-04-01' },
-  { id: 'c5', title: 'Calculus Fundamentals',   subject: 'mathematics',  level: 'advanced',     instructor: 'Emmanuel Nwafor', status: 'published', enrolledCount: 8,  createdAt: '2024-04-15' },
-  { id: 'c6', title: 'React & TypeScript',       subject: 'programming',  level: 'advanced',     instructor: 'Trainer Two',     status: 'published', enrolledCount: 14, createdAt: '2024-05-01' },
+  { id: 'c1', title: 'Foundation Mathematics',  subject: 'mathematics',  level: 'beginner',     instructor: 'Emmanuel Nwafor', status: 'published', enrolledCount: 18, accessLevel: 'free', priceCents: 0,     currency: 'NGN', premiumEnabled: false, createdAt: '2024-01-10' },
+  { id: 'c2', title: 'JavaScript for Beginners',subject: 'programming',  level: 'beginner',     instructor: 'Emmanuel Nwafor', status: 'published', enrolledCount: 21, accessLevel: 'free', priceCents: 0,     currency: 'NGN', premiumEnabled: false, createdAt: '2024-02-01' },
+  { id: 'c3', title: 'Algebra & Equations',     subject: 'mathematics',  level: 'intermediate', instructor: 'Emmanuel Nwafor', status: 'published', enrolledCount: 12, accessLevel: 'free', priceCents: 0,     currency: 'NGN', premiumEnabled: false, createdAt: '2024-03-05' },
+  { id: 'c4', title: 'Python Programming',       subject: 'programming',  level: 'intermediate', instructor: 'Trainer One',     status: 'draft',     enrolledCount: 0,  accessLevel: 'free', priceCents: 0,     currency: 'NGN', premiumEnabled: false, createdAt: '2024-04-01' },
+  { id: 'c5', title: 'Calculus Fundamentals',   subject: 'mathematics',  level: 'advanced',     instructor: 'Emmanuel Nwafor', status: 'published', enrolledCount: 8,  accessLevel: 'free', priceCents: 0,     currency: 'NGN', premiumEnabled: false, createdAt: '2024-04-15' },
+  { id: 'c6', title: 'React & TypeScript',       subject: 'programming',  level: 'advanced',     instructor: 'Trainer Two',     status: 'published', enrolledCount: 14, accessLevel: 'free', priceCents: 0,     currency: 'NGN', premiumEnabled: false, createdAt: '2024-05-01' },
 ]
 
 export const adminAnnouncements: AdminAnnouncement[] = [

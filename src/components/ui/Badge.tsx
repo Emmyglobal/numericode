@@ -2,7 +2,7 @@ import { memo } from 'react'
 import { cn } from '@/utils/classNames'
 import type { ReactNode } from 'react'
 
-type BadgeVariant = 'mathematics'|'programming'|'beginner'|'intermediate'|'advanced'|'pending'|'submitted'|'overdue'|'live'|'upcoming'|'past'|'default'
+type BadgeVariant = 'mathematics'|'programming'|'beginner'|'intermediate'|'advanced'|'pending'|'submitted'|'under_review'|'graded'|'passed'|'failed'|'overdue'|'live'|'upcoming'|'past'|'default'
 
 const styles: Record<BadgeVariant, string> = {
   mathematics:  'bg-teal-light text-teal dark:bg-teal-900/30 dark:text-teal-300',
@@ -12,6 +12,10 @@ const styles: Record<BadgeVariant, string> = {
   advanced:     'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
   pending:      'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
   submitted:    'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+  under_review: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+  graded:       'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+  passed:       'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+  failed:       'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300',
   overdue:      'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300',
   live:         'bg-red-600 text-white animate-pulse',
   upcoming:     'bg-brand-light text-brand-blue dark:bg-blue-900/30 dark:text-blue-300',

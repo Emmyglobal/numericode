@@ -34,7 +34,7 @@ const trainerUser = { id:'u7', name:'Trainer',  email:'trainer@numerycode.com', 
 const adminUser   = { id:'u1', name:'Emmanuel', email:'admin@numerycode.com',   role:'admin'   as const, createdAt:'2024-01-01' }
 
 const resetAuth = () => useAuthStore.setState({ user:null, token:null, isAuthenticated:false })
-const loginAs   = (u: typeof studentUser) => useAuthStore.setState({ user:u, token:'mock-token', isAuthenticated:true })
+const loginAs   = (u: { id: string; name: string; email: string; role: 'student' | 'trainer' | 'admin'; createdAt: string }) => useAuthStore.setState({ user:u, token:'mock-token', isAuthenticated:true })
 
 describe('Route Guards', () => {
   beforeEach(resetAuth)

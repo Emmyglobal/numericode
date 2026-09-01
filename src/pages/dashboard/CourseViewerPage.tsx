@@ -15,7 +15,7 @@ import { CollaborativeCodeEditor } from '@/components/shared/CollaborativeCodeEd
 import { LessonQuiz } from '@/components/shared/LessonQuiz'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { PrerequisiteQuizGate } from '@/components/shared/PrerequisiteQuizGate'
-import { quizzesService, type Quiz } from '@/services/quizzes.service'
+import { quizzesService } from '@/services/quizzes.service'
 import type { EnrolledCourse, Lesson } from '@/features/courses/types'
 
 function downloadCourseNotes(course: EnrolledCourse) {

@@ -132,7 +132,7 @@ export default function AssignmentsPage() {
           submitting={submitMutation.isPending}
           submitError={submitError}
           onClose={() => setSelected(null)}
-          onSubmit={answers => submitMutation.mutate({ id: selected.id, answers })}
+          onSubmit={() => submitMutation.mutate({ id: selected.id, answers: [] })}
         />
       )}
     </div>

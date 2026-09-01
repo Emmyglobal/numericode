@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { adminStats, adminUsers, adminCourses, adminAnnouncements } from '@/mocks/data/admin.data'
+import type { AdminCourse } from '@/features/admin/types'
 
 // Mutable copies so create/update actions persist within a dev session
 let users = [...adminUsers]
@@ -26,12 +27,13 @@ export const adminHandlers = [
   http.get('/api/admin/courses', () => HttpResponse.json({ success: true, data: courses })),
 
   http.post('/api/admin/courses', async ({ request }) => {
-    const body = await request.json() as { title: string; subject: string; level: string; instructorId: string }
+    const body = await request.json() as { title: string; subject: 'mathematics' | 'programming'; level: 'beginner' | 'intermediate' | 'advanced'; instructorId: string; accessLevel?: 'free' | 'premium'; priceCents?: number; currency?: string; premiumEnabled?: boolean }
     const instructor = users.find(u => u.id === body.instructorId)
-    const newCourse = {
+    const newCourse: AdminCourse = {
       id: `c-${Date.now()}`, title: body.title, subject: body.subject, level: body.level,
-      instructor: instructor?.name ?? 'Unknown', status: 'draft' as const,
+      instructor: instructor?.name ?? 'Unknown', status: 'draft',
       enrolledCount: 0, createdAt: new Date().toISOString(),
+      accessLevel: body.accessLevel ?? 'free', priceCents: body.priceCents ?? 0, currency: body.currency ?? 'NGN', premiumEnabled: body.premiumEnabled ?? false,
     }
     courses = [newCourse, ...courses]
     return HttpResponse.json({ success: true, data: newCourse }, { status: 201 })

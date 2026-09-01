@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Alert } from '@/components/ui/Alert'
-import { Send, Mail, Users, Plus, X, MessageSquare } from 'lucide-react'
+import { Send, Mail, Plus, X, MessageSquare } from 'lucide-react'
 import type { EnrolledCourse } from '@/features/courses/types'
 
 interface Conversation {

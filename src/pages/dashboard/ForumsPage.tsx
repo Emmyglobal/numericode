@@ -84,11 +84,6 @@ export default function ForumsPage() {
     [courseForums]
   )
 
-  const totalThreads = useMemo(
-    () => allCategories.reduce((sum, c) => sum + c.threads.length, 0),
-    [allCategories]
-  )
-
   const isLoading = coursesLoading || (Boolean(enrolledCourses) && forumsLoading)
 
   const createThreadMutation = useMutation({

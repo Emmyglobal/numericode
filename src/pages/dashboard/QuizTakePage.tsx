@@ -224,7 +224,7 @@ export default function QuizTakePage() {
             </h3>
             <p className="text-gray-700 dark:text-gray-300 mb-4">{question.questionText}</p>
 
-            {question.questionType === 'multiple_choice' && question.options && (
+            {question.questionType === 'multiple_choice' && Array.isArray(question.options) && (
               <div className="space-y-2">
                 {(question.options as Array<{ id: string; text: string }>).map((option: { id: string; text: string }) => (
                   <label

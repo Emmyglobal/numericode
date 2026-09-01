@@ -3,10 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { gradingService } from '@/services/grading.service'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Plus, Edit, Trash2, Trophy, FileText } from 'lucide-react'
-import { Link } from 'react-router-dom'
 
 export default function TrainerGradingPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)

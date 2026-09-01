@@ -1,7 +1,7 @@
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, BookOpen, Video, Users, Star, ChevronRight, Code2, Calculator, Play, Sparkles, ShieldCheck, Clock3, GraduationCap, Map, Globe2, CheckCircle2, MonitorSmartphone, Layers, ClipboardCheck, FolderTree, MessageSquare, UserCog } from 'lucide-react'
+import { ArrowRight, BookOpen, Video, Users, Star, ChevronRight, Code2, Calculator, Play, Sparkles, ShieldCheck, Clock3, GraduationCap, Map, Globe2, CheckCircle2, MonitorSmartphone, Layers, ClipboardCheck} from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { SectionWrapper } from '@/components/shared/SectionWrapper'

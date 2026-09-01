@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useAuth } from '@/hooks/useAuth'
-import { formatDate } from '@/utils/formatDate'
 import type { AdminStats, AdminUser, AdminCourse } from '@/features/admin/types'
 
 export default function AdminOverviewPage() {

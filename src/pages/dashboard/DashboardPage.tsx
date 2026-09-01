@@ -1,7 +1,7 @@
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { BookOpen, CheckCircle, Video, ClipboardList, ExternalLink, ChevronRight, FolderOpen, Bell } from 'lucide-react'
+import { BookOpen, CheckCircle, Video, ClipboardList, ExternalLink, ChevronRight, FolderOpen} from 'lucide-react'
 import { dashboardService } from '@/services/dashboard.service'
 import { StatCard } from '@/components/shared/StatCard'
 import { ProgressBar } from '@/components/ui/ProgressBar'

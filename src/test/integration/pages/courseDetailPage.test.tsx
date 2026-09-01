@@ -64,8 +64,8 @@ const trainerProfile: PublicTrainerProfile = {
   avatarUrl: undefined,
   subjects: ['mathematics'],
   courses: [
-    { id: 'c1', title: 'Foundation Mathematics', subject: 'mathematics', level: 'beginner', lessonCount: 24 },
-    { id: 'c2', title: 'Advanced Algebra', subject: 'mathematics', level: 'advanced', lessonCount: 18 },
+    { id: 'c1', title: 'Foundation Mathematics', description: 'Basic maths.', subject: 'mathematics', level: 'beginner', lessonCount: 24, outcomes: ['Understand basics'], createdAt: '2024-01-01', instructor: { id: 'i1', name: 'Emmanuel Nwafor', bio: '' } },
+    { id: 'c2', title: 'Advanced Algebra', description: 'Advanced algebra.', subject: 'mathematics', level: 'advanced', lessonCount: 18, outcomes: ['Solve advanced problems'], createdAt: '2024-02-01', instructor: { id: 'i1', name: 'Emmanuel Nwafor', bio: '' } },
   ],
 }
 
