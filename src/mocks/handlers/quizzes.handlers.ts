@@ -38,6 +38,7 @@ interface MockAttempt {
   answers: Record<string, unknown>
   completed: boolean
   score: number
+  passed: boolean
 }
 
 // Seed one demo lesson quiz (lesson l1) so the feature is visible immediately in dev.
@@ -56,7 +57,7 @@ const seedQuestion = (i: number): MockQuiz['questions'][number] => ({
   position: i + 1,
 })
 
-let quizzes: MockQuiz[] = [
+export let quizzes: MockQuiz[] = [
   {
     id: 'demo-l1-quiz', courseId: 'c1', lessonId: 'l1',
     title: 'Intro to HTML Quiz', description: 'Test your understanding of the lesson.',
@@ -284,7 +285,7 @@ quizzes = [buildExamQuiz('bece-practice-exam', 'c1',
 
 
 
-let attempts: MockAttempt[] = []
+export let attempts: MockAttempt[] = []
 
 function ok<T>(data: T): ApiResponse<T> {
   return { success: true, data, message: undefined }
@@ -403,7 +404,7 @@ export const quizzesHandlers = [
     const score = totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0
     const passed = score >= quiz.passingScore
 
-    attempts.push({ id: `att-${Date.now()}`, quizId: quiz.id, answers, completed: true, score })
+    attempts.push({ id: `att-${Date.now()}`, quizId: quiz.id, answers, completed: true, score, passed })
     return HttpResponse.json(ok({
       attemptId: `att-${Date.now()}`,
       score,

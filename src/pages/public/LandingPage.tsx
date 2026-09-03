@@ -1,4 +1,6 @@
+import { useMemo } from 'react'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useJsonLd } from '@/utils/structuredData'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, BookOpen, Video, Users, Star, ChevronRight, Code2, Calculator, Play, Sparkles, ShieldCheck, Clock3, GraduationCap, Map, Globe2, CheckCircle2, MonitorSmartphone, Layers, ClipboardCheck} from 'lucide-react'
@@ -69,6 +71,21 @@ export default function LandingPage() {
     description: 'NumeryCode is an online learning platform for Mathematics, Programming and technology, connecting learners with structured courses and registered trainers.',
     canonical: '/',
   })
+
+  // ── WebSite structured data — SearchAction targets the public course search ──
+  const websiteJsonLd = useMemo(() => ({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'NumeryCode',
+    url: 'https://numerycode.com/',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: { '@type': 'EntryPoint', urlTemplate: 'https://numerycode.com/courses?q={search_term_string}' },
+      'query-input': 'required name=search_term_string',
+    },
+  }), [])
+  useJsonLd('jsonld-website', websiteJsonLd)
+
   const navigate = useNavigate()
   const { data: courses, isLoading } = useQuery({
     queryKey: ['available-courses'],

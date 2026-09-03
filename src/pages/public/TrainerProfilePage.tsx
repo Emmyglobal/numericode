@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useMemo } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { AlertCircle, ArrowRight, BookOpen, GraduationCap } from 'lucide-react'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useJsonLd } from '@/utils/structuredData'
 import { SectionWrapper } from '@/components/shared/SectionWrapper'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -79,8 +80,8 @@ export default function TrainerProfilePage() {
   })
 
   // ── Truthful Person JSON-LD — no fabricated credentials, employer, ratings ──
-  useEffect(() => {
-    if (!trainer || !id) return
+  const trainerJsonLd = useMemo(() => {
+    if (!trainer || !id) return null
     const data: Record<string, unknown> = {
       '@context': 'https://schema.org',
       '@type': 'Person',
@@ -92,14 +93,24 @@ export default function TrainerProfilePage() {
     if (trainer.subjects.length) {
       data.knowsAbout = trainer.subjects.map(s => SUBJECT_LABELS[s] ?? s)
     }
-    const script = document.createElement('script')
-    script.id = 'jsonld-trainer-profile'
-    script.type = 'application/ld+json'
-    // Escape "<" so trainer-provided text can never break out of the script tag
-    script.textContent = JSON.stringify(data).replace(/</g, '\\u003c')
-    document.head.appendChild(script)
-    return () => { document.getElementById('jsonld-trainer-profile')?.remove() }
+    return data
   }, [trainer, id])
+  useJsonLd('jsonld-trainer-profile', trainerJsonLd)
+
+  // ── BreadcrumbList: Home → Trainers → Trainer Name ──────────────────────────
+  const breadcrumbJsonLd = useMemo(() => {
+    if (!trainer || !id) return null
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+        { '@type': 'ListItem', position: 2, name: 'Trainers', item: `${SITE_URL}/trainers` },
+        { '@type': 'ListItem', position: 3, name: trainer.name, item: `${SITE_URL}/trainers/${id}` },
+      ],
+    }
+  }, [trainer, id])
+  useJsonLd('jsonld-trainer-breadcrumb', breadcrumbJsonLd)
 
   // ── Loading state ──────────────────────────────────────────────────────────
   if (isLoading) {

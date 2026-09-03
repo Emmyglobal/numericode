@@ -51,10 +51,27 @@ export default function AssignmentsPage() {
     mutationFn: ({ id, answers }: { id: string; answers: AssignmentAnswer[] }) => assignmentsService.submit(id, { answers }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['assignments'] })
+      queryClient.invalidateQueries({ queryKey: ['gradebook'] })
       setSelected(null)
+      setSubmitError('')
     },
     onError: (err: any) => setSubmitError(err?.message ?? 'Failed to submit. Please try again.'),
   })
+
+  // Load the full assignment detail (which always contains the questions)
+  // before opening the modal, so clicking an assignment reliably shows its work.
+  const openAssignment = async (a: Assignment) => {
+    setSubmitError('')
+    setSelected(a)
+    try {
+      if (assignmentsService.getById) {
+        const full = await assignmentsService.getById(a.id)
+        if (full) setSelected(full)
+      }
+    } catch {
+      // Fall back to the list item — it already carries questions in dev mode.
+    }
+  }
 
   return (
     <div>
@@ -111,7 +128,7 @@ export default function AssignmentsPage() {
                   <Button variant="secondary" size="sm" onClick={() => downloadAssignment(a)}>
                     <Download className="w-4 h-4" aria-hidden="true" /> Download
                   </Button>
-                  <Button size="sm" onClick={() => { setSubmitError(''); setSelected(a) }}>
+                  <Button size="sm" onClick={() => openAssignment(a)}>
                     {['submitted', 'passed', 'failed', 'graded'].includes(a.status) ? 'View' : 'Answer'}
                   </Button>
                 </div>
@@ -132,7 +149,7 @@ export default function AssignmentsPage() {
           submitting={submitMutation.isPending}
           submitError={submitError}
           onClose={() => setSelected(null)}
-          onSubmit={() => submitMutation.mutate({ id: selected.id, answers: [] })}
+          onSubmit={(answers) => submitMutation.mutate({ id: selected.id, answers })}
         />
       )}
     </div>

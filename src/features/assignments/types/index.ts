@@ -36,6 +36,8 @@ export interface Assignment {
   feedback: string | null
   returnedForCorrection: boolean
   questions: AssignmentQuestion[]
+  /** The student's saved answers (present once a submission exists). */
+  answers?: AssignmentAnswer[]
   aiGenerated?: boolean
   createdAt?: string
 }

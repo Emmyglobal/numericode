@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw'
 import { coursesData } from '@/mocks/data/courses.data'
 import { assignmentsData } from '@/mocks/data/assignments.data'
 import { announcementsData } from '@/mocks/data/announcements.data'
+import { quizzes, attempts } from './quizzes.handlers'
 
 const enrolledCourses = [
   { ...coursesData[0], progress: 42, enrolledAt: '2024-02-01' },
@@ -17,6 +18,69 @@ let mockCertificates = [
     issuedAt: '2026-07-01', certificateCode: 'NUM-2026-0001',
   },
 ]
+
+// Build the student grade book from the live in-memory quiz attempts and
+// assignment submissions, so freshly-taken quizzes and submitted/graded
+// assignments always show up with their real scores.
+function buildGradeBook() {
+  return enrolledCourses.map(course => {
+    const courseQuizzes = quizzes.filter(q => q.courseId === course.id)
+    const courseAssignments = assignmentsData.filter(a => a.courseId === course.id)
+
+    const quizEntries = courseQuizzes.map(q => {
+      const done = attempts.filter(a => a.quizId === q.id && a.completed)
+      const best = done.length > 0 ? Math.max(...done.map(a => a.score)) : null
+      return {
+        quizId: q.id,
+        title: q.title,
+        score: best,
+        passed: done.some(a => a.score >= q.passingScore),
+        attemptCount: done.length,
+        passingScore: q.passingScore,
+        written: done.length > 0,
+      }
+    })
+
+    const assignmentEntries = courseAssignments.map(a => {
+      const graded = a.score !== null && ['graded', 'passed', 'failed'].includes(a.status)
+      return {
+        assignmentId: a.id,
+        title: a.title,
+        status: a.status,
+        score: a.score,
+        totalMarks: a.totalMarks,
+        percentage: a.score === null || a.totalMarks === 0
+          ? null
+          : Math.round((a.score / a.totalMarks) * 100),
+        submitted: a.status !== 'pending',
+        written: graded,
+      }
+    })
+
+    const percentages: number[] = [
+      ...quizEntries.filter(e => e.score !== null).map(e => e.score as number),
+      ...assignmentEntries.filter(e => e.percentage !== null).map(e => e.percentage as number),
+    ]
+    const finalPercentage = percentages.length > 0
+      ? Math.round(percentages.reduce((sum, p) => sum + p, 0) / percentages.length)
+      : 0
+    const letterGrade = finalPercentage >= 70 ? 'A'
+      : finalPercentage >= 60 ? 'B'
+        : finalPercentage >= 50 ? 'C'
+          : finalPercentage >= 45 ? 'D'
+            : 'F'
+
+    return {
+      courseId: course.id,
+      courseTitle: course.title,
+      completed: finalPercentage >= 70,
+      finalPercentage,
+      letterGrade,
+      quizzes: quizEntries,
+      assignments: assignmentEntries,
+    }
+  })
+}
 
 export const dashboardHandlers = [
   http.get('/api/dashboard', () => HttpResponse.json({ success: true, data: {
@@ -51,40 +115,10 @@ export const dashboardHandlers = [
     return HttpResponse.json({ success: true, data: body })
   }),
 
-  // Grade book — drives certificate eligibility. Each entry now carries the
-// itemised scores shown on the student grade screen: EVERY quiz (best attempt)
-// and assignment in that course.
-  http.get('/api/gradebook', () => HttpResponse.json({ success: true, data: [
-    {
-      courseId: 'c1', courseTitle: 'Foundation Mathematics', completed: true, finalPercentage: 92, letterGrade: 'A',
-      quizzes: [
-        { quizId: 'q1', title: 'Numbers & Arithmetic Quiz', score: 85, passed: true, attemptCount: 2, passingScore: 60 },
-        { quizId: 'q2', title: 'Fractions & Decimals Quiz', score: null, passed: false, attemptCount: 0, passingScore: 70 },
-      ],
-      assignments: [
-        { assignmentId: 'a1', title: 'Fractions Worksheet', status: 'graded', score: 18, totalMarks: 20, percentage: 90, submitted: true, written: true },
-        { assignmentId: 'a3', title: 'Number Patterns Quiz', status: 'pending', score: null, totalMarks: 100, percentage: null, submitted: true, written: false },
-      ],
-    },
-    {
-      courseId: 'c2', courseTitle: 'JavaScript for Beginners', completed: false, finalPercentage: 45, letterGrade: 'D',
-      quizzes: [
-        { quizId: 'q3', title: 'Functions & Scope Quiz', score: 40, passed: false, attemptCount: 1, passingScore: 50 },
-      ],
-      assignments: [
-        { assignmentId: 'a2', title: 'Build a Calculator', status: 'overdue', score: null, totalMarks: 50, percentage: null, submitted: true, written: false },
-      ],
-    },
-    {
-      courseId: 'c-seq', courseTitle: 'Sequences & Series — SS2 Practice', completed: false, finalPercentage: 0, letterGrade: 'F',
-      quizzes: [
-        { quizId: 'seq-prereq-quiz', title: 'Sequences & Series — SS2 Practice Quiz', score: null, passed: false, attemptCount: 0, passingScore: 60 },
-      ],
-      assignments: [
-        { assignmentId: 'a-seq', title: 'Sequences & Series Assignment', status: 'pending', score: null, totalMarks: 100, percentage: null, submitted: false, written: false },
-      ],
-    },
-  ]})),
+  // Grade book — drives certificate eligibility. Every entry carries the
+  // itemised scores shown on the student grade screen: EVERY quiz (best attempt)
+  // and assignment in that course, computed from live attempts/submissions.
+  http.get('/api/gradebook', () => HttpResponse.json({ success: true, data: buildGradeBook() })),
 
   // Certificates
   http.get('/api/certificates/me', () => HttpResponse.json({ success: true, data: mockCertificates })),

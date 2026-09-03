@@ -17,10 +17,15 @@ vi.mock('framer-motion', () => ({
 }))
 
 afterEach(() => {
-  cleanup()
+  // Only run RTL cleanup in browser/jsdom environments; node-env tests
+  // (e.g. sitemap unit tests) do not have a DOM to clean up.
+  if (typeof window !== 'undefined') cleanup()
 })
 
 beforeAll(() => {
+  // Bail out early in Node environments — window-dependent mocks are not needed.
+  if (typeof window === 'undefined') return
+
   // Mock window.matchMedia
   Object.defineProperty(window, 'matchMedia', {
     writable: true,

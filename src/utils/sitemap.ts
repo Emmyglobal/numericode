@@ -1,7 +1,11 @@
 /**
- * Sitemap XML builder — pure, testable helpers used by the Vercel serverless
- * sitemap endpoint (`api/sitemap.ts`). Kept dependency-free so it runs in
- * both the Node serverless runtime and the Vitest test environment.
+ * Sitemap XML builder — pure, testable helpers shared by:
+ *   - `api/sitemap.ts` (Vercel serverless function, runtime generation)
+ *   - `scripts/generate-sitemap.ts` (build-time static generation)
+ *   - Vitest unit tests
+ *
+ * Kept dependency-free so it runs in the Node serverless runtime, the Node
+ * build script, and the Vitest test environment alike.
  *
  * Only publicly indexable canonical URLs belong in the sitemap:
  *   - static discovery routes (/, /courses, /trainers, /faq)
@@ -12,6 +16,7 @@
  * they are filtered out by the public backend endpoints before we even see them.
  */
 
+/** Production canonical domain — single source of truth. */
 export const SITEMAP_SITE_URL = 'https://numerycode.com'
 
 /**
@@ -21,6 +26,7 @@ export const SITEMAP_SITE_URL = 'https://numerycode.com'
  */
 export const SITEMAP_MAX_URLS = 50_000
 
+/** Canonical, indexable static routes only. */
 export const STATIC_SITEMAP_PATHS: string[] = ['/', '/courses', '/trainers', '/faq']
 
 /** Escape a string for safe inclusion in XML text/attribute content. */
@@ -37,6 +43,33 @@ export function escapeXml(value: string): string {
   })
 }
 
+/**
+ * A single dynamic URL entry. `updatedAt` is the only field that may become a
+ * `<lastmod>` tag — and it is only emitted for courses (Part 8 of Phase 8).
+ */
+export interface SitemapUrlEntry {
+  type: 'course' | 'trainer'
+  id: string
+  /**
+   * Trustworthy last-modified timestamp in ISO 8601 or yyyy-MM-dd form.
+   * Optional — if absent or untrustworthy the <lastmod> tag is omitted
+   * (per Part 8: "Do NOT fabricate lastmod timestamps").
+   */
+  updatedAt?: string
+}
+
+/** Options accepted by {@link buildSitemapXml}. */
+export interface BuildSitemapOptions {
+  /** Override the canonical domain (for staging / testing). */
+  siteUrl?: string
+  /**
+   * When true, cap the number of dynamic URLs at {@link SITEMAP_MAX_URLS}
+   * to guard against runaway generation. Enabled by the build script and
+   * the serverless function.
+   */
+  enforceUrlLimit?: boolean
+}
+
 export interface SitemapEntry {
   loc: string
   /** ISO date (yyyy-MM-dd). Optional. */
@@ -44,38 +77,75 @@ export interface SitemapEntry {
 }
 
 /**
+ * Coerce an ISO-8601 or yyyy-MM-dd timestamp into the sitemap <lastmod>
+ * format (yyyy-MM-dd). Returns `undefined` if the input is not a valid date.
+ */
+function toLastmod(isoOrDate: string | undefined): string | undefined {
+  if (!isoOrDate) return undefined
+  if (/^\d{4}-\d{2}-\d{2}$/.test(isoOrDate)) return isoOrDate
+  const parsed = new Date(isoOrDate)
+  if (Number.isNaN(parsed.getTime())) return undefined
+  const yyyy = parsed.getUTCFullYear()
+  const mm = String(parsed.getUTCMonth() + 1).padStart(2, '0')
+  const dd = String(parsed.getUTCDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+/**
  * Build a canonical, deduplicated sitemap document.
  *
- * `courseIds` / `trainerIds` must already be public-only (published courses,
- * active trainers). Only opaque ids are embedded — no private data is serialized.
+ * Only static discovery routes + the supplied dynamic entries are emitted.
+ * Callers (the API handler / build script) must ensure that `entries` contains
+ * only published courses and active trainers — filtering happens upstream
+ * against the public API endpoints that already enforce visibility rules.
  */
-export function buildSitemapXml(params: {
-  staticPaths?: string[]
-  courseIds?: string[]
-  trainerIds?: string[]
-  siteUrl?: string
-}): string {
-  const siteUrl = (params.siteUrl ?? SITEMAP_SITE_URL).replace(/\/+$/, '')
+export function buildSitemapXml(
+  entries: SitemapUrlEntry[],
+  options?: BuildSitemapOptions,
+): string {
+  const siteUrl = (options?.siteUrl ?? SITEMAP_SITE_URL).replace(/\/+$/, '')
   const seen = new Set<string>()
-  const entries: SitemapEntry[] = []
+  const sitemapEntries: SitemapEntry[] = []
 
-  const add = (path: string) => {
+  const add = (path: string, lastmod?: string) => {
     const loc = `${siteUrl}/${path.replace(/^\/+/, '')}`
-    if (!seen.has(loc)) {
-      seen.add(loc)
-      entries.push({ loc })
-    }
+    if (seen.has(loc)) return
+    seen.add(loc)
+    sitemapEntries.push(lastmod ? { loc, lastmod } : { loc })
   }
 
-  const staticPaths = params.staticPaths ?? STATIC_SITEMAP_PATHS
-  staticPaths.forEach(add)
+          // Static discovery routes — always present.
+  STATIC_SITEMAP_PATHS.forEach(path => add(path))
 
-  ;(params.courseIds ?? []).forEach(id => add(`/courses/${escapeXml(id)}`))
-  ;(params.trainerIds ?? []).forEach(id => add(`/trainers/${escapeXml(id)}`))
+  // Strip any query-string portion — opaque IDs must never carry filters
+  // or tracking parameters into the sitemap.
+  const sanitizeId = (id: string): string => escapeXml(id.split('?')[0].split('#')[0])
 
-  const urlTags = entries
+  // Dynamic entries. Cap at the protocol limit when requested.
+  const dynamic = options?.enforceUrlLimit
+    ? entries.slice(0, Math.min(entries.length, SITEMAP_MAX_URLS))
+    : entries
+
+  dynamic.forEach(entry => {
+    if (!entry.id || !entry.id.trim()) return
+    const safeId = sanitizeId(entry.id)
+    if (!safeId) return
+    if (entry.type === 'course') {
+      // lastmod only for courses, and only if a trustworthy timestamp exists.
+      add(`/courses/${safeId}`, toLastmod(entry.updatedAt))
+    } else {
+      // Trainers: no lastmod (Part 8 — no trustworthy timestamp in the API).
+      add(`/trainers/${safeId}`)
+    }
+  })
+
+  const urlTags = sitemapEntries
     .sort((a, b) => a.loc.localeCompare(b.loc))
-    .map(entry => `  <url>\n    <loc>${entry.loc}</loc>\n  </url>`)
+    .map(entry => {
+      const locTag = `    <loc>${entry.loc}</loc>`
+      const lastmodTag = entry.lastmod ? `\n    <lastmod>${entry.lastmod}</lastmod>` : ''
+      return `  <url>\n${locTag}${lastmodTag}\n  </url>`
+    })
     .join('\n')
 
   return (
@@ -88,5 +158,5 @@ export function buildSitemapXml(params: {
 
 /** Convenience — static-only sitemap used when the live API is unreachable. */
 export function buildStaticOnlySitemap(siteUrl?: string): string {
-  return buildSitemapXml({ staticPaths: STATIC_SITEMAP_PATHS, siteUrl })
+  return buildSitemapXml([], { siteUrl })
 }

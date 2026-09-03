@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { assignmentsData, mockAssignmentDraft, relatedMaterials, type MockRelatedMaterial } from '@/mocks/data/assignments.data'
 import { trainerAssignments } from '@/mocks/data/trainer.data'
-import type { Assignment, AssignmentQuestion, AssignmentSubmission } from '@/features/assignments/types'
+import type { Assignment, AssignmentAnswer, AssignmentQuestion, AssignmentSubmission } from '@/features/assignments/types'
 
 function findOrFail(arr: any[], id: string) {
   const item = arr.find((x: any) => x.id === id)
@@ -19,12 +19,40 @@ export const assignmentsHandlers = [
 
   // Student — submit answers (may include MCQ selection, written answer, or file upload)
   http.post('/api/assignments/:id/submission', async ({ params, request }) => {
-    const assignment = findOrFail(assignmentsData, String(params.id)) as (Assignment & { answers?: Array<{ questionId: string; selectedIndex?: number; answer?: string; fileName?: string; fileData?: string }> }) | null
+    const assignment = findOrFail(assignmentsData, String(params.id)) as (Assignment & { answers?: AssignmentAnswer[] }) | null
     if (!assignment) return new HttpResponse(null, { status: 404 })
-    const body = await request.json() as { answers?: Array<{ questionId: string; selectedIndex?: number; answer?: string; fileName?: string; fileData?: string }>; content?: string }
-    assignment.answers = body.answers ?? []
-    assignment.status = new Date(assignment.dueDate) < new Date() ? 'overdue' : 'submitted'
-    return HttpResponse.json({ success: true, data: { id: `${assignment.id}-submission`, status: assignment.status, submittedAt: new Date().toISOString() } })
+    const body = await request.json() as { answers?: AssignmentAnswer[]; content?: string; fileName?: string | null; fileData?: string | null }
+    const answers = body.answers ?? []
+    assignment.answers = answers
+
+    // Auto-grade every question whose answer is machine-checkable (MCQ), and
+    // record the submission so the score shows up in the assignment list and
+    // the grade book. Mixed/written/file submissions are kept for the trainer.
+    const onlyAutoGradable = assignment.questions.length > 0 && assignment.questions.every(q => q.type === 'mcq')
+    let earned = 0
+    for (const q of assignment.questions) {
+      if (q.type !== 'mcq' || typeof q.correctOptionIndex !== 'number') continue
+      const answer = answers.find(a => a.questionId === q.id)
+      if (answer?.selectedIndex === q.correctOptionIndex) earned += q.marks
+    }
+
+    const overdue = new Date(assignment.dueDate) < new Date()
+    assignment.status = onlyAutoGradable
+      ? (earned >= assignment.passingScore ? 'passed' : 'failed')
+      : (overdue ? 'overdue' : 'submitted')
+    assignment.score = onlyAutoGradable ? earned : null
+    assignment.feedback = onlyAutoGradable ? null : assignment.feedback ?? null
+
+    return HttpResponse.json({ success: true, data: {
+      id: `${assignment.id}-submission`,
+      status: assignment.status,
+      submittedAt: new Date().toISOString(),
+      score: assignment.score,
+      totalMarks: assignment.totalMarks,
+      percentage: assignment.score === null || assignment.totalMarks === 0
+        ? null
+        : Math.round((assignment.score / assignment.totalMarks) * 100),
+    } })
   }),
 
   // Trainer — create assignment (typed questions, optionally AI-generated)
@@ -87,9 +115,27 @@ export const assignmentsHandlers = [
   }),
 
   // Trainer — grade a submission
-  http.patch('/api/trainer/submissions/:id', async ({ request }) => {
+  http.patch('/api/trainer/submissions/:id', async ({ params, request }) => {
     const body = await request.json() as { score?: number; feedback?: string }
-    return HttpResponse.json({ success: true, data: { id: String(request.url), ...body, status: 'graded' } })
+    const submissionId = String(params.id)
+    const assignment = assignmentsData.find(a => `${a.id}-submission` === submissionId)
+
+    let status = 'graded'
+    if (assignment) {
+      if (typeof body.score === 'number') {
+        assignment.score = Math.max(0, Math.min(Number(body.score), assignment.totalMarks))
+        assignment.feedback = body.feedback ?? assignment.feedback ?? null
+        assignment.status = assignment.score >= assignment.passingScore ? 'passed' : 'failed'
+        status = assignment.status
+      } else if (body.feedback !== undefined) {
+        assignment.feedback = body.feedback
+      }
+    }
+
+    return HttpResponse.json({ success: true, data: {
+      id: submissionId, score: assignment?.score ?? body.score ?? null,
+      feedback: assignment?.feedback ?? body.feedback ?? '', status,
+    } })
   }),
 
   // Related materials used by "related" questions / downloads

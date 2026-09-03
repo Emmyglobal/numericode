@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
@@ -19,6 +19,7 @@ import { formatCoursePrice } from '@/utils/formatPrice'
 import { cn } from '@/utils/classNames'
 import { useAuth } from '@/hooks/useAuth'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useJsonLd } from '@/utils/structuredData'
 import type { Subject, Level, Module } from '@/features/courses/types'
 
 const SITE_URL = 'https://numerycode.com'
@@ -139,8 +140,8 @@ export default function CourseDetailPage() {
   })
 
   // ── Truthful Course JSON-LD (no ratings/reviews/enrolment fabrication) ─────
-  useEffect(() => {
-    if (!course || !id) return
+  const courseJsonLd = useMemo(() => {
+    if (!course || !id) return null
     const data: Record<string, unknown> = {
       '@context': 'https://schema.org',
       '@type': 'Course',
@@ -161,14 +162,24 @@ export default function CourseDetailPage() {
         category: 'Paid',
       }
     }
-    const script = document.createElement('script')
-    script.id = 'jsonld-course-detail'
-    script.type = 'application/ld+json'
-    // Escape "<" so course-provided text can never break out of the script tag
-    script.textContent = JSON.stringify(data).replace(/</g, '\\u003c')
-    document.head.appendChild(script)
-    return () => { document.getElementById('jsonld-course-detail')?.remove() }
+    return data
   }, [course, id])
+  useJsonLd('jsonld-course-detail', courseJsonLd)
+
+  // ── BreadcrumbList: Home → Courses → Course Name ────────────────────────────
+  const breadcrumbJsonLd = useMemo(() => {
+    if (!course || !id) return null
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+        { '@type': 'ListItem', position: 2, name: 'Courses', item: `${SITE_URL}/courses` },
+        { '@type': 'ListItem', position: 3, name: course.title, item: `${SITE_URL}/courses/${id}` },
+      ],
+    }
+  }, [course, id])
+  useJsonLd('jsonld-course-breadcrumb', breadcrumbJsonLd)
 
   // ── Enrolment state (existing APIs only; backend stays authoritative) ──────
   const myCoursesQuery = useQuery({

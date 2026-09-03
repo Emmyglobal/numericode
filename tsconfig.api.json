@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "moduleResolution": "bundler",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": ["api/**/*.ts", "src/utils/sitemap.ts", "scripts/**/*.ts"]
+}

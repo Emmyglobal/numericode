@@ -3,6 +3,7 @@ import { TrainerSidebar } from '@/components/navigation/TrainerSidebar'
 import { DashboardTopBar } from '@/components/navigation/DashboardTopBar'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { useScrollTop } from '@/hooks/useScrollTop'
+import { useNoIndex } from '@/utils/structuredData'
 import { useUIStore } from '@/store/uiStore'
 import { AiStudyAssistant } from '@/components/shared/AiStudyAssistant'
 
@@ -19,6 +20,7 @@ const titles: Record<string, string> = {
 export default function TrainerLayout() {
   const { pathname } = useLocation()
   useScrollTop()
+  useNoIndex()
   const { isSidebarOpen } = useUIStore()
   return (
     <div className="min-h-screen bg-bg dark:bg-bg-dark">

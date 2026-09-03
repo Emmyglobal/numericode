@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { AdminSidebar } from '@/components/navigation/AdminSidebar'
 import { DashboardTopBar } from '@/components/navigation/DashboardTopBar'
 import { useScrollTop } from '@/hooks/useScrollTop'
+import { useNoIndex } from '@/utils/structuredData'
 import { useUIStore } from '@/store/uiStore'
 import { AiStudyAssistant } from '@/components/shared/AiStudyAssistant'
 
@@ -14,6 +15,7 @@ const titles: Record<string, string> = {
 export default function AdminLayout() {
   const { pathname } = useLocation()
   useScrollTop()
+  useNoIndex()
   const { isSidebarOpen } = useUIStore()
   return (
     <div className="min-h-screen bg-bg dark:bg-bg-dark">

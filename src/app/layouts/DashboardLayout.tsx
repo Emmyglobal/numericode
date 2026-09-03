@@ -5,6 +5,7 @@ import { SkipLink } from '@/components/shared/SkipLink'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { useScrollTop } from '@/hooks/useScrollTop'
 import { useUIStore } from '@/store/uiStore'
+import { useNoIndex } from '@/utils/structuredData'
 import { AiStudyAssistant } from '@/components/shared/AiStudyAssistant'
 
 const titles: Record<string, string> = {
@@ -22,6 +23,7 @@ const titles: Record<string, string> = {
 export default function DashboardLayout() {
   const { pathname } = useLocation()
   useScrollTop()
+  useNoIndex()
   const { isSidebarOpen } = useUIStore()
   const title = pathname.startsWith('/dashboard/courses/') ? 'Course Viewer' : (titles[pathname] ?? 'Dashboard')
 

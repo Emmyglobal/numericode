@@ -1,10 +1,14 @@
-import { usePageTitle } from '@/hooks/usePageTitle'
+import { useMemo } from 'react'
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { SectionWrapper } from '@/components/shared/SectionWrapper'
 import { cn } from '@/utils/classNames'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useJsonLd } from '@/utils/structuredData'
+
+const SITE_URL = 'https://numerycode.com'
 
 const faqs = [
   { q: 'Is NumeryCode completely free?',              a: 'Yes! All courses, live classes, and learning resources on NumeryCode are completely free to access. Just register and start learning.' },
@@ -16,9 +20,37 @@ const faqs = [
   { q: 'How do I reset my password?',                a: "Click Forgot password on the login page, enter your email address, and we will send you a reset link." },
 ]
 
+const FAQ_DESCRIPTION = 'Find answers to common questions about NumeryCode — including courses, live classes, accounts, certificates and accessibility.'
+
 export default function FaqPage() {
-  usePageTitle('FAQ')
+  usePageTitle('Frequently Asked Questions', {
+    description: FAQ_DESCRIPTION,
+    canonical: '/faq',
+  })
   const [open, setOpen] = useState<number | null>(null)
+
+  // ── FAQPage structured data — derived from the visible Q&A above ─────────
+  const faqJsonLd = useMemo(() => ({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map(faq => ({
+      '@type': 'Question',
+      name: faq.q,
+      acceptedAnswer: { '@type': 'Answer', text: faq.a },
+    })),
+  }), [])
+  useJsonLd('jsonld-faq-page', faqJsonLd)
+
+  // ── BreadcrumbList: Home → FAQ ─────────────────────────────────────────
+  const breadcrumbJsonLd = useMemo(() => ({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: 'FAQ', item: `${SITE_URL}/faq` },
+    ],
+  }), [])
+  useJsonLd('jsonld-faq-breadcrumb', breadcrumbJsonLd)
 
   return (
     <div>

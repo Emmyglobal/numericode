@@ -1,8 +1,10 @@
 import { Outlet } from 'react-router-dom'
 import { GraduationCap } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useNoIndex } from '@/utils/structuredData'
 import { AiStudyAssistant } from '@/components/shared/AiStudyAssistant'
 export default function AuthLayout() {
+  useNoIndex()
   return (
     <div className="min-h-screen flex">
       <div className="hidden lg:flex flex-col justify-between w-[45%] bg-brand-navy px-12 py-10">
