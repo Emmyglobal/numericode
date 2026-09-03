@@ -45,11 +45,15 @@ async function fetchPublishedCourseEntries(): Promise<SitemapUrlEntry[]> {
     const res = await fetch(`${apiBase}/courses?limit=${COURSES_PAGE_SIZE}&offset=${offset}`)
     if (!res.ok) throw new Error(`courses catalogue responded ${res.status}`)
     const payload = await res.json() as {
-      data?: { id: string; updated_at?: string }[]
+      data?: { id: string; updatedAt?: string; updated_at?: string }[]
       pagination?: { total?: number; hasMore?: boolean }
     }
     for (const course of payload.data ?? []) {
-      if (course.id) entries.push({ type: 'course', id: course.id, updatedAt: course.updated_at })
+      if (course.id) {
+        // Phase 10 API exposes `updatedAt` (camelCase). `updated_at` is kept as a
+        // fallback so older backend deployments still feed truthful <lastmod>.
+        entries.push({ type: 'course', id: course.id, updatedAt: course.updatedAt ?? course.updated_at })
+      }
     }
     if (payload.pagination?.hasMore === false) break
     total = payload.pagination?.total ?? Math.min(offset + COURSES_PAGE_SIZE, SITEMAP_MAX_URLS)

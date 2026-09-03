@@ -164,9 +164,49 @@ describe('buildSitemapXml', () => {
     expect(xml).not.toContain('<lastmod>')
   })
 
+  it('omits lastmod for courses when updatedAt is malformed', () => {
+    const xml = buildSitemapXml([{ type: 'course', id: 'c1', updatedAt: 'not-a-date' }])
+    expect(xml).not.toContain('<lastmod>')
+  })
+
+  it('handles yyyy-MM-dd format for updatedAt', () => {
+    const xml = buildSitemapXml([{ type: 'course', id: 'c1', updatedAt: '2024-01-15' }])
+    const urlBlock = xml.match(/<url>\s*<loc>[^<]*<\/loc>\s*<lastmod>2024-01-15<\/lastmod>\s*<\/url>/)
+    expect(urlBlock).not.toBeNull()
+  })
+
+  it('handles timezone offsets in updatedAt', () => {
+    const xml = buildSitemapXml([{ type: 'course', id: 'c1', updatedAt: '2024-01-15T10:30:00+05:30' }])
+    // Should extract the date portion correctly (timezone is normalized to UTC)
+    expect(xml).toContain('<lastmod>')
+    expect(xml).toContain('2024-01')
+  })
+
   it('omits lastmod for trainers (no trustworthy timestamp)', () => {
     const xml = buildSitemapXml([{ type: 'trainer', id: 't1', updatedAt: '2024-01-15T10:30:00Z' }])
     expect(xml).not.toContain('<lastmod>')
+  })
+
+  it('handles mixed course and trainer entries correctly', () => {
+    const xml = buildSitemapXml([
+      { type: 'course', id: 'c1', updatedAt: '2024-01-15T10:30:00Z' },
+      { type: 'trainer', id: 't1' },
+      { type: 'course', id: 'c2' },
+    ])
+    // Course with updatedAt should have lastmod
+    expect(xml).toContain('<lastmod>2024-01-15</lastmod>')
+    // Trainer and course without updatedAt should not have lastmod
+    const lastmodCount = (xml.match(/<lastmod>/g) || []).length
+    expect(lastmodCount).toBe(1)
+  })
+
+  it('deduplicates course IDs correctly', () => {
+    const xml = buildSitemapXml([
+      { type: 'course', id: 'c1', updatedAt: '2024-01-15T10:30:00Z' },
+      { type: 'course', id: 'c1', updatedAt: '2024-02-20T10:30:00Z' },
+    ])
+    const courseLocs = extractLocs(xml).filter(l => l.includes('/courses/c1'))
+    expect(courseLocs).toHaveLength(1)
   })
 
   it('respects SITEMAP_MAX_URLS safety limit', () => {

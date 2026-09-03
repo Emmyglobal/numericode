@@ -22,7 +22,7 @@ export interface PrerequisiteQuiz {
 export interface Course {
   id: string; title: string; description: string; content: string; subject: Subject; level: Level
   instructor: Instructor; modules: Module[]; lessonCount: number; liveClasses: LiveClass[]
-  thumbnailUrl?: string; outcomes: string[]; createdAt: string
+  thumbnailUrl?: string; outcomes: string[]; createdAt: string; updatedAt: string
   accessLevel?: CourseAccessLevel; priceCents?: number; currency?: string; premiumEnabled?: boolean
   prerequisiteQuiz?: PrerequisiteQuiz
 }
@@ -39,6 +39,6 @@ export interface CourseSummary {
   lessonCount: number; outcomes: string[]
   thumbnailUrl?: string | null
   accessLevel?: CourseAccessLevel; priceCents?: number | null; currency?: string | null
-  premiumEnabled?: boolean; createdAt: string
+  premiumEnabled?: boolean; createdAt: string; updatedAt: string
   instructor: { id: string; name: string; bio: string; avatarUrl?: string | null }
 }

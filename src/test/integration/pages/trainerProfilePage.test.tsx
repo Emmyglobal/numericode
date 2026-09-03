@@ -43,6 +43,7 @@ const courseSummary1: CourseSummary = {
   currency: null,
   premiumEnabled: false,
   createdAt: '2024-01-10',
+  updatedAt: '2026-09-03T12:34:56.789Z',
   instructor: { id: 'i1', name: 'Emmanuel Nwafor', bio: 'Experienced maths trainer.', avatarUrl: undefined },
 }
 
@@ -81,6 +82,7 @@ const course: Course = {
   premiumEnabled: false,
   outcomes: ['Master fractions'],
   createdAt: '2024-01-10',
+  updatedAt: '2026-09-03T12:34:56.789Z',
   thumbnailUrl: undefined,
   instructor: { id: 'i1', name: 'Emmanuel Nwafor', bio: 'Experienced maths trainer.', avatarUrl: undefined, credentials: [] },
   modules: [

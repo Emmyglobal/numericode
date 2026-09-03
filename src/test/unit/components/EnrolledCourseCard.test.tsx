@@ -20,6 +20,7 @@ const course: EnrolledCourse = {
   premiumEnabled: true,
   outcomes: [],
   createdAt: '2024-01-10',
+  updatedAt: '2026-09-03T12:34:56.789Z',
   liveClasses: [],
   progress: 50,
   enrolledAt: '2024-02-01',

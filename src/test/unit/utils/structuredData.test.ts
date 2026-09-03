@@ -35,6 +35,17 @@ function simulateJsonLd(data: Record<string, unknown> | null): Record<string, un
   return JSON.parse(serialized) as Record<string, unknown>
 }
 
+/**
+ * Simulates the dateModified logic from CourseDetailPage.
+ * Returns the dateModified value to emit, or undefined if it should be omitted.
+ */
+function computeDateModified(updatedAt: string | undefined): string | undefined {
+  if (!updatedAt) return undefined
+  const parsed = new Date(updatedAt)
+  if (Number.isNaN(parsed.getTime())) return undefined
+  return updatedAt
+}
+
 // ── Course JSON-LD ──────────────────────────────────────────────────────────
 
 describe('Course JSON-LD structure', () => {
@@ -103,6 +114,87 @@ describe('Course JSON-LD structure', () => {
     expect(parsed.offers).toEqual(
       expect.objectContaining({ '@type': 'Offer', price: '9.99', priceCurrency: 'USD' }),
     )
+  })
+
+  it('includes dateModified when updatedAt is valid', () => {
+    const dataWithDate = { ...courseData, dateModified: '2026-09-03T12:34:56.789Z' }
+    const parsed = simulateJsonLd(dataWithDate)!
+    expect(parsed.dateModified).toBe('2026-09-03T12:34:56.789Z')
+  })
+
+  it('dateModified uses ISO 8601 format', () => {
+    const dataWithDate = { ...courseData, dateModified: '2026-09-03T12:34:56.789Z' }
+    const parsed = simulateJsonLd(dataWithDate)!
+    // ISO 8601 format: YYYY-MM-DDTHH:mm:ss.sssZ
+    expect(parsed.dateModified).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+  })
+
+  it('handles course without dateModified', () => {
+    const parsed = simulateJsonLd(courseData)!
+    expect(parsed).not.toHaveProperty('dateModified')
+  })
+})
+
+// ── Course JSON-LD dateModified (Phase 11) ─────────────────────────────────
+
+describe('Course JSON-LD dateModified', () => {
+  const courseData = {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: 'Introduction to Algebra',
+    description: 'Learn the fundamentals of algebra.',
+    url: 'https://numerycode.com/courses/course-123',
+    provider: { '@type': 'Organization', name: 'NumeryCode', url: 'https://numerycode.com/' },
+    instructor: { '@type': 'Person', name: 'Jane Doe' },
+    educationalLevel: 'Beginner',
+    courseMode: 'online',
+    image: 'https://numerycode.com/images/algebra.jpg',
+  }
+
+  it('computeDateModified returns updatedAt for valid ISO timestamp', () => {
+    expect(computeDateModified('2026-09-03T12:34:56.789Z')).toBe('2026-09-03T12:34:56.789Z')
+  })
+
+  it('computeDateModified returns updatedAt for valid date without timezone', () => {
+    expect(computeDateModified('2026-09-03')).toBe('2026-09-03')
+  })
+
+  it('computeDateModified returns undefined for missing updatedAt', () => {
+    expect(computeDateModified(undefined)).toBeUndefined()
+  })
+
+  it('computeDateModified returns undefined for empty string', () => {
+    expect(computeDateModified('')).toBeUndefined()
+  })
+
+  it('computeDateModified returns undefined for malformed date', () => {
+    expect(computeDateModified('not-a-date')).toBeUndefined()
+  })
+
+  it('computeDateModified returns undefined for invalid date format', () => {
+    expect(computeDateModified('2026-13-45T99:99:99Z')).toBeUndefined()
+  })
+
+  it('dateModified is included in JSON-LD when updatedAt is valid', () => {
+    const updatedAt = '2026-09-03T12:34:56.789Z'
+    const dateModified = computeDateModified(updatedAt)
+    const data = { ...courseData, ...(dateModified ? { dateModified } : {}) }
+    const parsed = simulateJsonLd(data)!
+    expect(parsed.dateModified).toBe('2026-09-03T12:34:56.789Z')
+  })
+
+  it('dateModified is omitted from JSON-LD when updatedAt is missing', () => {
+    const dateModified = computeDateModified(undefined)
+    const data = { ...courseData, ...(dateModified ? { dateModified } : {}) }
+    const parsed = simulateJsonLd(data)!
+    expect(parsed).not.toHaveProperty('dateModified')
+  })
+
+  it('dateModified is omitted from JSON-LD when updatedAt is malformed', () => {
+    const dateModified = computeDateModified('invalid')
+    const data = { ...courseData, ...(dateModified ? { dateModified } : {}) }
+    const parsed = simulateJsonLd(data)!
+    expect(parsed).not.toHaveProperty('dateModified')
   })
 })
 

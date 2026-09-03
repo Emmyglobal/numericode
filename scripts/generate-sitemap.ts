@@ -63,13 +63,15 @@ async function fetchPublishedCourseEntries(): Promise<SitemapUrlEntry[]> {
       throw new Error(`GET /courses responded ${res.status} ${res.statusText} (${url})`)
     }
     const payload = await res.json() as {
-      data?: { id: string; updated_at?: string }[]
+      data?: { id: string; updatedAt?: string; updated_at?: string }[]
       pagination?: { total?: number; hasMore?: boolean }
     }
     for (const course of payload.data ?? []) {
       if (course.id && !seenIds.has(course.id)) {
         seenIds.add(course.id)
-        entries.push({ type: 'course', id: course.id, updatedAt: course.updated_at })
+        // Phase 10 API exposes `updatedAt` (camelCase). `updated_at` is kept as a
+        // fallback so older backend deployments still feed truthful <lastmod>.
+        entries.push({ type: 'course', id: course.id, updatedAt: course.updatedAt ?? course.updated_at })
       }
     }
     if (payload.pagination?.hasMore === false) break

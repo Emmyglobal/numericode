@@ -18,6 +18,7 @@ const course: CourseSummary = {
   currency: null,
   premiumEnabled: false,
   createdAt: '2024-01-10',
+  updatedAt: '2026-09-03T12:34:56.789Z',
   instructor: { id: 'i1', name: 'Emmanuel Nwafor', bio: '', avatarUrl: null },
 }
 

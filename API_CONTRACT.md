@@ -170,6 +170,7 @@ GET /api/courses?level=beginner&instructorId=48a6e3d4-…
       "outcomes":    ["Master arithmetic operations"],
       "thumbnailUrl": "https://example.com/thumb.jpg",
       "createdAt":   "2024-01-10",
+      "updatedAt":   "2026-09-03T12:34:56.789Z",
       "accessLevel": "free",
       "priceCents": 0,
       "currency":    "NGN",
@@ -193,6 +194,7 @@ GET /api/courses?level=beginner&instructorId=48a6e3d4-…
 ```
 
 > **Privacy note:** `instructor` exposes only `id`, `name`, `bio` and `avatarUrl`. Email, password and other private account fields are NEVER returned on public endpoints.
+> **SEO note:** `updatedAt` is the course's last modification timestamp (ISO 8601, UTC). It is used by the sitemap generator for `<lastmod>` and is never fabricated — it reflects the database `updated_at` column, auto-maintained by a trigger on every course UPDATE.
 
 `level` is one of: `"beginner"` · `"intermediate"` · `"advanced"`
 `accessLevel` is one of: `"free"` · `"premium"`
@@ -201,9 +203,59 @@ GET /api/courses?level=beginner&instructorId=48a6e3d4-…
 
 ### GET /courses/:id
 
-Get a single course by ID.
+Get a single course by ID. Public endpoint — authentication is NOT required.
 
-**Success `200`:** Same shape as a single item from `GET /courses`.
+Returns the **full course detail** including the `modules` → `lessons` curriculum hierarchy and `liveClasses` (unlike the slim catalogue endpoint).
+
+> **Curriculum visibility (Phase 11):** the public endpoint returns **curriculum metadata only**:
+> - `modules`: `id` + `title`, ordered by the module `position`
+> - `lessons` (inside each module): `id` + `title` + `duration`, ordered by the lesson `position`
+>
+> **Lesson body `content` and resource URLs are gated.** They are returned ONLY to enrolled students via the protected `GET /dashboard/courses/:id` endpoint. The public course page must never receive lesson content.
+
+**Success `200`:**
+```json
+{
+  "success": true,
+  "data": {
+    "id":          "c1",
+    "title":       "Foundation Mathematics",
+    "description": "Build a rock-solid foundation",
+    "subject":     "mathematics",
+    "level":       "beginner",
+    "lessonCount": 24,
+    "outcomes":    ["Master arithmetic operations"],
+    "thumbnailUrl": "https://example.com/thumb.jpg",
+    "createdAt":   "2024-01-10",
+    "updatedAt":   "2026-09-03T12:34:56.789Z",
+    "accessLevel": "free",
+    "priceCents": 0,
+    "currency":    "NGN",
+    "premiumEnabled": true,
+    "instructor": {
+      "id":          "i1",
+      "name":        "Nwafor Emmanuel",
+      "bio":         "Registered Trainer",
+      "avatarUrl":   "https://example.com/avatar.png"
+    },
+    "modules": [
+      {
+        "id":    "m1",
+        "title": "Numbers & Arithmetic",
+        "lessons": [
+          { "id": "l1", "title": "Introduction to Numbers", "duration": 20 }
+        ]
+      }
+    ],
+    "liveClasses": []
+  }
+}
+```
+
+> **SEO note:** `updatedAt` is the course's last modification timestamp (ISO 8601, UTC). It is used by:
+> - The sitemap generator for `<lastmod>` (Phase 10)
+> - The Course JSON-LD `dateModified` property (Phase 11)
+> Both are never fabricated — they reflect the database `updated_at` column, auto-maintained by a trigger on every course UPDATE.
 
 **Error `404`:**
 ```json
@@ -253,6 +305,7 @@ Only **active** trainers with `role = 'trainer'` are reachable; inactive/suspend
         "currency":      "NGN",
         "premiumEnabled": true,
         "createdAt":     "2024-01-10",
+        "updatedAt":     "2026-09-03T12:34:56.789Z",
         "instructor": {
           "id":   "i1",
           "name": "Emmanuel Nwafor",

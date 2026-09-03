@@ -154,6 +154,13 @@ export default function CourseDetailPage() {
       courseMode: 'online',
     }
     if (course.thumbnailUrl) data.image = course.thumbnailUrl
+    // dateModified: only emit when updatedAt is valid (Phase 10)
+    if (course.updatedAt) {
+      const parsed = new Date(course.updatedAt)
+      if (!Number.isNaN(parsed.getTime())) {
+        data.dateModified = course.updatedAt
+      }
+    }
     if (course.accessLevel === 'premium' && typeof course.priceCents === 'number' && course.priceCents > 0) {
       data.offers = {
         '@type': 'Offer',

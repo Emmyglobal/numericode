@@ -40,6 +40,7 @@ const course: Course = {
   premiumEnabled: false,
   outcomes: ['Master fractions', 'Solve linear equations'],
   createdAt: '2024-01-10',
+  updatedAt: '2026-09-03T12:34:56.789Z',
   thumbnailUrl: undefined,
   instructor: { id: 'i1', name: 'Emmanuel Nwafor', bio: 'Experienced maths trainer.', avatarUrl: undefined, credentials: [] },
   modules: [
@@ -64,8 +65,8 @@ const trainerProfile: PublicTrainerProfile = {
   avatarUrl: undefined,
   subjects: ['mathematics'],
   courses: [
-    { id: 'c1', title: 'Foundation Mathematics', description: 'Basic maths.', subject: 'mathematics', level: 'beginner', lessonCount: 24, outcomes: ['Understand basics'], createdAt: '2024-01-01', instructor: { id: 'i1', name: 'Emmanuel Nwafor', bio: '' } },
-    { id: 'c2', title: 'Advanced Algebra', description: 'Advanced algebra.', subject: 'mathematics', level: 'advanced', lessonCount: 18, outcomes: ['Solve advanced problems'], createdAt: '2024-02-01', instructor: { id: 'i1', name: 'Emmanuel Nwafor', bio: '' } },
+    { id: 'c1', title: 'Foundation Mathematics', description: 'Basic maths.', subject: 'mathematics', level: 'beginner', lessonCount: 24, outcomes: ['Understand basics'], createdAt: '2024-01-01', updatedAt: '2026-09-03T12:34:56.789Z', instructor: { id: 'i1', name: 'Emmanuel Nwafor', bio: '' } },
+    { id: 'c2', title: 'Advanced Algebra', description: 'Advanced algebra.', subject: 'mathematics', level: 'advanced', lessonCount: 18, outcomes: ['Solve advanced problems'], createdAt: '2024-02-01', updatedAt: '2026-09-02T10:00:00.000Z', instructor: { id: 'i1', name: 'Emmanuel Nwafor', bio: '' } },
   ],
 }
 
@@ -284,6 +285,51 @@ describe('CourseDetailPage', () => {
       expect(data.offers).toEqual({ '@type': 'Offer', price: '2500.00', priceCurrency: 'NGN', category: 'Paid' })
       expect(data.aggregateRating).toBeUndefined()
       expect(data.review).toBeUndefined()
+    })
+  })
+
+  it('emits dateModified from the course updatedAt in Course JSON-LD (Phase 11)', async () => {
+    renderPage()
+    await waitFor(() => {
+      const script = document.getElementById('jsonld-course-detail')
+      expect(script).not.toBeNull()
+      const data = JSON.parse(script!.textContent!) as Record<string, unknown>
+      // The fixture Course carries updatedAt '2026-09-03T12:34:56.789Z'.
+      expect(data.dateModified).toBe('2026-09-03T12:34:56.789Z')
+      expect(data.dateModified).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+    })
+  })
+
+  it('omits dateModified from Course JSON-LD when updatedAt is missing (Phase 11)', async () => {
+    const { updatedAt: _updatedAt, ...withoutUpdatedAt } = course
+    vi.mocked(coursesService.getById).mockResolvedValue(withoutUpdatedAt as unknown as Course)
+    renderPage()
+    await waitFor(() => {
+      const script = document.getElementById('jsonld-course-detail')
+      expect(script).not.toBeNull()
+      const data = JSON.parse(script!.textContent!) as Record<string, unknown>
+      expect(data.dateModified).toBeUndefined()
+    })
+  })
+
+  it('injects exactly one Course JSON-LD script (no duplicates)', async () => {
+    renderPage()
+    await waitFor(() => expect(document.getElementById('jsonld-course-detail')).not.toBeNull())
+    const scripts = document.querySelectorAll('script#jsonld-course-detail')
+    expect(scripts.length).toBe(1)
+  })
+
+  it('Course JSON-LD contains no private gated content (Phase 11)', async () => {
+    renderPage()
+    await waitFor(() => {
+      const script = document.getElementById('jsonld-course-detail')
+      const data = JSON.parse(script!.textContent!) as Record<string, unknown>
+      const serialized = JSON.stringify(data)
+      // Lesson bodies, resource URLs, meeting URLs and emails never appear.
+      expect(serialized).not.toContain('lesson content')
+      expect(serialized).not.toContain('meet.google.com')
+      expect(serialized).not.toMatch(/email/)
+      expect(serialized).not.toMatch(/password/)
     })
   })
 

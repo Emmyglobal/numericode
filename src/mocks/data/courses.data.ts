@@ -3,7 +3,7 @@ import type { Course } from '@/features/courses/types'
 export const coursesData: Course[] = [
   {
     id: 'c1', subject: 'mathematics', level: 'beginner', lessonCount: 24,
-    title: 'Foundation Mathematics', createdAt: '2024-01-10',
+    title: 'Foundation Mathematics', createdAt: '2024-01-10', updatedAt: '2026-09-03T12:34:56.789Z',
     description: 'Build a rock-solid foundation in arithmetic, fractions, algebra, and geometry. Perfect for students starting their maths journey.',
     content: `# Foundation Mathematics
 
@@ -52,7 +52,7 @@ Let's begin your mathematics journey!`,
   },
   {
     id: 'c2', subject: 'programming', level: 'beginner', lessonCount: 30,
-    title: 'JavaScript for Beginners', createdAt: '2024-02-01',
+    title: 'JavaScript for Beginners', createdAt: '2024-02-01', updatedAt: '2026-09-02T10:00:00.000Z',
     description: 'Start your programming journey with JavaScript — the language of the web. Go from zero to building interactive web pages.',
     content: `# JavaScript for Beginners
 
@@ -102,7 +102,7 @@ Let's start coding!`,
   },
   {
     id: 'html-css-course', subject: 'programming', level: 'beginner', lessonCount: 18,
-    title: 'HTML & CSS Fundamentals', createdAt: '2024-02-20',
+    title: 'HTML & CSS Fundamentals', createdAt: '2024-02-20', updatedAt: '2026-09-01T08:00:00.000Z',
     description: 'A hands-on introduction to building web pages with HTML5 and styling them with modern CSS — structure, layout, colour, and accessibility.',
     content: `# HTML & CSS Fundamentals
 
@@ -173,7 +173,7 @@ Welcome! This project-based course walks you through building and styling real w
   },
   {
     id: 'c3', subject: 'mathematics', level: 'intermediate', lessonCount: 28,
-    title: 'Algebra & Equations', createdAt: '2024-03-05',
+    title: 'Algebra & Equations', createdAt: '2024-03-05', updatedAt: '2026-08-30T14:00:00.000Z',
     description: 'Master algebraic thinking — from linear equations to quadratics, systems of equations, and real-world word problems.',
     content: `# Algebra & Equations
 
@@ -211,7 +211,7 @@ Welcome to Algebra & Equations! This course will help you master algebraic think
   },
   {
     id: 'c4', subject: 'programming', level: 'intermediate', lessonCount: 35,
-    title: 'Python Programming', createdAt: '2024-03-20',
+    title: 'Python Programming', createdAt: '2024-03-20', updatedAt: '2026-08-28T16:00:00.000Z',
     description: 'Learn Python — one of the world\'s most popular programming languages. Perfect for data, automation, and backend development.',
     content: `# Python Programming
 
@@ -242,7 +242,7 @@ Welcome to Python Programming! Python is one of the most versatile and beginner-
   },
   {
     id: 'c5', subject: 'mathematics', level: 'advanced', lessonCount: 32,
-    title: 'Calculus Fundamentals', createdAt: '2024-04-01',
+    title: 'Calculus Fundamentals', createdAt: '2024-04-01', updatedAt: '2026-08-25T11:00:00.000Z',
     description: 'An introduction to differential and integral calculus for senior secondary and early university students.',
     content: `# Calculus Fundamentals
 
@@ -274,7 +274,7 @@ Welcome to Calculus Fundamentals! This course introduces the two main branches o
   },
   {
     id: 'c6', subject: 'programming', level: 'advanced', lessonCount: 40,
-    title: 'React & TypeScript', createdAt: '2024-04-15',
+    title: 'React & TypeScript', createdAt: '2024-04-15', updatedAt: '2026-08-20T09:00:00.000Z',
     description: 'Build modern, type-safe web applications with React 18 and TypeScript. From components to state management and deployment.',
     content: `# React & TypeScript
 
@@ -308,7 +308,7 @@ Welcome to React & TypeScript! Build modern, type-safe web applications with the
   },
   {
     id: 'c7', subject: 'mathematics', level: 'beginner', lessonCount: 12,
-    title: 'Mathematics to Coding: Logic, Numbers & Algorithms', createdAt: '2024-05-01',
+    title: 'Mathematics to Coding: Logic, Numbers & Algorithms', createdAt: '2024-05-01', updatedAt: '2026-08-15T13:00:00.000Z',
     description: 'A bridge course that takes students from mathematics into coding, revealing how the logic, number systems, variables, and patterns you study in maths become the core ideas behind every computer program.',
     content: `# Mathematics to Coding: Logic, Numbers & Algorithms
 
@@ -364,7 +364,7 @@ Let's turn maths into code!`,
   },
   {
     id: 'c-seq', subject: 'mathematics', level: 'beginner', lessonCount: 8,
-    title: 'Sequences & Series — SS2 Practice', createdAt: '2024-03-05',
+    title: 'Sequences & Series — SS2 Practice', createdAt: '2024-03-05', updatedAt: '2026-08-10T10:00:00.000Z',
     description: 'Arithmetic and geometric progressions, sums, means, and sigma notation — with a prerequisite quiz that must be passed to unlock the lessons.',
     content: `# Sequences & Series — SS2 Practice
 
