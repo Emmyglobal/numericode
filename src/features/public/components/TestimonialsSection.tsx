@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { MessageSquareQuote, CheckCircle2, Clock3 } from 'lucide-react'
 import { SectionWrapper } from '@/components/shared/SectionWrapper'
 import { Button } from '@/components/ui/Button'
@@ -13,6 +13,7 @@ export function TestimonialsSection() {
   const [form, setForm] = useState({ name: '', email: '', course: '', location: '', message: '' })
   const [consent, setConsent] = useState(false)
   const [error, setError] = useState('')
+  const queryClient = useQueryClient()
 
   const { data: testimonials = [], isLoading } = useQuery({
     queryKey: ['public-testimonials'],
@@ -25,6 +26,8 @@ export function TestimonialsSection() {
       setForm({ name: '', email: '', course: '', location: '', message: '' })
       setConsent(false)
       setOpen(false)
+      // Refresh testimonials list to show the newly submitted testimonial
+      queryClient.invalidateQueries({ queryKey: ['public-testimonials'] })
     },
     onError: (e: Error) => setError(e.message || 'Something went wrong. Please try again.'),
   })

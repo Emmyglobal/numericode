@@ -236,18 +236,13 @@ export default function QuizTakePage() {
                     }`}
                   >
                     <input
-                      type="checkbox"
+                      type="radio"
+                      name={`question-${question.id}`}
                       checked={(answers[question.id] as string[])?.includes(option.id) || false}
-                      onChange={(e) => {
-                        const current = (answers[question.id] as string[]) || []
-                        const updated = e.target.checked
-                          ? [...current, option.id]
-                          : current.filter(id => id !== option.id)
-                        handleAnswer(question.id, updated)
-                      }}
+                      onChange={() => handleAnswer(question.id, [option.id])}
                       className="sr-only"
                     />
-                    <span className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                    <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                       (answers[question.id] as string[])?.includes(option.id)
                         ? 'border-brand-blue bg-brand-blue'
                         : 'border-gray-300'

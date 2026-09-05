@@ -229,37 +229,116 @@ export function CollaborativeCodeEditor({
       setActiveFileId(codeData.files.find(f => f.id !== fileId)?.id ?? codeData.files[0].id)
     }
   }
+  const runHtmlCode = (htmlContent: string, files: CodeFile[]): string => {
+    const cssFile = files.find(f => f.language.toLowerCase() === 'css')
+    const jsFile = files.find(f => f.language.toLowerCase() === 'javascript')
+    let fullHtml = htmlContent
+    if (!htmlContent.toLowerCase().includes('<!doctype') && !htmlContent.toLowerCase().includes('<html')) {
+      fullHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Preview</title>${cssFile ? `<style>${cssFile.content}</style>` : ''}</head><body>${htmlContent}${jsFile ? `<script>${jsFile.content}</script>` : ''}</body></html>`
+    }
+    const blob = new Blob([fullHtml], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    const previewWindow = window.open(url, '_blank', 'width=800,height=600')
+    if (previewWindow) {
+      previewWindow.onload = () => URL.revokeObjectURL(url)
+      return 'HTML preview opened in a new window/tab.'
+    }
+    return 'Unable to open HTML preview. Please allow popups.'
+  }
 
-  const runCode = useCallback(() => {
+  const runJsCode = (code: string, setOutputFn: (output: string) => void) => {
+    try {
+      const originalLog = console.log
+      const outputLines: string[] = []
+      console.log = (...args: unknown[]) => { outputLines.push(args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')) }
+      const result = new Function(code)()
+      console.log = originalLog
+      if (result !== undefined) outputLines.push('=> ' + (typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result)))
+      setOutputFn(outputLines.join('\n') || 'Code executed successfully (no output)')
+    } catch (err) {
+      setOutputFn(`Error: ${err instanceof Error ? err.message : String(err)}`)
+    }
+  }
+
+  const runPythonCode = async (code: string, setOutputFn: (output: string) => void) => {
+    try {
+      if (!(window as any).loadPyodide) {
+        setOutputFn('Loading Python runtime...\nPlease wait...')
+        const script = document.createElement('script')
+        script.src = 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js'
+        document.head.appendChild(script)
+        await new Promise<void>((resolve, reject) => { script.onload = () => resolve(); script.onerror = () => reject(new Error('Failed to load Pyodide')) })
+      }
+      const pyodide = await (window as any).loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/' })
+      pyodide.runPython('import sys\nfrom io import StringIO\nsys.stdout = StringIO()\nsys.stderr = StringIO()')
+      pyodide.runPython(code)
+      const stdout = pyodide.runPython('sys.stdout.getvalue()')
+      const stderr = pyodide.runPython('sys.stderr.getvalue()')
+      let output = ''
+      if (stdout) output += stdout
+      if (stderr) output += '\nErrors:\n' + stderr
+      if (!output) output = 'Code executed successfully (no output)'
+      setOutputFn(output)
+    } catch (err) {
+      setOutputFn(`Error: ${err instanceof Error ? err.message : String(err)}`)
+    }
+  }
+
+  const runCCode = async (code: string, setOutputFn: (output: string) => void) => {
+    try {
+      const response = await fetch('https://wandbox.org/api/compile.json', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code, compiler: 'gcc-head', options: '-Wall -Wextra -std=c11' }),
+      })
+      if (!response.ok) throw new Error('Failed to compile C code')
+      const result = await response.json()
+      let output = ''
+      if (result.program_output) output += result.program_output
+      if (result.compiler_output) output += '\nCompiler output:\n' + result.compiler_output
+      if (result.compiler_error) output += '\nCompiler errors:\n' + result.compiler_error
+      if (!output) output = 'Code executed successfully (no output)'
+      setOutputFn(output)
+    } catch (err) {
+      setOutputFn('C Compilation (Offline Mode)\n\nYour C code:\n' + code + '\n\nNote: C compilation requires internet connection.\nCompile locally with:\ngcc -o output ' + (activeFile?.name || 'main.c') + '\n./output')
+    }
+  }
+
+
+
+  const runCode = useCallback(async () => {
     if (!activeFile) return
     setRunning(true)
     setShowOutput(true)
     setOutput('Running...\n')
-
-    // Use setTimeout to allow UI to update
-    setTimeout(() => {
-      try {
-        const logs: string[] = []
-        const originalLog = console.log
-        console.log = (...args: unknown[]) => {
-          logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' '))
+    const language = activeFile.language.toLowerCase()
+    try {
+      if (language === 'html') {
+        const result = runHtmlCode(activeFile.content, codeData.files)
+        setOutput(result)
+      } else if (language === 'javascript' || language === 'typescript') {
+        runJsCode(activeFile.content, output => setOutput(output))
+      } else if (language === 'python') {
+        await runPythonCode(activeFile.content, output => setOutput(output))
+      } else if (language === 'c') {
+        await runCCode(activeFile.content, output => setOutput(output))
+      } else if (language === 'css') {
+        const htmlFile = codeData.files.find(f => f.language.toLowerCase() === 'html')
+        if (htmlFile) {
+          const result = runHtmlCode(htmlFile.content, codeData.files)
+          setOutput('CSS applied to HTML file.\n\n' + result)
+        } else {
+          setOutput('CSS file detected. Add an HTML file to see the styled preview.')
         }
-
-        // Execute the code
-        const result = new Function(activeFile.content)()
-        console.log = originalLog
-
-        const outputLines = [...logs]
-        if (result !== undefined) {
-          outputLines.push(`=> ${typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result)}`)
-        }
-        setOutput(outputLines.join('\n') || 'Code executed successfully (no output)')
-      } catch (err) {
-        setOutput(`Error: ${err instanceof Error ? err.message : String(err)}`)
+      } else {
+        setOutput(`Running ${language} files is not yet supported in this editor.`)
       }
+    } catch (err) {
+      setOutput(`Error: ${err instanceof Error ? err.message : String(err)}`)
+    } finally {
       setRunning(false)
-    }, 100)
-  }, [activeFile])
+    }
+  }, [activeFile, codeData.files])
 
   const save = async () => {
     setSaving(true)

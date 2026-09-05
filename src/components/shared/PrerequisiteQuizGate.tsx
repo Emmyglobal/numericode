@@ -123,15 +123,11 @@ export function PrerequisiteQuizGate({ quiz, onPassed }: PrerequisiteQuizGatePro
                           )}
                         >
                           <input
-                            type="checkbox"
+                            type="radio"
+                            name={`prereq-q-${q.id}`}
                             checked={selected}
-                            onChange={(e) => {
-                              setAnswers(prev => {
-                                const current = prev[q.id] ?? []
-                                return e.target.checked
-                                  ? { ...prev, [q.id]: [...current, opt.id] }
-                                  : { ...prev, [q.id]: current.filter(id => id !== opt.id) }
-                              })
+                            onChange={() => {
+                              setAnswers(prev => ({ ...prev, [q.id]: [opt.id] }))
                             }}
                           />
                           <span className="font-bold w-4">{LETTERS[oi]}</span>
