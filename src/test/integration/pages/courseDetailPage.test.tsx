@@ -6,6 +6,7 @@ import { render } from '@/test/utils'
 import CourseDetailPage from '@/pages/public/CourseDetailPage'
 import { coursesService } from '@/services/courses.service'
 import { dashboardService } from '@/services/dashboard.service'
+import { paymentsService } from '@/services/payments.service'
 import { useAuthStore } from '@/store/authStore'
 import type { Course } from '@/features/courses/types'
 import type { PublicTrainerProfile } from '@/services/courses.service'
@@ -23,6 +24,13 @@ vi.mock('@/services/dashboard.service', () => ({
     getMyCourses: vi.fn(),
     getSubscription: vi.fn(),
     createCheckoutIntent: vi.fn(),
+  },
+}))
+
+vi.mock('@/services/payments.service', () => ({
+  paymentsService: {
+    initiate: vi.fn(),
+    getStatus: vi.fn(),
   },
 }))
 
@@ -206,10 +214,10 @@ describe('CourseDetailPage', () => {
     useAuthStore.setState({ user: student, token: 'tok', isAuthenticated: true })
     vi.mocked(coursesService.getById).mockResolvedValue({ ...course, accessLevel: 'premium', priceCents: 250000, currency: 'NGN' })
     renderPage()
-    await waitFor(() => expect(screen.getAllByRole('button', { name: /upgrade to premium/i }).length).toBeGreaterThan(0))
+    await waitFor(() => expect(screen.getAllByRole('button', { name: /pay .* enroll/i }).length).toBeGreaterThan(0))
     expect(screen.getAllByText(/premium course/i).length).toBeGreaterThan(0)
-    await user.click(screen.getAllByRole('button', { name: /upgrade to premium/i })[0])
-    await waitFor(() => expect(dashboardService.createCheckoutIntent).toHaveBeenCalledWith('paystack'))
+    await user.click(screen.getAllByRole('button', { name: /pay .* enroll/i })[0])
+    await waitFor(() => expect(paymentsService.initiate).toHaveBeenCalledWith('c1'))
   })
 
   it('shows Continue Learning for an already-enrolled student without re-enrolling', async () => {

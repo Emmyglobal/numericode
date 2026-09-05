@@ -633,7 +633,167 @@ List all assignments created by the trainer across their courses.
 
 ---
 
-## Domain 5 — Admin Panel
+## Domain 5 — Payments (Premium Course Checkout)
+
+All payment endpoints are backend-authoritative. The browser can never set the
+price, override the currency, choose the user/course, or decide payment success.
+
+### Payment States
+
+| State | Meaning |
+|---|---|
+| `pending` | Checkout initialized; awaiting provider confirmation |
+| `verified` | Trusted backend logic confirmed the grant — enrollment created |
+| `failed` | Provider declined, amount mismatch, or verification failed |
+| `abandoned` | Student did not complete checkout |
+| `refunded` | Refund processed by provider |
+| `disputed` | Chargeback/dispute opened |
+
+**State model:** A payment begins as `pending` and moves exactly once to a terminal
+state. Only `verified` grants enrollment. The transition `pending → verified` is
+atomic and guarded by a partial unique index — at most ONE verified payment per
+(user, course). Duplicate webhook deliveries and provider replays are no-ops.
+
+---
+
+### POST /api/payments/initiate
+
+Initialize a premium-course checkout. Creates a `pending` payment record with a
+unique reference, then asks Paystack for a redirect URL.
+
+**Authentication:** `Bearer` token · `role: "student"` only.
+
+**Request body:**
+```json
+{
+  "courseId": "c1"
+}
+```
+
+**Success `201`:**
+```json
+{
+  "success": true,
+  "data": {
+    "reference": "NCP-1a2b3c4d-...",
+    "authorizationUrl": "https://checkout.paystack.com/...",
+    "amountSubunits": 50000,
+    "currency": "NGN",
+    "courseTitle": "Foundation Mathematics"
+  }
+}
+```
+
+`amountSubunits` is in the provider's subunit currency — kobo for NGN (i.e. `price_cents × 100`).
+`reference` is the NumeryCode payment reference; `authorizationUrl` is where the student
+completes payment on Paystack.
+
+**Error `400`** — missing/unknown course, not premium, already enrolled, or Paystack not configured:
+```json
+{ "success": false, "message": "This course is not a premium course" }
+```
+
+**Error `401`** — missing/invalid token.
+
+**Error `409`** — a pending payment for this course already exists (returns the existing reference):
+```json
+{ "success": false, "message": "A pending payment already exists for this course", "data": { "reference": "NCP-..." } }
+```
+
+**Error `502`** — Paystack provider error.
+
+---
+
+### GET /api/payments/:reference
+
+Return the verified payment state. The backend is the source of truth — the frontend
+displays `verified` only after this endpoint reports it. Safe to poll and refresh.
+
+**Authentication:** `Bearer` token · payment owner OR `role: "admin"`.
+
+**Success `200`:**
+```json
+{
+  "success": true,
+  "data": {
+    "reference": "NCP-1a2b3c4d-...",
+    "status": "verified",
+    "amountSubunits": 50000,
+    "currency": "NGN",
+    "course": { "id": "c1", "title": "Foundation Mathematics" },
+    "enrollmentGranted": true,
+    "failureReason": null,
+    "paidAt": "2026-09-05T10:30:00.000Z",
+    "createdAt": "2026-09-05T10:25:00.000Z"
+  }
+}
+```
+
+`enrollmentGranted` is `true` exactly when a verified payment produced an enrollment row.
+
+**Error `400`** — invalid reference format:
+```json
+{ "success": false, "message": "Invalid reference format" }
+```
+
+**Error `403`/`404`** — a non-owner cannot read another user's payment (responds `403`
+when the reader is not an admin, `404` when anonymous, to avoid leaking existence).
+
+**Error `404`** — payment not found.
+
+---
+
+### POST /api/payments/webhook/paystack
+
+Provider event endpoint. NOT authenticated by token — authenticated by the
+`x-paystack-signature` header (HMAC-SHA512 of the raw request body computed with the
+secret key, compared with a timing-safe equality check).
+
+**Authentication:** `x-paystack-signature` (no `Authorization` header).
+
+**Handled events:**
+
+| Event | Action |
+|---|---|
+| `charge.success` | If amount/currency match the pending payment → `verified` + enroll; otherwise → `failed` |
+| `refund.processed` / `refund.processing` | `verified`/`disputed` → `refunded` |
+| `charge.dispute.create` | `verified` → `disputed` |
+| `charge.dispute.resolve` | `disputed` → `verified` (safe against the partial unique index) |
+
+**Success `200`** (acknowledged so Paystack stops retrying):
+```json
+{
+  "success": true,
+  "data": { "received": true, "handled": true }
+}
+```
+
+`handled: false` means the event was acknowledged but not acted upon (unknown reference,
+wrong status, or an unsupported event type) — this is NOT an error.
+
+**Error `401`** — invalid signature (do not leak verification details):
+```json
+{ "success": false, "message": "Invalid webhook signature" }
+```
+
+**Error `400`** — unparseable payload.
+
+---
+
+### Ownership & Security Rules
+
+- Only a `student` can initiate a payment.
+- A payment's owner is the student who created it; only the owner or an admin can read it.
+- Pricing is authoritative from the database. The amount charged is never taken from the browser.
+- A successful payment creates exactly one enrollment via the existing `enrollments`
+  table (`ON CONFLICT (user_id, course_id) DO NOTHING`).
+- Provider secrets never leave the backend. No response body contains a key, secret,
+  or raw provider credential.
+- The webhook validates the signature over the raw body BEFORE parsing the JSON.
+
+---
+
+## Domain 6 — Admin Panel
 
 All `/admin/*` endpoints require `role: "admin"`.
 

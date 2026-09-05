@@ -48,5 +48,21 @@ describe('Markdown component', () => {
     const { container } = render(<Markdown text="" />)
     expect(container).toBeEmptyDOMElement()
   })
+
+  it('renders inline LaTeX via KaTeX', () => {
+    render(<Markdown text="Simplify $x^2 + y^2$" />)
+    // KaTeX emits a span with class "katex".
+    expect(document.querySelector('.katex')).not.toBeNull()
+  })
+
+  it('renders display (block) LaTeX via KaTeX', () => {
+    const { container } = render(<Markdown text={'$$\\frac{3}{4}$$'} />)
+    expect(container.querySelector('.katex-block .katex')).not.toBeNull()
+  })
+
+  it('falls back to raw source when math is malformed', () => {
+    const { container } = render(<Markdown text={'Math $$\\notacommand{x}$$ here'} />)
+    expect(container.textContent).toContain('x')
+  })
 })
 

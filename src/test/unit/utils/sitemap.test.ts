@@ -1,7 +1,8 @@
 // @vitest-environment node
 /// <reference types="node" />
 import { readFileSync } from 'node:fs'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import sitemapHandler from '../../../../api/sitemap'
 import {
   buildSitemapXml,
   buildStaticOnlySitemap,
@@ -247,6 +248,62 @@ describe('buildSitemapXml', () => {
     const locs = extractLocs(xml)
     expect(locs.length).toBeGreaterThan(0)
     expect(locs.every(l => l.startsWith('https://numerycode.com/'))).toBe(true)
+  })
+})
+
+describe('sitemap handler contract', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('uses a Vercel-compatible response contract and writes valid XML', async () => {
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        data: [{ id: 'course-123', updatedAt: '2024-01-15T10:30:00Z' }],
+        pagination: { total: 1, hasMore: false },
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        data: [{ id: 'trainer-456' }],
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })),
+    )
+
+    const res = {
+      setHeader: vi.fn(),
+      end: vi.fn(),
+      statusCode: 0,
+    }
+
+    await sitemapHandler({}, res as any)
+
+    expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/xml; charset=utf-8')
+    expect(res.statusCode).toBe(200)
+    expect(res.end).toHaveBeenCalledTimes(1)
+    const body = res.end.mock.calls[0][0]
+    expect(body).toContain('<loc>https://numerycode.com/courses/course-123</loc>')
+    expect(body).toContain('<lastmod>2024-01-15</lastmod>')
+    expect(body).toContain('<loc>https://numerycode.com/trainers/trainer-456</loc>')
+  })
+
+  it('falls back to the static sitemap without throwing when the API fails', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('upstream unavailable')))
+
+    const res = {
+      setHeader: vi.fn(),
+      end: vi.fn(),
+      statusCode: 0,
+    }
+
+    await expect(sitemapHandler({}, res as any)).resolves.toBeUndefined()
+    expect(res.statusCode).toBe(200)
+    const body = res.end.mock.calls[0][0]
+    expect(body).toContain('<loc>https://numerycode.com/</loc>')
+    expect(body).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
   })
 })
 

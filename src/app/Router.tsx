@@ -14,6 +14,7 @@ const LandingPage       = lazy(() => import('@/pages/public/LandingPage'))
 const AboutPage         = lazy(() => import('@/pages/public/AboutPage'))
 const CoursesPage       = lazy(() => import('@/pages/public/CoursesPage'))
 const CourseDetailPage  = lazy(() => import('@/pages/public/CourseDetailPage'))
+const PaymentCallbackPage = lazy(() => import('@/pages/public/PaymentCallbackPage'))
 const TrainerProfilePage = lazy(() => import('@/pages/public/TrainerProfilePage'))
 const TrainersPage       = lazy(() => import('@/pages/public/TrainersPage'))
 const ContactPage        = lazy(() => import('@/pages/public/ContactPage'))
@@ -121,6 +122,7 @@ export function AppRouter() {
           <Route path="/about"       element={<AboutPage />} />
           <Route path="/courses"     element={<CoursesPage />} />
           <Route path="/courses/:id" element={<CourseDetailPage />} />
+          <Route path="/payment/callback" element={<PaymentCallbackPage />} />
           <Route path="/trainers"    element={<TrainersPage />} />
           <Route path="/trainers/:id" element={<TrainerProfilePage />} />
           <Route path="/contact"     element={<ContactPage />} />

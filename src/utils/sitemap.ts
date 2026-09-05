@@ -80,7 +80,7 @@ export interface SitemapEntry {
  * Coerce an ISO-8601 or yyyy-MM-dd timestamp into the sitemap <lastmod>
  * format (yyyy-MM-dd). Returns `undefined` if the input is not a valid date.
  */
-function toLastmod(isoOrDate: string | undefined): string | undefined {
+export function toLastmod(isoOrDate: string | undefined): string | undefined {
   if (!isoOrDate) return undefined
   if (/^\d{4}-\d{2}-\d{2}$/.test(isoOrDate)) return isoOrDate
   const parsed = new Date(isoOrDate)

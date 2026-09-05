@@ -1,0 +1,35 @@
+name: Sitemap validation
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  sitemap-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (production)
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Generate sitemap
+        run: npm run generate:sitemap
+
+      - name: Validate sitemap against public API
+        run: npm run sitemap:validate
+        env:
+          # The validation script falls back to https://numericode-api.onrender.com/api
+          # but you can override the API base for CI via VITE_API_BASE_URL if required.
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}

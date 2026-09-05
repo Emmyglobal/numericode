@@ -262,8 +262,11 @@ export default function CourseViewerPage() {
 
           {/* Lesson body / notes */}
           <section aria-label="Lesson notes" className="mb-8">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Lesson Notes</h2>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-blue">Lesson deck</p>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Lesson Notes</h2>
+              </div>
               {activeLesson && (
                 <Button variant="ghost" size="sm" onClick={() => downloadLessonNotes(activeLesson)}>
                   <Download className="w-3.5 h-3.5" aria-hidden="true" />
@@ -271,11 +274,11 @@ export default function CourseViewerPage() {
                 </Button>
               )}
             </div>
-            <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
+            <div className="rounded-[28px] border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-blue-50/60 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)] md:p-8 dark:border-slate-700 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
               {activeLesson && (
                 <Markdown
-                  className="space-y-3 leading-relaxed"
-                  text={activeLesson.content || `Work through ${activeLesson.title}, practise in the learning workspace, then complete the available exercises.`}
+                  className="space-y-4 leading-relaxed"
+                  text={activeLesson.content || `# ${activeLesson.title}\n\nWork through ${activeLesson.title}, practise in the learning workspace, then complete the available exercises.`}
                 />
               )}
             </div>

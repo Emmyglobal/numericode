@@ -11,11 +11,11 @@ import { useJsonLd } from '@/utils/structuredData'
 const SITE_URL = 'https://numerycode.com'
 
 const faqs = [
-  { q: 'Is NumeryCode completely free?',              a: 'Yes! All courses, live classes, and learning resources on NumeryCode are completely free to access. Just register and start learning.' },
+  { q: 'Is NumeryCode completely free?',              a: 'NumeryCode offers both free and premium courses. Free courses are available to registered students, while premium courses display their price and require an active subscription or approved access before enrollment.' },
   { q: 'Who are the courses designed for?',           a: 'NumeryCode is designed for secondary school students, self-learners, and anyone looking to build strong foundations in Mathematics or Programming, from beginners to intermediate learners.' },
   { q: 'How do live classes work?',                   a: 'Live classes are hosted on Zoom or Google Meet. When a class is scheduled, a Join button appears on your dashboard. Click it to join the session. You can ask questions in real time.' },
   { q: 'What if I miss a live class?',               a: 'We understand life gets busy. While recordings are a planned future feature, you can catch the next scheduled session for that topic. Check the Live Classes page for upcoming dates.' },
-  { q: 'Do I get a certificate when I finish?',      a: "Certificates are on our roadmap and will be available soon. We'll notify all enrolled students when this feature launches." },
+  { q: 'Do I get a certificate when I finish?',      a: 'Certificates are available for eligible courses when the platform has issued them. Check your dashboard after completion to see whether your course includes a certificate.' },
   { q: 'Can I use NumeryCode on my phone?',          a: 'Yes! NumeryCode is fully responsive and works on any device — phone, tablet, or desktop.' },
   { q: 'How do I reset my password?',                a: "Click Forgot password on the login page, enter your email address, and we will send you a reset link." },
 ]

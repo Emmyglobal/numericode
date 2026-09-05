@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { coursesService } from '@/services/courses.service'
 import { dashboardService } from '@/services/dashboard.service'
+import { paymentsService } from '@/services/payments.service'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
@@ -165,7 +166,7 @@ export default function CourseDetailPage() {
       data.offers = {
         '@type': 'Offer',
         price: (course.priceCents / 100).toFixed(2),
-        priceCurrency: course.currency ?? 'USD',
+        priceCurrency: course.currency ?? 'NGN',
         category: 'Paid',
       }
     }
@@ -203,7 +204,15 @@ export default function CourseDetailPage() {
   })
 
   const requestMutation = useMutation({ mutationFn: () => coursesService.requestCourse(id) })
-  const checkoutMutation = useMutation({ mutationFn: () => dashboardService.createCheckoutIntent('paystack') })
+  // Phase 16: premium checkout goes through the backend, which is authoritative
+  // for price/currency. On success we redirect to the provider's hosted page.
+  // The return page (/payment/callback) asks the BACKEND for verified status.
+  const paymentMutation = useMutation({
+    mutationFn: () => paymentsService.initiate(id),
+    onSuccess: (result) => {
+      if (result.authorizationUrl) window.location.assign(result.authorizationUrl)
+    },
+  })
 
   // ── More courses from this Registered Trainer (public endpoint) ────────────
   const trainerQuery = useQuery({
@@ -247,7 +256,7 @@ export default function CourseDetailPage() {
   // ── Derived display values ─────────────────────────────────────────────────
   const isPremium = course.accessLevel === 'premium'
   const hasPrice = isPremium && typeof course.priceCents === 'number' && course.priceCents > 0
-  const price = hasPrice ? formatCoursePrice(course.priceCents!, course.currency) : 'Free'
+  const price = hasPrice ? formatCoursePrice(course.priceCents!, course.currency ?? 'NGN') : 'Free'
   const fallback = THUMBNAIL_FALLBACKS[course.subject] ?? { bg: 'bg-brand-blue', glyph: '∑' }
   const totalLessons = course.modules.reduce((sum, m) => sum + m.lessons.length, 0)
 
@@ -279,9 +288,17 @@ export default function CourseDetailPage() {
       )
     }
     if (isPremium && !subscription?.isActive) {
+      if (!hasPrice) {
+        // Premium course with no purchasable price — never fake a checkout.
+        return (
+          <Button size={size} className="w-full" disabled>
+            Enrolment opening soon
+          </Button>
+        )
+      }
       return (
-        <Button size={size} loading={checkoutMutation.isPending} onClick={() => checkoutMutation.mutate()} className="w-full">
-          Upgrade to Premium <Crown className="w-5 h-5" aria-hidden="true" />
+        <Button size={size} loading={paymentMutation.isPending} onClick={() => paymentMutation.mutate()} className="w-full">
+          Pay {price} &amp; Enroll <Crown className="w-5 h-5" aria-hidden="true" />
         </Button>
       )
     }
@@ -299,7 +316,9 @@ export default function CourseDetailPage() {
       : isEnrolled
         ? 'You are enrolled in this course.'
         : isPremium && !subscription?.isActive
-          ? 'An active Premium subscription is required for this course.'
+          ? hasPrice
+            ? 'You will be redirected to our secure payment provider. Access unlocks only after the payment is verified.'
+            : 'Premium access for this course is being set up — please check back soon.'
           : 'Enrol now — you will get access to every lesson in this course.'
 
   return (
@@ -512,12 +531,13 @@ export default function CourseDetailPage() {
                 {renderCta('lg')}
                 <p className="text-xs text-gray-500 dark:text-gray-400">{ctaHelperText}</p>
                 {requestMutation.isError && <p role="alert" className="text-xs text-red-600 dark:text-red-400">{(requestMutation.error as Error).message}</p>}
+                {paymentMutation.isError && <p role="alert" className="text-xs text-red-600 dark:text-red-400">{(paymentMutation.error as Error).message}</p>}
                 {requestMutation.isSuccess && (
                   <p className="text-xs text-green-700 dark:text-green-400">
                     You are enrolled. <Link to={`/dashboard/courses/${id}`} className="underline font-semibold">Go to your course</Link>
                   </p>
                 )}
-                {checkoutMutation.isSuccess && <p className="text-xs text-green-700 dark:text-green-400">Your payment checkout is ready. Premium access activates after provider confirmation.</p>}
+                {paymentMutation.isSuccess && <p className="text-xs text-green-700 dark:text-green-400">Redirecting you to the secure payment page…</p>}
                 <dl className="space-y-2 pt-2 border-t border-gray-100 dark:border-gray-700 text-sm">
                   {([
                     ['Level', LEVEL_LABELS[course.level] ?? course.level],

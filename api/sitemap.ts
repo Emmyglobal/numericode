@@ -80,7 +80,7 @@ async function fetchActiveTrainerEntries(): Promise<SitemapUrlEntry[]> {
 
 type VercelLikeResponse = {
   setHeader: (name: string, value: string) => void
-  send: (body: string) => void
+  end: (body: string) => void
   statusCode?: number
 }
 
@@ -89,6 +89,7 @@ export default async function sitemapHandler(
   res: VercelLikeResponse,
 ): Promise<void> {
   res.setHeader('Content-Type', 'application/xml; charset=utf-8')
+  res.statusCode = 200
 
   try {
     const [courseEntries, trainerEntries] = await Promise.all([
@@ -100,12 +101,12 @@ export default async function sitemapHandler(
       siteUrl: SITEMAP_SITE_URL,
       enforceUrlLimit: true,
     })
-    res.send(xml)
+    res.end(xml)
   } catch {
     // Never fail the XML document: serve the static discovery routes only.
     // (Build-time generation via scripts/generate-sitemap.ts will hard-fail
     //  instead so deployment never ships a misleading zero-content sitemap.)
     const xml = buildSitemapXml([], { siteUrl: SITEMAP_SITE_URL })
-    res.send(xml)
+    res.end(xml)
   }
 }

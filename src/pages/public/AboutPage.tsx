@@ -52,8 +52,8 @@ export default function AboutPage() {
 
         <div className="mt-12 text-center bg-brand-blue rounded-2xl py-12 px-6 text-white">
           <h2 className="text-2xl font-bold mb-3">Join the NumeryCode Community</h2>
-          <p className="text-blue-100 mb-6 max-w-md mx-auto">Start learning today — completely free. Your first live class is waiting.</p>
-          <Link to="/register"><Button className="bg-white text-brand-blue hover:bg-blue-50 font-bold" size="lg">Get Started Free</Button></Link>
+          <p className="text-blue-100 mb-6 max-w-md mx-auto">Explore free learning opportunities and premium courses designed for practical, career-ready skills.</p>
+          <Link to="/register"><Button className="bg-white text-brand-blue hover:bg-blue-50 font-bold" size="lg">Create Free Account</Button></Link>
         </div>
       </SectionWrapper>
     </div>

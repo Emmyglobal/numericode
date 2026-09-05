@@ -77,6 +77,12 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
 
   const handleAnswer = (questionId: string, answer: unknown) => {
     if (submitted) return
+    const existing = answers[questionId]
+    const alreadyAnswered = existing !== undefined && existing !== null && (
+      (Array.isArray(existing) && (existing as any[]).length > 0) ||
+      (typeof existing === 'string' && String(existing).trim() !== '')
+    )
+    if (alreadyAnswered) return
     setAnswers(prev => ({ ...prev, [questionId]: answer }))
   }
 
@@ -171,11 +177,13 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
                   <div className="space-y-2">
                     {(q.options as Array<{ id: string; text: string }>).map((opt, oi) => {
                       const selected = Array.isArray(answers[q.id]) && (answers[q.id] as string[]).includes(opt.id)
+                      const locked = Array.isArray(answers[q.id]) && (answers[q.id] as string[]).length > 0
                       return (
                         <label
                           key={opt.id}
                           className={cn(
-                            'flex items-center gap-2.5 p-2.5 rounded-lg border text-sm cursor-pointer transition-colors',
+                            'flex items-center gap-2.5 p-2.5 rounded-lg border text-sm transition-colors',
+                            locked ? 'cursor-not-allowed' : 'cursor-pointer',
                             selected
                               ? 'border-brand-blue bg-brand-light dark:bg-blue-900/20 text-brand-blue'
                               : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300'
@@ -186,6 +194,7 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
                             name={`quiz-q-${q.id}`}
                             className="accent-brand-blue"
                             checked={selected}
+                            disabled={locked}
                             onChange={() => handleAnswer(q.id, [opt.id])}
                           />
                           <span className="font-bold w-4">{LETTERS[oi]}</span>
@@ -198,20 +207,28 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
 
                 {q.questionType === 'true_false' && (
                   <div className="flex gap-3">
-                    {['true', 'false'].map(value => (
-                      <button
-                        key={value}
-                        onClick={() => handleAnswer(q.id, value)}
-                        className={cn(
-                          'flex-1 p-3 rounded-lg border text-sm font-medium transition-colors',
-                          answers[q.id] === value
-                            ? 'border-brand-blue bg-brand-light text-brand-blue dark:bg-blue-900/20'
-                            : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300'
-                        )}
-                      >
-                        {value === 'true' ? 'True' : 'False'}
-                      </button>
-                    ))}
+                    {['true', 'false'].map(value => {
+                      const locked = answers[q.id] !== undefined && answers[q.id] !== null && (
+                        (Array.isArray(answers[q.id]) && (answers[q.id] as any[]).length > 0) ||
+                        (typeof answers[q.id] === 'string' && String(answers[q.id]).trim() !== '')
+                      )
+                      return (
+                        <button
+                          key={value}
+                          onClick={() => handleAnswer(q.id, value)}
+                          disabled={locked}
+                          className={cn(
+                            'flex-1 p-3 rounded-lg border text-sm font-medium transition-colors',
+                            answers[q.id] === value
+                              ? 'border-brand-blue bg-brand-light text-brand-blue dark:bg-blue-900/20'
+                              : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300',
+                            locked && 'cursor-not-allowed opacity-80'
+                          )}
+                        >
+                          {value === 'true' ? 'True' : 'False'}
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
 
