@@ -871,6 +871,26 @@ List all courses on the platform.
 }
 ```
 
+**Success `200`:** Array of course objects.
+
+---
+
+### DELETE /admin/courses/:id
+
+Delete a course and all its associated data (enrollments, lessons, modules, quizzes, assignments).
+
+**Success `200`:**
+```json
+{
+  "message": "Course and all associated data deleted successfully",
+  "deletedCourseId": "c1",
+  "deletedCourseTitle": "Foundation Mathematics",
+  "deletedAt": "2026-06-28T10:30:00.000Z"
+}
+```
+
+**Error `404`:** Course not found.
+
 ---
 
 ### GET /admin/announcements

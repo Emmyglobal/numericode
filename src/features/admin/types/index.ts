@@ -43,3 +43,21 @@ export interface AdminAnnouncement {
   createdAt: string
   createdBy: string
 }
+
+export interface AdminPayment {
+  id: string
+  userId: string
+  courseId: string
+  reference: string
+  email: string
+  amountSubunits: number
+  currency: string
+  status: 'pending' | 'verified' | 'failed' | 'abandoned' | 'refunded' | 'disputed'
+  failureReason: string | null
+  initializedAt: string
+  paidAt: string | null
+  verifiedAt: string | null
+  user: { id: string; name: string; email: string }
+  course: { id: string; title: string; accessLevel: string; priceCents: number; currency: string }
+  isEnrolled: boolean
+}

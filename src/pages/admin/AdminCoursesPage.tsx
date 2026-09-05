@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { BookOpen, PlusCircle } from 'lucide-react'
+import { BookOpen, PlusCircle, Trash2, X } from 'lucide-react'
 import { api } from '@/lib/axios'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -24,6 +24,7 @@ export default function AdminCoursesPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [accessDrafts, setAccessDrafts] = useState<Record<string, { accessLevel: 'free' | 'premium'; priceCents: number; premiumEnabled: boolean }>>({})
+  const [deleteConfirmCourse, setDeleteConfirmCourse] = useState<AdminCourse | null>(null)
 
   const { data: courses, isLoading } = useQuery({
     queryKey: ['admin', 'courses'],
@@ -76,6 +77,20 @@ export default function AdminCoursesPage() {
       setSuccessMessage('Course request reviewed.')
     },
   })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.delete(`/admin/courses/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'courses'] })
+      setDeleteConfirmCourse(null)
+      setSuccessMessage('Course deleted successfully')
+    },
+    onError: (err: any) => {
+      setSuccessMessage('')
+      alert(err?.response?.data?.message || 'Failed to delete course')
+    },
+  })
+
   const pendingRequests = requests?.filter(request => request.status === 'pending') ?? []
 
   return (
@@ -179,6 +194,9 @@ export default function AdminCoursesPage() {
                   {c.status !== 'archived' && (
                     <Button variant="danger" size="sm" loading={statusMutation.isPending} onClick={() => statusMutation.mutate({ id: c.id, status: 'archived' })}>Archive</Button>
                   )}
+                  <Button variant="danger" size="sm" onClick={() => setDeleteConfirmCourse(c)}>
+                    <Trash2 className="w-3 h-3" /> Delete
+                  </Button>
                   <Button variant="secondary" size="sm" loading={accessMutation.isPending} onClick={() => accessMutation.mutate({ id: c.id, payload: accessDrafts[c.id] ?? { accessLevel: c.accessLevel, priceCents: c.priceCents, premiumEnabled: c.premiumEnabled } })}>Save Access</Button>
                 </div>
               </div>
@@ -195,6 +213,37 @@ export default function AdminCoursesPage() {
           onClose={() => setModalOpen(false)}
           onSubmit={values => createMutation.mutate(values)}
         />
+      )}
+
+      {/* Delete confirmation modal */}
+      {deleteConfirmCourse && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-confirm-title"
+            className="relative w-full max-w-md bg-white dark:bg-surface-dark rounded-2xl shadow-xl p-6"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 id="delete-confirm-title" className="text-lg font-bold text-gray-900 dark:text-white">Delete Course</h2>
+              <button onClick={() => setDeleteConfirmCourse(null)} aria-label="Close" className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
+                <X className="w-5 h-5" aria-hidden="true" />
+              </button>
+            </div>
+            <p className="text-gray-600 dark:text-gray-300 mb-2">
+              Are you sure you want to delete <strong className="text-gray-900 dark:text-white">"{deleteConfirmCourse.title}"</strong>?
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              This action cannot be undone. All associated data including enrollments, lessons, modules, quizzes, and assignments will be permanently removed.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button variant="ghost" onClick={() => setDeleteConfirmCourse(null)}>Cancel</Button>
+              <Button variant="danger" loading={deleteMutation.isPending} onClick={() => deleteMutation.mutate(deleteConfirmCourse.id)}>
+                <Trash2 className="w-4 h-4" /> Delete Permanently
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
