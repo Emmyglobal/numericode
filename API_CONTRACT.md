@@ -893,6 +893,56 @@ Delete a course and all its associated data (enrollments, lessons, modules, quiz
 
 ---
 
+### GET /admin/payments
+
+List all premium course payments with user and course details. Used by admins to review and approve pending payments.
+
+**Success `200`:**
+```json
+{
+  "id": "pay_abc123",
+  "userId": "user-uuid",
+  "courseId": "course-uuid",
+  "reference": "REF-2026-ABC123",
+  "email": "student@example.com",
+  "amountSubunits": 500000,
+  "currency": "NGN",
+  "status": "pending",
+  "failureReason": null,
+  "initializedAt": "2026-06-28T10:30:00.000Z",
+  "paidAt": null,
+  "verifiedAt": null,
+  "user": { "id": "user-uuid", "name": "John Doe", "email": "john@example.com" },
+  "course": { "id": "course-uuid", "title": "Advanced JavaScript", "accessLevel": "premium", "priceCents": 5000, "currency": "NGN" },
+  "isEnrolled": false
+}
+```
+
+`status` is one of: `"pending"` · `"verified"` · `"failed"` · `"abandoned"` · `"refunded"` · `"disputed"`
+
+---
+
+### POST /admin/payments/:id/approve
+
+Manually approve a pending payment and grant the user enrollment access to the premium course. This is useful when automatic payment verification (via webhook) fails or for manual review.
+
+**Success `200`:**
+```json
+{
+  "message": "Payment approved and enrollment granted",
+  "paymentId": "pay_abc123",
+  "userId": "user-uuid",
+  "courseId": "course-uuid",
+  "courseTitle": "Advanced JavaScript",
+  "approvedAt": "2026-06-28T11:00:00.000Z"
+}
+```
+
+**Error `400`:** Payment status is not 'pending' (already verified, failed, etc.)
+**Error `404`:** Payment not found.
+
+---
+
 ### GET /admin/announcements
 
 List all platform announcements.

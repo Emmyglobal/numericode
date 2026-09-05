@@ -72,6 +72,7 @@ const AdminOverview      = lazy(() => import('@/pages/admin/AdminOverviewPage'))
 const AdminUsers         = lazy(() => import('@/pages/admin/AdminUsersPage'))
 const AdminCourses       = lazy(() => import('@/pages/admin/AdminCoursesPage'))
 const AdminCourseBuilder = lazy(() => import('@/pages/admin/AdminCourseBuilderPage'))
+const AdminPayments      = lazy(() => import('@/pages/admin/AdminPaymentsPage'))
 const AdminAnnouncements = lazy(() => import('@/pages/admin/AdminAnnouncementsPage'))
 const AdminAnalytics     = lazy(() => import('@/pages/admin/AdminAnalyticsPage'))
 const AdminResources     = lazy(() => import('@/pages/admin/AdminResourcesPage'))
@@ -198,6 +199,7 @@ export function AppRouter() {
             <Route path="/admin/users"                    element={<AdminUsers />} />
             <Route path="/admin/courses"                  element={<AdminCourses />} />
             <Route path="/admin/courses/:courseId/builder" element={<AdminCourseBuilder />} />
+            <Route path="/admin/payments"                 element={<AdminPayments />} />
             <Route path="/admin/announcements"            element={<AdminAnnouncements />} />
             <Route path="/admin/analytics"     element={<AdminAnalytics />} />
             <Route path="/admin/resources"     element={<AdminResources />} />

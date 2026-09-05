@@ -242,7 +242,7 @@ npm run test:coverage # Tests + coverage report
 | Courses | GET /courses · /courses/:id |
 | Dashboard | GET /dashboard · /dashboard/courses · /dashboard/courses/:id · /assignments · /announcements · /resources · /live-classes · /profile · PUT /profile |
 | Trainer | GET /trainer/stats · /trainer/courses · /trainer/students · /trainer/sessions · /trainer/assignments |
-| Admin | GET /admin/stats · /admin/users · /admin/courses · /admin/announcements · POST /admin/announcements · POST /admin/courses · PATCH /admin/users/:id · PATCH /admin/courses/:id/status · DELETE /admin/courses/:id |
+| Admin | GET /admin/stats · /admin/users · /admin/courses · /admin/payments · /admin/announcements · POST /admin/announcements · POST /admin/courses · PATCH /admin/users/:id · PATCH /admin/courses/:id/status · DELETE /admin/courses/:id · POST /admin/payments/:id/approve |
 
 ---
 
