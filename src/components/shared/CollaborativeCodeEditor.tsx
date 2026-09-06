@@ -117,7 +117,7 @@ export function CollaborativeCodeEditor({
   const [saving, setSaving] = useState(false)
   const [running, setRunning] = useState(false)
   const [output, setOutput] = useState('')
-  const [showOutput, setShowOutput] = useState(false)
+  const [showOutput, setShowOutput] = useState(true)
   const [message, setMessage] = useState('')
   const [students, setStudents] = useState<TrainerStudent[]>([])
   const [showNewFileInput, setShowNewFileInput] = useState(false)
@@ -558,9 +558,9 @@ export function CollaborativeCodeEditor({
           </div>
         </div>
 
-        {/* Output panel */}
+        {/* Output panel - always visible */}
         {showOutput && (
-          <div className="lg:w-80 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700 flex flex-col">
+          <div className="lg:w-80 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700 flex flex-col min-h-[150px]">
             <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
               <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 flex items-center gap-1">
                 <Terminal className="h-3.5 w-3.5" /> Output
@@ -573,7 +573,7 @@ export function CollaborativeCodeEditor({
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
-            <pre className="flex-1 p-3 text-xs font-mono text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-900 overflow-auto min-h-[100px] max-h-[300px] whitespace-pre-wrap">
+            <pre className="flex-1 p-3 text-xs font-mono text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-900 overflow-auto min-h-[100px] whitespace-pre-wrap">
               {output || 'Click "Run" to execute the code.'}
             </pre>
           </div>

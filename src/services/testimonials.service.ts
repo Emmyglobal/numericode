@@ -8,5 +8,11 @@ export interface SubmitTestimonialInput {
 
 export const testimonialsService = {
   list: async () => { const { data } = await api.get<ApiResponse<PublicTestimonial[]>>('/testimonials'); return data.data },
-  submit: async (input: SubmitTestimonialInput) => { const { data } = await api.post<ApiResponse<{ id: string; status: string }>>('/testimonials', input); return data.data },
+  submit: async (input: SubmitTestimonialInput) => {
+    // Submit without auth header - testimonials are public
+    const { data } = await api.post<ApiResponse<{ id: string; status: string }>>('/testimonials', input, {
+      headers: { Authorization: '' }
+    })
+    return data.data
+  },
 }

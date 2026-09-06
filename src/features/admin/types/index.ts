@@ -33,6 +33,8 @@ export interface AdminStats {
   totalEnrolments: number
   pendingTrainers: number
   platformGrowth: number
+  userGrowth: number
+  enrollmentGrowth: number
 }
 
 export interface AdminAnnouncement {

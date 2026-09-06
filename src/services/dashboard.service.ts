@@ -19,4 +19,5 @@ export const dashboardService = {
   getCertificates: async () => { const { data } = await api.get<ApiResponse<unknown[]>>('/certificates/me'); return data.data },
   generateCertificate: async (courseId: string) => { const { data } = await api.post<ApiResponse<unknown>>(`/certificates/courses/${courseId}/generate`); return data.data },
   verifyCertificate: async (code: string) => { const { data } = await api.get<ApiResponse<unknown>>(`/certificates/verify/${code}`); return data.data },
+  completeLesson: async (lessonId: string) => { const { data } = await api.put<ApiResponse<{ lessonId: string; courseId: string; progress: number; completedLessons: number; totalLessons: number; message: string }>>(`/dashboard/lessons/${lessonId}/complete`); return data },
 }

@@ -1,7 +1,7 @@
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useMemo, useEffect } from 'react'
-import { CheckCircle, BookOpen, ChevronLeft, ChevronRight, Download, Menu, X } from 'lucide-react'
+import { CheckCircle, BookOpen, ChevronLeft, ChevronRight, Download, Menu, X, Trophy } from 'lucide-react'
 import { dashboardService } from '@/services/dashboard.service'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Button } from '@/components/ui/Button'
@@ -88,6 +88,23 @@ export default function CourseViewerPage() {
     queryFn:  () => quizzesService.listByLesson(activeLesson!.id),
     enabled:  Boolean(activeLesson?.id),
   })
+
+  // Lesson completion mutation
+  const queryClient = useQueryClient()
+  const completeLessonMutation = useMutation({
+    mutationFn: (lessonId: string) => dashboardService.completeLesson(lessonId),
+    onSuccess: () => {
+      // Refetch the course to update progress
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'courses', id] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+    },
+  })
+
+  const handleCompleteLesson = () => {
+    if (activeLesson && !activeLesson.isCompleted) {
+      completeLessonMutation.mutate(activeLesson.id)
+    }
+  }
 
   if (isError || (!isLoading && !course)) {
     // Course failed to load (404 not enrolled, 500, or backend unreachable).
@@ -356,6 +373,22 @@ export default function CourseViewerPage() {
               <ChevronLeft className="w-4 h-4" aria-hidden="true" />
               Previous
             </Button>
+            {activeLesson && !activeLesson.isCompleted && (
+              <Button
+                onClick={handleCompleteLesson}
+                loading={completeLessonMutation.isPending}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Trophy className="w-4 h-4 mr-1.5" aria-hidden="true" />
+                Complete Lesson
+              </Button>
+            )}
+            {activeLesson?.isCompleted && (
+              <span className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
+                <CheckCircle className="w-4 h-4" aria-hidden="true" />
+                Lesson Complete
+              </span>
+            )}
             <Button
               disabled={activeIndex >= totalLessons - 1}
               onClick={() => setActiveLessonId(allLessons[activeIndex + 1]?.id)}

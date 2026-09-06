@@ -127,7 +127,7 @@ export default function AdminPaymentsPage() {
         <Skeleton className="h-64" />
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon={CreditCard}
+                    icon={<CreditCard className="w-6 h-6" />}
           title="No payments found"
           description={search || statusFilter ? 'Try adjusting your search or filter.' : 'Payments will appear here when students purchase premium courses.'}
         />

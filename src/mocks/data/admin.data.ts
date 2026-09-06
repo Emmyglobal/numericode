@@ -10,6 +10,8 @@ export const adminStats: AdminStats = {
   totalEnrolments: 187,
   pendingTrainers: 1,
   platformGrowth: 23,
+  userGrowth: 18,
+  enrollmentGrowth: 31,
 }
 
 export const adminUsers: AdminUser[] = [
