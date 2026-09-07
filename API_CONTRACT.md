@@ -393,6 +393,38 @@ Get a single enrolled course with full module/lesson detail and progress.
 
 ---
 
+### PUT /dashboard/lessons/:lessonId/complete
+
+Mark a lesson as complete for the authenticated student. Idempotent — duplicate
+requests return success without creating duplicate completion records.
+
+**Authentication:** Required (student)
+
+**Request:** No body required. The lesson ID is provided via the URL parameter.
+
+**Success `200`:**
+```json
+{
+  "success": true,
+  "data": {
+    "lessonId": "l1",
+    "courseId": "c1",
+    "completed": true,
+    "progress": 67,
+    "completedLessons": 2,
+    "totalLessons": 3
+  }
+}
+```
+
+**Error `404`:** Lesson not found or student not enrolled in the course.
+
+**Idempotency:** The endpoint uses `INSERT ... ON CONFLICT (user_id, lesson_id) DO NOTHING`,
+so repeated calls for the same lesson are safe no-ops. Course progress is recomputed
+after each completion.
+
+---
+
 ### GET /assignments
 
 List all assignments for the student's enrolled courses.

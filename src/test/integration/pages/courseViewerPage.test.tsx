@@ -123,14 +123,36 @@ describe('CourseViewerPage repro', () => {
   })
 
   it('shows a clear error state (not an infinite spinner) when the course fetch fails', async () => {
-    // Regression: a 404/500 from getCourse left the page stuck on skeletons
-    // forever with no message — surfacing as "the course won't load".
-    vi.mocked(dashboardService.getCourse).mockRejectedValue(new Error('Enrolled course not found'))
-    renderPage()
-    await waitFor(() => {
+  // Regression: a 404/500 from getCourse left the page stuck on skeletons
+  // forever with no message — surfacing as "the course won't load".
+  vi.mocked(dashboardService.getCourse).mockRejectedValue(new Error('Enrolled course not found'))
+  renderPage()
+  await waitFor(() => {
       expect(screen.getByText(/Can't open this course/i)).toBeInTheDocument()
       expect(screen.getByText(/Enrolled course not found/i)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /Try again/i })).toBeInTheDocument()
+  })
+  })
+
+  it('shows a course-complete celebration when all lessons are done', async () => {
+    // Phase 19: progress === 100 with lessons present should show a
+    // "🎉 Course Complete!" state instead of continuing to the lesson view.
+    vi.mocked(dashboardService.getCourse).mockResolvedValue({
+      ...fullCourse,
+      progress: 100,
+      modules: [{
+        id: 'm1', title: 'Numbers', lessons: [
+          { id: 'l1', title: 'Intro', content: '', duration: 20, isCompleted: true, resources: [] },
+          { id: 'l2', title: 'Addition', content: '', duration: 25, isCompleted: true, resources: [] },
+        ],
+      }],
     })
+    renderPage()
+    await waitFor(() => {
+      expect(screen.getByText(/🎉 Course Complete/i)).toBeInTheDocument()
+    })
+    expect(screen.getByRole('button', { name: /Back to My Courses/i })).toBeInTheDocument()
+    // The lesson content should NOT be rendered in the completion state
+    expect(screen.queryByText(/Lesson 1 of/i)).not.toBeInTheDocument()
   })
 })

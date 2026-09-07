@@ -242,8 +242,25 @@ export default function CourseViewerPage() {
         </div>
 
         <article className="max-w-3xl mx-auto p-6 sm:p-10">
-          {/* No lessons in this course yet — show a friendly empty state instead of an empty/broken layout */}
-          {totalLessons === 0 ? (
+          {/* Course completed — celebration state (Phase 19) */}
+          {totalLessons > 0 && course.progress >= 100 ? (
+            <div className="py-16 text-center">
+              <div className="w-20 h-20 mx-auto rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-6">
+                <Trophy className="w-10 h-10 text-green-600 dark:text-green-400" aria-hidden="true" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">🎉 Course Complete!</h2>
+              <p className="text-lg text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                Congratulations — you have completed every lesson in this course. All your progress is saved and this achievement will appear on your learning record.
+              </p>
+              <div className="mb-8">
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Overall Progress</span>
+                <div className="mt-2"><ProgressBar value={course.progress} /></div>
+              </div>
+              <Link to="/dashboard/courses" className="inline-flex items-center gap-2">
+                <Button><BookOpen className="w-4 h-4" aria-hidden="true" />Back to My Courses</Button>
+              </Link>
+            </div>
+          ) : totalLessons === 0 ? (
             <div className="py-16 text-center">
               <BookOpen className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" aria-hidden="true" />
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No lessons yet</h2>
