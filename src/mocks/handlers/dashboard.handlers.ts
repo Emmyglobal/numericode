@@ -101,6 +101,14 @@ export const dashboardHandlers = [
     if (!course) return new HttpResponse(null, { status: 404 })
     return HttpResponse.json({ success: true, data: course })
   }),
+  // "Remove Course" — only the in-memory enrolled list is touched (the mock
+  // mirrors the real backend, which removes ONLY the enrollment row).
+  http.delete('/api/dashboard/courses/:id', ({ params }) => {
+    const index = enrolledCourses.findIndex(c => c.id === params.id)
+    if (index === -1) return HttpResponse.json({ success: false, data: null, message: 'You are not enrolled in this course' }, { status: 404 })
+    const [removed] = enrolledCourses.splice(index, 1)
+    return HttpResponse.json({ success: true, data: { removed: true, courseId: removed.id, message: 'Course removed from your courses' } })
+  }),
   http.get('/api/assignments', () => HttpResponse.json({ success: true, data: assignmentsData })),
   http.get('/api/announcements', () => HttpResponse.json({ success: true, data: announcementsData })),
   http.get('/api/live-classes', () => HttpResponse.json({ success: true, data: [

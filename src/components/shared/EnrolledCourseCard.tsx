@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { BookOpen, Check, ChevronDown, PlayCircle, StickyNote } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { BookOpen, Check, ChevronDown, MinusCircle, PlayCircle, StickyNote, Lock } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Markdown } from '@/components/ui/Markdown'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { cn } from '@/utils/classNames'
+import { dashboardService } from '@/services/dashboard.service'
 import type { EnrolledCourse } from '@/features/courses/types'
 
 /** Slim circular progress indicator — WorldQuant-style course progress. */
@@ -60,8 +63,28 @@ interface EnrolledCourseCardProps { course: EnrolledCourse }
 
 export function EnrolledCourseCard({ course }: EnrolledCourseCardProps) {
   const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null)
+  const [confirmRemove, setConfirmRemove] = useState(false)
+  const queryClient = useQueryClient()
 
-    // Defensive: the /dashboard/courses list endpoint returns flat summaries
+  // "Remove Course" — the backend enforces ownership + the purchased-course
+  // policy. On success we invalidate every react-query consumer of the
+  // enrollment list so My Courses, the dashboard overview, the public course
+  // page and the "available for enrollment" list all refresh immediately.
+  const removeMutation = useMutation({
+    mutationFn: () => dashboardService.removeCourse(course.id),
+    onSuccess: () => {
+      setConfirmRemove(false)
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'courses'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-my-courses'] })
+      queryClient.invalidateQueries({ queryKey: ['availableForEnrollment'] })
+    },
+  })
+  const removeError = removeMutation.error instanceof Error
+    ? removeMutation.error.message
+    : removeMutation.error
+
+  // Defensive: the /dashboard/courses list endpoint returns flat summaries
   // without `modules`; guard so a single card never crashes the whole page.
   const courseModules = Array.isArray(course.modules) ? course.modules : []
   const allLessons = courseModules.flatMap(m => m.lessons ?? [])
@@ -181,6 +204,41 @@ export function EnrolledCourseCard({ course }: EnrolledCourseCardProps) {
           )}
         </div>
       </div>
+
+      {/* Footer actions */}
+      <div className="flex items-center justify-end gap-2 border-t border-gray-100 dark:border-gray-800 px-4 py-2.5">
+        {course.purchased ? (
+          // Legitimately purchased access — self-serve removal is disabled. The
+          // backend independently enforces the same purchased-course policy.
+          <span
+            className="inline-flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-gray-400"
+            title="Purchased courses can't be removed here — removal is subject to the platform purchase/refund policy"
+          >
+            <Lock className="w-3 h-3" aria-hidden />
+            Purchased — removal subject to purchase/refund policy
+          </span>
+        ) : (
+          <Button variant="ghost" size="sm" onClick={() => setConfirmRemove(true)}>
+            <MinusCircle className="w-3.5 h-3.5" aria-hidden />
+            Remove Course
+          </Button>
+        )}
+      </div>
+
+      {/* Remove Course confirmation — text reflects the real persistence
+          behaviour: only the registration leaves My Courses; the course,
+          learning history and payment history are preserved. */}
+      <ConfirmDialog
+        open={confirmRemove}
+        title="Remove this course?"
+        message="Your course registration and learning progress for this course will be removed from your active courses. The course itself, your learning records and any payment history are preserved — only a purchased course can't be removed from here (see the platform purchase/refund policy)."
+        confirmLabel="Remove Course"
+        cancelLabel="Cancel"
+        loading={removeMutation.isPending}
+        error={removeError}
+        onConfirm={() => removeMutation.mutate()}
+        onCancel={() => { setConfirmRemove(false); removeMutation.reset() }}
+      />
     </article>
   )
 }

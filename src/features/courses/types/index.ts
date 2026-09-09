@@ -26,7 +26,13 @@ export interface Course {
   accessLevel?: CourseAccessLevel; priceCents?: number; currency?: string; premiumEnabled?: boolean
   prerequisiteQuiz?: PrerequisiteQuiz
 }
-export interface EnrolledCourse extends Course { progress: number; enrolledAt: string }
+/**
+ * Enrolled course as returned by GET /api/dashboard/courses.
+ * `purchased` is true when the student has a VERIFIED payment for this course —
+ * a legitimately purchased access that cannot be removed self-serve (removal is
+ * subject to the platform purchase/refund policy).
+ */
+export interface EnrolledCourse extends Course { progress: number; enrolledAt: string; purchased?: boolean }
 
 /**
  * Slim course payload returned by the public catalogue endpoint (Phase 1 API).
