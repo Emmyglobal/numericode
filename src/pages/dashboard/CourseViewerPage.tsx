@@ -1,6 +1,6 @@
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { CheckCircle, BookOpen, ChevronLeft, ChevronRight, Download, Menu, X, Trophy } from 'lucide-react'
 import { dashboardService } from '@/services/dashboard.service'
 import { ProgressBar } from '@/components/ui/ProgressBar'
@@ -105,6 +105,31 @@ export default function CourseViewerPage() {
       completeLessonMutation.mutate(activeLesson.id)
     }
   }
+
+  // ── Progress as you go ───────────────────────────────────────────────────────
+  // When the student goes over the course (opens / navigates to a lesson), that
+  // lesson is automatically recorded as completed via the existing idempotent
+  // PUT /dashboard/lessons/:lessonId/complete endpoint, which re-computes the
+  // enrollment progress server-side. This makes the overall progress bar
+  // increase while the student studies — the explicit "Complete Lesson" button
+  // remains as an extra confirmation action.
+  //
+  // Safety properties:
+  //  - Server-side the insert is `ON CONFLICT (user_id, lesson_id) DO NOTHING`,
+  //    so viewing the same lesson twice can never regress or double-count.
+  //  - `autoMarkedRef` avoids re-submitting a lesson while the refetch from a
+  //    previous mutation is still in flight (progress only ever moves forward).
+  //  - When a prerequisite-quiz gate locks the course, nothing is auto-marked —
+  //    the student must pass the gate before any lesson completion is recorded.
+  const autoMarkedRef = useRef<Set<string>>(new Set())
+  const quizGateLocked = Boolean(course?.prerequisiteQuiz && !course.prerequisiteQuiz.isPrerequisiteQuizPassed)
+  useEffect(() => {
+    if (quizGateLocked) return
+    if (!activeLesson || activeLesson.isCompleted) return
+    if (autoMarkedRef.current.has(activeLesson.id)) return
+    autoMarkedRef.current.add(activeLesson.id)
+    completeLessonMutation.mutate(activeLesson.id)
+  }, [quizGateLocked, activeLesson, completeLessonMutation])
 
   if (isError || (!isLoading && !course)) {
     // Course failed to load (404 not enrolled, 500, or backend unreachable).

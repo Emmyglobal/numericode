@@ -146,7 +146,11 @@ it('shows an empty state when no trainers match and Clear filters restores the l
     await user.type(screen.getByRole('searchbox', { name: /search registered trainers/i }), 'zzz')
     await waitFor(() => expect(screen.getByText('No Registered Trainers found')).toBeInTheDocument())
     await user.click(screen.getAllByRole('button', { name: 'Clear filters' })[0])
-    await waitFor(() => expect(screen.getByText('Emmanuel Nwafor')).toBeInTheDocument())
+    // Restoration goes through the page's 300ms debounced search → URL sync →
+    // list refilter, which can exceed the default 1s waitFor timeout under
+    // jsdom slowness after many tests (flake). The assertion is eventual, so a
+    // generous timeout removes the flake without weakening it.
+    await waitFor(() => expect(screen.getByText('Emmanuel Nwafor')).toBeInTheDocument(), { timeout: 5000 })
   })
 
   it('shows a neutral empty state when the API returns no trainers at all', async () => {

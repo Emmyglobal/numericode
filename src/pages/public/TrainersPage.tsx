@@ -68,7 +68,14 @@ export default function TrainersPage() {
   const debouncedQ = useDebounce(searchInput, 300)
   const lastPushedQ = useRef(urlQ)
 
+  // Only push once the debounce has CAUGHT UP with the current input.
+  // Without this guard, a URL change committed by clearFilters()/updateSubject()
+  // re-runs this effect while `debouncedQ` still holds the stale pre-clear
+  // value, resurrecting the old filter (and re-syncing it into the input,
+  // permanently re-filtering the list). Waiting for `debouncedQ === searchInput`
+  // means a clear is honoured immediately and the debounced value follows.
   useEffect(() => {
+    if (debouncedQ !== searchInput) return
     if (debouncedQ !== lastPushedQ.current) {
       lastPushedQ.current = debouncedQ
       if (debouncedQ !== urlQ) {
@@ -78,7 +85,7 @@ export default function TrainersPage() {
         setSearchParams(next, { replace: false })
       }
     }
-  }, [debouncedQ, urlQ, searchParams, setSearchParams])
+  }, [debouncedQ, searchInput, urlQ, searchParams, setSearchParams])
 
   // Keep the input in sync when the URL changes externally (back/forward).
   useEffect(() => {

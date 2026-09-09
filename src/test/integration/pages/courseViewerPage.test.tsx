@@ -36,6 +36,7 @@ vi.mock('@/services/dashboard.service', () => ({
     getCourse: vi.fn(),
     getBoard: vi.fn().mockResolvedValue(null),
     saveBoard: vi.fn().mockResolvedValue({}),
+    completeLesson: vi.fn().mockResolvedValue({ data: { success: true, data: { lessonId: 'x', completed: true } } }),
   },
 }))
 
@@ -50,14 +51,19 @@ vi.mock('@/lib/axios', () => ({
 vi.mock('@/components/shared/LearningBoard', () => ({ LearningBoard: () => null }))
 vi.mock('@/components/shared/CollaborativeCodeEditor', () => ({ CollaborativeCodeEditor: () => null }))
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { retry: false, gcTime: 0, staleTime: 0 },
-    mutations: { retry: false },
-  },
-})
+function makeQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, gcTime: 0, staleTime: 0 },
+      mutations: { retry: false },
+    },
+  })
+}
 
 function renderPage(route = '/dashboard/courses/c1') {
+  // Fresh client per render so a previous test's cached course (e.g. one with
+  // incomplete lessons) can never leak into the next test's initial render.
+  const queryClient = makeQueryClient()
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[route]}>
@@ -154,5 +160,52 @@ describe('CourseViewerPage repro', () => {
     expect(screen.getByRole('button', { name: /Back to My Courses/i })).toBeInTheDocument()
     // The lesson content should NOT be rendered in the completion state
     expect(screen.queryByText(/Lesson 1 of/i)).not.toBeInTheDocument()
+  })
+
+  it('progress increases as the student goes over the course (auto-completes the viewed lesson)', async () => {
+    // Deep-link straight to the INCOMPLETE lesson l2: opening it must record a
+    // completion via the existing idempotent endpoint so the overall progress
+    // bar advances server-side while the student studies.
+    renderPage('/dashboard/courses/c1?lesson=l2')
+    await waitFor(() => {
+      expect(dashboardService.completeLesson).toHaveBeenCalledWith('l2')
+    })
+    // Only the viewed (incomplete) lesson is submitted — never already-done ones.
+    expect(dashboardService.completeLesson).not.toHaveBeenCalledWith('l1')
+  })
+
+  it('never re-submits already-completed lessons when going over the course', async () => {
+    // All lessons done → viewing the course must not submit anything.
+    vi.mocked(dashboardService.getCourse).mockResolvedValue({
+      ...fullCourse,
+      progress: 100,
+      modules: [{
+        id: 'm1', title: 'Numbers', lessons: [
+          { id: 'l1', title: 'Intro', content: '', duration: 20, isCompleted: true, resources: [] },
+          { id: 'l2', title: 'Addition', content: '', duration: 25, isCompleted: true, resources: [] },
+        ],
+      }],
+    })
+    renderPage()
+    await waitFor(() => {
+      expect(screen.getByText(/🎉 Course Complete/i)).toBeInTheDocument()
+    })
+    expect(dashboardService.completeLesson).not.toHaveBeenCalled()
+  })
+
+  it('does NOT auto-complete lessons while a prerequisite-quiz gate locks the course', async () => {
+    vi.mocked(dashboardService.getCourse).mockResolvedValue({
+      ...fullCourse,
+      prerequisiteQuiz: {
+        id: 'q-gate',
+        title: 'Placement quiz',
+        isPrerequisiteQuizPassed: false,
+      },
+    } as unknown as typeof fullCourse)
+    renderPage()
+    await waitFor(() => {
+      expect(screen.getByText(/Placement quiz/i)).toBeInTheDocument()
+    })
+    expect(dashboardService.completeLesson).not.toHaveBeenCalled()
   })
 })
