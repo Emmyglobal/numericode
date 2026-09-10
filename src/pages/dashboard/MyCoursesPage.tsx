@@ -1,6 +1,6 @@
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { BookOpen, Check, GraduationCap, PlayCircle, Search, TrendingUp } from 'lucide-react'
+import { BookOpen, Check, GraduationCap, PlayCircle, Search } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { dashboardService } from '@/services/dashboard.service'
