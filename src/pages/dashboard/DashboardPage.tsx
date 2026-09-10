@@ -1,7 +1,7 @@
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { BookOpen, CheckCircle, Video, ClipboardList, ExternalLink, ChevronRight, FolderOpen} from 'lucide-react'
+import { BookOpen, CheckCircle, Video, ClipboardList, ExternalLink, ChevronRight, FolderOpen, TrendingUp } from 'lucide-react'
 import { dashboardService } from '@/services/dashboard.service'
 import { StatCard } from '@/components/shared/StatCard'
 import { ProgressBar } from '@/components/ui/ProgressBar'
@@ -13,6 +13,7 @@ import { formatDateTime } from '@/utils/formatDate'
 
 interface Overview {
   enrolledCount: number; completedLessons: number; upcomingClassesCount: number; assignmentsDue: number
+  avgCompletionProgress: number
   continuelearning: { id: string; title: string; progress: number; nextLesson: { title: string } } | null
   upcomingClasses: { id: string; courseTitle: string; subject: string; title: string; date: string; meetUrl: string }[]
   recentAnnouncements: { id: string; title: string; createdAt: string; isRead: boolean }[]
@@ -46,8 +47,8 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={<BookOpen className="w-6 h-6" />}      value={data.enrolledCount}       label="Courses"      color="blue" />
         <StatCard icon={<CheckCircle className="w-6 h-6" />}   value={data.completedLessons}    label="Lessons Done" color="green" />
+        <StatCard icon={<TrendingUp className="w-6 h-6" />}    value={`${data.avgCompletionProgress}%`} label="Avg. Progress" color="teal" />
         <StatCard icon={<Video className="w-6 h-6" />}         value={data.upcomingClassesCount} label="This Week"    color="teal" />
-        <StatCard icon={<ClipboardList className="w-6 h-6" />} value={data.assignmentsDue}       label="Due Soon"     color="orange" />
       </div>
 
       <div className="rounded-2xl bg-gradient-to-r from-brand-light to-blue-50 dark:from-blue-900/20 dark:to-blue-900/10 border border-brand-light dark:border-blue-800 p-6">

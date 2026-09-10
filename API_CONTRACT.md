@@ -350,6 +350,7 @@ Returns the student's dashboard overview — all data needed to render the overv
       "progress": 42,
       "nextLesson": { "id": "l3", "title": "Multiplication & Division", "duration": 30 }
     },
+    "avgCompletionProgress": 47,  // NEW: Average progress across all enrolled courses
     "upcomingClasses": [
       {
         "id":          "lc1",
