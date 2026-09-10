@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import CourseViewerPage from '@/pages/dashboard/CourseViewerPage'
 import { dashboardService } from '@/services/dashboard.service'
+import { paymentsService } from '@/services/payments.service'
 
 const fullCourse = {
   id: 'c1',
@@ -37,6 +39,19 @@ vi.mock('@/services/dashboard.service', () => ({
     getBoard: vi.fn().mockResolvedValue(null),
     saveBoard: vi.fn().mockResolvedValue({}),
     completeLesson: vi.fn().mockResolvedValue({ data: { success: true, data: { lessonId: 'x', completed: true } } }),
+    removeCourse: vi.fn().mockResolvedValue({ removed: true, courseId: 'c1', message: 'Course removed' }),
+  },
+}))
+
+vi.mock('@/services/payments.service', () => ({
+  paymentsService: {
+    initiate: vi.fn().mockResolvedValue({
+      reference: 'ref-123',
+      authorizationUrl: 'https://paystack.test/checkout/ref-123',
+      amountSubunits: 50000,
+      currency: 'NGN',
+      courseTitle: 'Premium Course',
+    }),
   },
 }))
 
@@ -47,6 +62,20 @@ vi.mock('@/services/quizzes.service', () => ({
 vi.mock('@/lib/axios', () => ({
   api: { get: vi.fn().mockResolvedValue({ data: { success: true, data: [] } }), put: vi.fn().mockResolvedValue({ data: { success: true, data: {} } }) },
 }))
+
+// isAxiosError is imported by CourseViewerPage to detect 403 premium-lock errors.
+// Mock the axios package so the premium-locked 403 path can be exercised in tests.
+vi.mock('axios', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('axios')>()
+  return {
+    ...actual,
+    isAxiosError: (e: unknown): e is { response?: { status?: number; data?: { message?: string } } } => {
+      if (!(e instanceof Error)) return false
+      const ae = e as { __isAxiosError?: boolean; response?: { status?: number; data?: { message?: string } } }
+      return !!ae.__isAxiosError
+    },
+  }
+})
 
 vi.mock('@/components/shared/LearningBoard', () => ({ LearningBoard: () => null }))
 vi.mock('@/components/shared/CollaborativeCodeEditor', () => ({ CollaborativeCodeEditor: () => null }))
@@ -206,6 +235,50 @@ describe('CourseViewerPage repro', () => {
     await waitFor(() => {
       expect(screen.getByText(/Placement quiz/i)).toBeInTheDocument()
     })
-    expect(dashboardService.completeLesson).not.toHaveBeenCalled()
+        expect(dashboardService.completeLesson).not.toHaveBeenCalled()
+  })
+
+  it('shows a Payment Required state (not a dead-end) when a premium course returns 403', async () => {
+    // Regression: an enrolled-but-unpaid premium student opened the course
+    // viewer and got a generic "Can't open this course" screen with only "Try
+    // again" — a dead-end with no way to pay. Now the 403 must surface a
+    // dedicated Payment Required state with Complete Payment + Remove Course.
+    const premiumError = Object.assign(
+      new Error('Premium access for this course is not active'),
+      { __isAxiosError: true, response: { status: 403, data: { message: 'Premium access for this course is not active' } } },
+    )
+    vi.mocked(dashboardService.getCourse).mockRejectedValue(premiumError as never)
+    renderPage()
+    await waitFor(() => {
+      expect(screen.getByText('Payment Required')).toBeInTheDocument()
+    })
+    expect(screen.getByText(/Complete Payment/i)).toBeInTheDocument()
+    expect(screen.getByText(/Back to My Courses/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Remove Course/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Try again/i })).not.toBeInTheDocument()
+  })
+
+  it('starts Paystack checkout when Complete Payment is clicked (no frontend success decision)', async () => {
+        const user = userEvent.setup()
+    const premiumError = Object.assign(
+      new Error('Premium access for this course is not active'),
+      { __isAxiosError: true, response: { status: 403, data: { message: 'Premium access for this course is not active' } } },
+    )
+    vi.mocked(dashboardService.getCourse).mockRejectedValue(premiumError as never)
+            vi.mocked(paymentsService.initiate).mockClear()
+    const assignMock = vi.fn()
+    Object.defineProperty(window, 'location', {
+      value: { assign: assignMock, href: 'http://localhost/dashboard/courses', origin: 'http://localhost' },
+      writable: true,
+    })
+    renderPage()
+    await waitFor(() => {
+      expect(screen.getByText('Payment Required')).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: /Complete Payment/i }))
+    await waitFor(() => {
+      expect(paymentsService.initiate).toHaveBeenCalledWith('c1')
+    })
+    expect(assignMock).toHaveBeenCalledWith('https://paystack.test/checkout/ref-123')
   })
 })

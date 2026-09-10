@@ -1,8 +1,10 @@
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query'
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { CheckCircle, BookOpen, ChevronLeft, ChevronRight, Download, Menu, X, Trophy } from 'lucide-react'
+import { isAxiosError } from 'axios'
+import { CheckCircle, BookOpen, ChevronLeft, ChevronRight, Download, Menu, X, Trophy, Crown, Lock, MinusCircle } from 'lucide-react'
 import { dashboardService } from '@/services/dashboard.service'
+import { paymentsService } from '@/services/payments.service'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -43,11 +45,127 @@ async function downloadLessonResource(r: { title: string; url: string; type: str
   await downloadUrl(r.url, sanitizeFilename(r.title, 'resource', ext), fallback)
 }
 
+/**
+ * Dedicated payment-required state shown when an authenticated student is
+ * enrolled in a premium course but does not yet have active access (no
+ * subscription, no verified payment).
+ *
+ * The student is NEVER trapped here with only a "Try again" button. They can:
+ *  - "Complete Payment" → starts the EXISTING Paystack checkout (server
+ *    authoritative price) and redirects to the provider. Success is decided
+ *    solely by the backend's verified-status flow, not by the frontend.
+ *  - "Remove Course" → removes only their registration (backend preserves the
+ *    course, learning history and payment history).
+ *  - "Back to My Courses" → returns to the dashboard (which also shows the
+ *    "Payment Required" state on the card itself).
+ */
+interface PaymentRequiredStateProps {
+  courseId: string
+  courseTitle: string
+        paymentMutation: UseMutationResult<InitiatePaymentResult, Error, void>
+}
+interface InitiatePaymentResult {
+  reference: string
+  authorizationUrl: string
+  amountSubunits: number
+  currency: string
+  courseTitle: string
+}
+
+function PaymentRequiredState({ courseId, courseTitle, paymentMutation }: PaymentRequiredStateProps) {
+  const queryClient = useQueryClient()
+  const removeMutation = useMutation({
+    mutationFn: () => dashboardService.removeCourse(courseId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'courses'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-my-courses'] })
+    },
+  })
+  const removeError = removeMutation.error instanceof Error
+    ? removeMutation.error.message
+    : removeMutation.error
+
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="max-w-md w-full text-center rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark p-10">
+        <Lock className="w-14 h-14 mx-auto text-amber-400 mb-4" aria-hidden="true" />
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Payment Required</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          You are enrolled in <strong className="text-gray-900 dark:text-white">{courseTitle}</strong>, a
+          premium course. Complete the payment to unlock full access to this course.
+        </p>
+
+        {paymentMutation.isError && (
+          <p role="alert" className="text-xs text-red-600 dark:text-red-400 mb-4">
+            {(paymentMutation.error as Error)?.message ?? 'Could not start checkout. Please try again.'}
+          </p>
+        )}
+        {removeMutation.isError && (
+          <p role="alert" className="text-xs text-red-600 dark:text-red-400 mb-4">
+            {removeError ?? 'Could not remove the course. Please try again.'}
+          </p>
+        )}
+
+        <div className="flex flex-col gap-3">
+          <Button
+            loading={paymentMutation.isPending}
+                                    onClick={() => paymentMutation.mutate(undefined as unknown as void)}
+            className="w-full"
+          >
+            <Crown className="w-4 h-4 mr-2" aria-hidden="true" />
+            Complete Payment
+          </Button>
+
+          <Link to="/dashboard/courses">
+            <Button variant="secondary" className="w-full">
+              Back to My Courses
+            </Button>
+          </Link>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full text-red-600 hover:text-red-700"
+            loading={removeMutation.isPending}
+            onClick={() => removeMutation.mutate()}
+          >
+            <MinusCircle className="w-4 h-4 mr-2" aria-hidden="true" />
+            Remove Course
+          </Button>
+        </div>
+
+        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-4">
+          After payment, you will be redirected to the payment provider. Your access is
+          only granted once the backend confirms the verified payment.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default function CourseViewerPage() {
   const { id } = useParams<{ id: string }>()
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null)
   const [sidebarOpen,    setSidebarOpen]    = useState(false)
   const [searchParams] = useSearchParams()
+
+  const queryClient = useQueryClient()
+
+  // "Complete Payment" — premium checkout goes through the EXISTING backend
+  // Paystack flow (server-authoritative price/currency). This only STARTS
+  // checkout and redirects to the provider; payment success is never decided by
+  // the frontend. After checkout, the return page polls the backend for the
+  // verified state before the course unlocks.
+    const paymentMutation = useMutation({
+    mutationFn: () => paymentsService.initiate(id!),
+    onSuccess: (result) => {
+      if (result?.authorizationUrl) {
+        window.location.assign(result.authorizationUrl)
+      }
+    },
+  })
+
 
   const { data: course, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['dashboard', 'courses', id],
@@ -89,8 +207,7 @@ export default function CourseViewerPage() {
     enabled:  Boolean(activeLesson?.id),
   })
 
-  // Lesson completion mutation
-  const queryClient = useQueryClient()
+    // Lesson completion mutation
   const completeLessonMutation = useMutation({
     mutationFn: (lessonId: string) => dashboardService.completeLesson(lessonId),
     onSuccess: () => {
@@ -130,6 +247,33 @@ export default function CourseViewerPage() {
     autoMarkedRef.current.add(activeLesson.id)
     completeLessonMutation.mutate(activeLesson.id)
   }, [quizGateLocked, activeLesson, completeLessonMutation])
+
+    // ── Payment-required gate ────────────────────────────────────────────────────
+  // When the backend returns a 403 "Premium access for this course is not
+  // active", the student IS enrolled but has no active access (no subscription,
+  // no verified payment). Instead of a dead-end "Can't open this course" screen
+  // with only "Try again", render a dedicated Payment Required state that lets
+  // them purchase the course via the EXISTING Paystack flow or remove the
+  // registration. The frontend NEVER decides payment success — after checkout
+  // the return page polls the backend's verified-status endpoint.
+  const isAxios = isAxiosError(error)
+    const premiumLocked =
+    isAxios &&
+    error.response?.status === 403 &&
+    /premium access/i.test(error.response?.data?.message ?? '')
+  if (premiumLocked) {
+    // We don't have the full course object (the GET 403'd), so show a
+    // self-contained, self-serve payment prompt with a "Back to My Courses"
+    // fallback that also lets them remove the registration.
+    const courseTitle = `course #${id}`
+    return (
+      <PaymentRequiredState
+        courseId={id!}
+        courseTitle={courseTitle}
+        paymentMutation={paymentMutation}
+      />
+    )
+  }
 
   if (isError || (!isLoading && !course)) {
     // Course failed to load (404 not enrolled, 500, or backend unreachable).

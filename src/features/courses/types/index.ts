@@ -31,8 +31,13 @@ export interface Course {
  * `purchased` is true when the student has a VERIFIED payment for this course —
  * a legitimately purchased access that cannot be removed self-serve (removal is
  * subject to the platform purchase/refund policy).
+ * `accessActive` is true when the student may actually open the course right now
+ * (free course, an active subscription, or a verified payment). When a premium
+ * course has an enrollment but `accessActive` is false, the UI must show a
+ * "Payment Required" state (Complete Payment / Remove Course) — never a
+ * misleading "Continue Learning" dead-end.
  */
-export interface EnrolledCourse extends Course { progress: number; enrolledAt: string; purchased?: boolean }
+export interface EnrolledCourse extends Course { progress: number; enrolledAt: string; purchased?: boolean; accessActive?: boolean }
 
 /**
  * Slim course payload returned by the public catalogue endpoint (Phase 1 API).

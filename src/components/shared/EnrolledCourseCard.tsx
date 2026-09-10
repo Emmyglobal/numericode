@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { BookOpen, Check, ChevronDown, MinusCircle, PlayCircle, StickyNote, Lock } from 'lucide-react'
+import { BookOpen, Check, ChevronDown, Crown, MinusCircle, PlayCircle, StickyNote, Lock, Wallet } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Markdown } from '@/components/ui/Markdown'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { cn } from '@/utils/classNames'
 import { dashboardService } from '@/services/dashboard.service'
+import { paymentsService } from '@/services/payments.service'
+import { formatCoursePrice } from '@/utils/formatPrice'
 import type { EnrolledCourse } from '@/features/courses/types'
 
 /** Slim circular progress indicator — WorldQuant-style course progress. */
@@ -84,6 +86,28 @@ export function EnrolledCourseCard({ course }: EnrolledCourseCardProps) {
     ? removeMutation.error.message
     : removeMutation.error
 
+  // "Complete Payment" — premium checkout goes through the EXISTING backend
+  // Paystack flow (server-authoritative price/currency). This only STARTS
+  // checkout and redirects to the provider; payment success is never decided by
+  // the frontend. After checkout, the return page polls the backend for the
+  // verified state before the course unlocks.
+  const paymentMutation = useMutation({
+    mutationFn: () => paymentsService.initiate(course.id),
+    onSuccess: (result) => {
+      if (result.authorizationUrl) window.location.assign(result.authorizationUrl)
+    },
+  })
+  const paymentError = paymentMutation.error instanceof Error
+    ? paymentMutation.error.message
+    : paymentMutation.error
+
+  // A premium enrollment with no active access (no verified payment, no active
+  // subscription) is a locked registration: show "Payment Required" instead of a
+  // misleading "Continue Learning" that would dead-end on the viewer 403.
+  const needsPayment = course.accessLevel === 'premium' && !course.purchased && !course.accessActive
+  const purchasable = needsPayment && Boolean(course.premiumEnabled) && typeof course.priceCents === 'number' && course.priceCents > 0
+  const priceLabel = needsPayment ? formatCoursePrice(course.priceCents ?? 0, course.currency ?? 'NGN') : ''
+
   // Defensive: the /dashboard/courses list endpoint returns flat summaries
   // without `modules`; guard so a single card never crashes the whole page.
   const courseModules = Array.isArray(course.modules) ? course.modules : []
@@ -114,25 +138,62 @@ export function EnrolledCourseCard({ course }: EnrolledCourseCardProps) {
               Premium
             </span>
           )}
+          {needsPayment && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">
+              <Wallet className="w-3 h-3" aria-hidden /> Payment Required
+            </span>
+          )}
         </div>
       </div>
 <div className="flex flex-1 gap-4 p-4">
-        {/* Progress + continue */}
+        {/* Progress + continue / payment */}
         <div className="flex flex-col items-center gap-3">
           <ProgressRing value={course.progress} />
-          <Link to={`/dashboard/courses/${course.id}?lesson=${nextLesson?.id ?? ''}`}>
-            <Button variant="secondary" size="sm" className="w-full">
-              <PlayCircle className="w-3.5 h-3.5" aria-hidden />
-              {course.progress >= 100 ? 'Review' : 'Continue'}
-            </Button>
-          </Link>
+          {needsPayment ? (
+            <>
+              {purchasable ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="w-full"
+                  loading={paymentMutation.isPending}
+                  onClick={() => paymentMutation.mutate()}
+                >
+                  <Crown className="w-3.5 h-3.5" aria-hidden /> Complete Payment
+                </Button>
+              ) : (
+                <Button variant="secondary" size="sm" className="w-full" disabled>
+                  Enrolment opening soon
+                </Button>
+              )}
+            </>
+          ) : (
+            <Link to={`/dashboard/courses/${course.id}?lesson=${nextLesson?.id ?? ''}`}>
+              <Button variant="secondary" size="sm" className="w-full">
+                <PlayCircle className="w-3.5 h-3.5" aria-hidden />
+                {course.progress >= 100 ? 'Review' : 'Continue'}
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Course info */}
         <div className="flex-1 min-w-0 space-y-2.5">
           <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{course.description}</p>
 
-          {nextLesson && (
+          {needsPayment && (
+            <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-2.5 py-2 text-xs text-red-800 dark:text-red-200 space-y-1">
+              <p className="font-semibold flex items-center gap-1">
+                <Wallet className="w-3.5 h-3.5" aria-hidden />
+                Payment Required — {priceLabel}
+              </p>
+              <p>Complete payment to unlock this course. Access is granted only after your payment is verified by our secure payment provider.</p>
+              {paymentError && <p role="alert" className="text-red-700 dark:text-red-300">{paymentError}</p>}
+              {paymentMutation.isSuccess && <p>Redirecting you to the secure payment page…</p>}
+            </div>
+          )}
+
+          {!needsPayment && nextLesson && (
             <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">
               <span className="font-semibold text-brand-blue">Next lesson:</span> {nextLesson.title}
             </p>
