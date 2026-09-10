@@ -23,9 +23,22 @@ export interface QuizAttempt {
   startedAt: string; completedAt?: string; score?: number; passed?: boolean
 }
 
+/** Server-graded correction for one question (returned after submission). */
+export interface QuizCorrection {
+  questionId: string
+  /** true = correct, false = wrong, null = not auto-graded (essay). */
+  earned: boolean | null
+  userAnswer: unknown
+  correctOptionIds: string[]
+  correctOptionText: string | null
+  correctAnswerText: string | null
+}
+
 export interface QuizResult {
   attemptId: string; score: number; passed: boolean
   totalPoints: number; earnedPoints: number; showResults: boolean; passingScore: number
+  /** Server-authoritative marking review — the only source of correct answers. */
+  corrections?: QuizCorrection[]
 }
 
 export const quizzesService = {

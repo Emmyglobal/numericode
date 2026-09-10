@@ -1,14 +1,20 @@
 /**
- * Formats a course price given in cents using the course currency.
- * Falls back to a plain "amount CURRENCY" string for unknown currency codes.
+ * Formats a course price in Nigerian Naira (₦).
+ *
+ * NumeryCode prices are stored in kobo (subunits) and charged in NGN — the
+ * platform always displays Naira regardless of any legacy currency value.
+ * `currencyDisplay: 'narrowSymbol'` forces the ₦ glyph instead of the
+ * ISO code ("NGN 5,000.00") across locales.
  */
-export function formatCoursePrice(priceCents: number, currency?: string | null): string {
+export function formatCoursePrice(priceCents: number, _currency?: string | null): string {
+  const naira = (priceCents / 100)
   try {
-    return new Intl.NumberFormat(undefined, {
+    return new Intl.NumberFormat('en-NG', {
       style: 'currency',
-      currency: currency || 'USD',
-    }).format(priceCents / 100)
+      currency: 'NGN',
+      currencyDisplay: 'narrowSymbol',
+    }).format(naira)
   } catch {
-    return `${(priceCents / 100).toFixed(2)} ${currency || 'USD'}`
+    return `₦${naira.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   }
 }

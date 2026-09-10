@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Alert } from '@/components/ui/Alert'
-import { quizzesService, type Quiz, type QuizQuestion, type QuizResult } from '@/services/quizzes.service'
+import { quizzesService, type Quiz, type QuizCorrection, type QuizQuestion, type QuizResult } from '@/services/quizzes.service'
 import { cn } from '@/utils/classNames'
 import { CheckCircle, XCircle, Clock } from 'lucide-react'
 
@@ -27,6 +27,9 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  // Countdown timer (quiz time limits are below 1 hour — enforced server-side).
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null)
+  const submittingRef = useRef(false)
 
   const answeredCount = questions.filter(q => {
     const v = answers[q.id]
@@ -46,6 +49,8 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
       setAnswers({})
       setSubmitted(false)
       setResult(null)
+      // Time limits are always below 1 hour (server enforces 1–59 minutes).
+      setSecondsLeft((data.timeLimit ?? 0) > 0 ? (data.timeLimit as number) * 60 : null)
       setPhase('taking')
     } catch (err: any) {
       setError(err?.message ?? 'Could not start the quiz')
@@ -55,6 +60,8 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
   }
 
   const submitAttempt = async () => {
+    if (submittingRef.current) return
+    submittingRef.current = true
     setLoading(true)
     setError('')
     try {
@@ -66,6 +73,7 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
       setError(err?.message ?? 'Could not submit your answers')
     } finally {
       setLoading(false)
+      submittingRef.current = false
     }
   }
 
@@ -75,12 +83,28 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
     await startAttempt()
   }
 
+  // ── Countdown: auto-submit when the (sub-1-hour) time limit expires ─────────
+  useEffect(() => {
+    if (phase !== 'taking' || secondsLeft === null) return
+    if (secondsLeft <= 0) {
+      // Time's up — submit whatever is answered (the server still marks it).
+      if (!submittingRef.current && !submitted) void submitAttempt()
+      return
+    }
+    const timer = setTimeout(() => setSecondsLeft(s => (s !== null ? s - 1 : s)), 1000)
+    return () => clearTimeout(timer)
+  }, [phase, secondsLeft, submitted])
+
   const handleAnswer = (questionId: string, answer: unknown) => {
     if (submitted) return
     setAnswers(prev => ({ ...prev, [questionId]: answer }))
   }
 
-  /** Correct option ids for a question, from the options payload (isCorrect flags). */
+  /** Server-graded correction for a question (source of truth after submit). */
+  const correctionFor = (q: QuizQuestion): QuizCorrection | undefined =>
+    result?.corrections?.find(c => c.questionId === q.id)
+
+  /** Legacy fallback: option ids flagged isCorrect in the payload. */
   const correctOptionIds = (q: QuizQuestion): string[] => {
     if (Array.isArray(q.options)) {
       return (q.options as Array<{ id: string; isCorrect: boolean }>)
@@ -90,16 +114,35 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
     return []
   }
 
+  /** Correct option ids per question — server corrections first. */
+  const correctIdsFor = (q: QuizQuestion): string[] => {
+    const c = correctionFor(q)
+    if (c && c.correctOptionIds.length > 0) return c.correctOptionIds
+    return correctOptionIds(q)
+  }
+
+  /** Correct text answer for non-MC questions — server corrections first. */
+  const correctTextFor = (q: QuizQuestion): string | null => {
+    const c = correctionFor(q)
+    if (c && c.correctAnswerText != null) return c.correctAnswerText
+    if (q.correctAnswer != null) return q.correctAnswer
+    return null
+  }
+
   const isQuestionRight = (q: QuizQuestion): boolean | null => {
+    // Server-graded result wins (works even though the answer key is stripped
+    // from the student-facing question payload).
+    const c = correctionFor(q)
+    if (c) return c.earned
     if (q.questionType === 'multiple_choice') {
       const correct = correctOptionIds(q)
       const selected = Array.isArray(answers[q.id]) ? answers[q.id] as string[] : []
       return correct.length > 0 && correct.length === selected.length && correct.every(id => selected.includes(id))
     }
     if (q.questionType === 'true_false') {
-      const correct = correctOptionIds(q)
-      if (correct.length === 0) return null
-      return correct.includes(String(answers[q.id]))
+      const correctText = correctTextFor(q)
+      if (correctText == null) return null
+      return String(answers[q.id] ?? '').toLowerCase().trim() === String(correctText).toLowerCase().trim()
     }
     // fill_blank / essay are not auto-graded client-side
     return null
@@ -149,9 +192,25 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
         <div className="p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 dark:text-white">{quiz.title}</h3>
-            <Button variant="ghost" size="sm" onClick={() => { setPhase('info') }}>
-              Quit
-            </Button>
+            <div className="flex items-center gap-3">
+              {secondsLeft !== null && (
+                <span
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold tabular-nums',
+                    secondsLeft <= 60
+                      ? 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-200'
+                      : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200',
+                  )}
+                  aria-label={`Time remaining ${Math.floor(secondsLeft / 60)} minutes ${secondsLeft % 60} seconds`}
+                >
+                  <Clock className="w-4 h-4" aria-hidden="true" />
+                  {String(Math.floor(secondsLeft / 60)).padStart(2, '0')}:{String(secondsLeft % 60).padStart(2, '0')}
+                </span>
+              )}
+              <Button variant="ghost" size="sm" onClick={() => { setPhase('info') }}>
+                Quit
+              </Button>
+            </div>
           </div>
           <ProgressBar
             value={(answeredCount / Math.max(1, questions.length)) * 100}
@@ -290,7 +349,8 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
           <div className="mt-6 space-y-4">
             {questions.map((q, i) => {
               const right = isQuestionRight(q)
-              const correctIds = correctOptionIds(q)
+              const correctIds = correctIdsFor(q)
+              const correction = correctionFor(q)
               return (
                 <div key={q.id} className="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                   <div className="flex items-start justify-between gap-2">
@@ -304,14 +364,15 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
 
                   {q.questionType === 'multiple_choice' && Array.isArray(q.options) && (
                     <div className="mt-3 space-y-1.5">
-                      {(q.options as Array<{ id: string; text: string; isCorrect: boolean }>).map((opt, oi) => {
+                      {(q.options as Array<{ id: string; text: string }>).map((opt, oi) => {
                         const selected = Array.isArray(answers[q.id]) && (answers[q.id] as string[]).includes(opt.id)
+                        const isOptCorrect = correctIds.includes(opt.id)
                         return (
                           <div
                             key={opt.id}
                             className={cn(
                               'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm',
-                              opt.isCorrect
+                              isOptCorrect
                                 ? 'border-green-500 bg-green-50 text-green-900 dark:bg-green-900/20 dark:text-green-200'
                                 : selected
                                   ? 'border-red-500 bg-red-50 text-red-900 dark:bg-red-900/20 dark:text-red-200'
@@ -320,18 +381,22 @@ export function LessonQuiz({ quiz }: LessonQuizProps) {
                           >
                             <span className="font-bold w-4">{LETTERS[oi]}</span>
                             <span>{opt.text}</span>
-                            {opt.isCorrect && <span className="ml-auto text-xs font-medium">Correct</span>}
-                            {selected && !opt.isCorrect && <span className="ml-auto text-xs font-medium">Your answer</span>}
+                            {isOptCorrect && <span className="ml-auto text-xs font-medium">Correct</span>}
+                            {selected && !isOptCorrect && <span className="ml-auto text-xs font-medium">Your answer</span>}
                           </div>
                         )
                       })}
+                      {correction?.correctOptionText != null && correctIds.length === 0 && (
+                        <p className="text-xs text-green-700 dark:text-green-300">Correct answer: {correction.correctOptionText}</p>
+                      )}
                     </div>
                   )}
 
                   {q.questionType === 'true_false' && (
                     <div className="mt-3 flex gap-2 text-sm">
                       {['true', 'false'].map(v => {
-                        const isCorrect = correctIds.includes(v)
+                        const correctText = (correction?.correctAnswerText ?? '').toString().toLowerCase().trim()
+                        const isCorrect = correctText ? v === correctText : correctIds.includes(v)
                         const selected = answers[q.id] === v
                         return (
                           <span
