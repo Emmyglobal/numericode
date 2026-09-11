@@ -65,10 +65,10 @@ describe('CourseCard', () => {
   it('shows the formatted price for premium courses', () => {
     render(
       <CourseCard
-        course={{ ...course, accessLevel: 'premium', priceCents: 4999, currency: 'USD' }}
+        course={{ ...course, accessLevel: 'premium', priceCents: 4999, currency: 'NGN' }}
       />,
     )
-    expect(screen.getByText('$49.99')).toBeInTheDocument()
+    expect(screen.getByText('₦49.99')).toBeInTheDocument()
   })
 
   it('keeps the enrolled variant working with progress and Continue CTA', () => {
