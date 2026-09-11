@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { PageHeader } from '@/components/shared/PageHeader'
+
+/** Maximum quiz duration in minutes. No quiz may exceed this. */
+const MAX_QUIZ_DURATION_MINUTES = 30
 import { AiContentGenerator } from '@/components/shared/AiContentGenerator'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
@@ -611,7 +614,7 @@ export default function TrainerCourseBuilderPage() {
                                       <div className="flex gap-2">
                                         <Input value={editingQuizData.description} onChange={e => setEditingQuizData({ ...editingQuizData, description: e.target.value })} placeholder="Description" className="flex-1" />
                                         <Input value={editingQuizData.passingScore} onChange={e => setEditingQuizData({ ...editingQuizData, passingScore: Number(e.target.value) })} type="number" placeholder="Passing %" className="w-20" />
-                                        <Input value={editingQuizData.timeLimit || 0} onChange={e => setEditingQuizData({ ...editingQuizData, timeLimit: Number(e.target.value) || null })} type="number" placeholder="Time (min)" className="w-20" />
+                                        <Input value={editingQuizData.timeLimit || 0} onChange={e => { const v = Math.min(Math.max(0, Number(e.target.value)), MAX_QUIZ_DURATION_MINUTES); setEditingQuizData({ ...editingQuizData, timeLimit: v || null }) }} type="number" min={0} max={MAX_QUIZ_DURATION_MINUTES} placeholder="Time (min)" className="w-20" />
                                       </div>
                                       <Button size="sm" onClick={handleSaveQuizSettings} loading={updateQuizMutation.isPending}><Save className="w-4 h-4 mr-1" /> Save Settings</Button>
                                     </div>
@@ -704,7 +707,8 @@ export default function TrainerCourseBuilderPage() {
                                       <div className="flex gap-2">
                                         <Input value={quizDescription} onChange={e => setQuizDescription(e.target.value)} placeholder="Description" className="flex-1" />
                                         <Input value={quizPassingScore} onChange={e => setQuizPassingScore(Number(e.target.value))} type="number" placeholder="Passing %" className="w-24" />
-                                        <Input value={quizTimeLimit} onChange={e => setQuizTimeLimit(Number(e.target.value))} type="number" placeholder="Time (min)" className="w-24" />
+                                        <Input value={quizTimeLimit} onChange={e => { const v = Math.min(Math.max(0, Number(e.target.value)), MAX_QUIZ_DURATION_MINUTES); setQuizTimeLimit(v) }} type="number" min={0} max={MAX_QUIZ_DURATION_MINUTES} placeholder="Time (min)" className="w-24" />
+                                        {quizTimeLimit > MAX_QUIZ_DURATION_MINUTES && <span className="text-xs text-red-600">Max {MAX_QUIZ_DURATION_MINUTES} min</span>}
                                       </div>
                                       <div className="space-y-2">
                                         <div className="flex items-center justify-between">
