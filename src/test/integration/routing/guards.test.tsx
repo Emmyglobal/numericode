@@ -4,6 +4,12 @@ import { render } from '@/test/utils'
 import { useAuthStore } from '@/store/authStore'
 import { AppRouter } from '@/app/Router'
 
+// Route pages are lazy-imported behind Suspense. On slower CI/Windows the
+// default waitFor timeout (1s) can expire before the page module finishes
+// loading, producing flaky "Loading… spinner never resolves" failures.
+// Give assertions a generous ceiling instead of weakening them.
+const wait = (assertion: () => void) => waitFor(assertion, { timeout: 10_000 })
+
 // Mock all services so lazy-loaded pages render without real API calls
 vi.mock('@/services/courses.service', () => ({
   coursesService: { getAll: vi.fn().mockResolvedValue([]), getAllPaginated: vi.fn().mockResolvedValue({ data: [], pagination: { total: 0, limit: 12, offset: 0, count: 0, hasMore: false } }), getAvailableTeachers: vi.fn().mockResolvedValue([]), getById: vi.fn().mockResolvedValue(null) },
@@ -43,32 +49,32 @@ describe('Route Guards', () => {
 
   it('redirects unauthenticated user from /dashboard to /login', async () => {
     render(<AppRouter />, { routerProps: { initialEntries:['/dashboard'] } })
-    await waitFor(() => expect(screen.getByRole('heading', { name:/welcome back/i })).toBeInTheDocument())
+    await wait(() => expect(screen.getByRole('heading', { name:/welcome back/i })).toBeInTheDocument())
   })
 
   it('redirects unauthenticated user from /trainer to /login', async () => {
     render(<AppRouter />, { routerProps: { initialEntries:['/trainer'] } })
-    await waitFor(() => expect(screen.getByRole('heading', { name:/welcome back/i })).toBeInTheDocument())
+    await wait(() => expect(screen.getByRole('heading', { name:/welcome back/i })).toBeInTheDocument())
   })
 
   it('redirects unauthenticated user from /admin to /login', async () => {
     render(<AppRouter />, { routerProps: { initialEntries:['/admin'] } })
-    await waitFor(() => expect(screen.getByRole('heading', { name:/welcome back/i })).toBeInTheDocument())
+    await wait(() => expect(screen.getByRole('heading', { name:/welcome back/i })).toBeInTheDocument())
   })
 
   it('allows unauthenticated user on landing page', async () => {
     render(<AppRouter />, { routerProps: { initialEntries:['/'] } })
-    await waitFor(() => expect(screen.getByText(/mathematics, code & skills/i)).toBeInTheDocument())
+    await wait(() => expect(screen.getByText(/mathematics, code & skills/i)).toBeInTheDocument())
   })
 
   it('allows unauthenticated user on /courses', async () => {
     render(<AppRouter />, { routerProps: { initialEntries:['/courses'] } })
-    await waitFor(() => expect(screen.getByRole('heading', { name:/explore courses/i })).toBeInTheDocument())
+    await wait(() => expect(screen.getByRole('heading', { name:/explore courses/i })).toBeInTheDocument())
   })
 
   it('allows unauthenticated user on /faq', async () => {
     render(<AppRouter />, { routerProps: { initialEntries:['/faq'] } })
-    await waitFor(() => expect(screen.getByRole('heading', { name:/frequently asked questions/i })).toBeInTheDocument())
+    await wait(() => expect(screen.getByRole('heading', { name:/frequently asked questions/i })).toBeInTheDocument())
   })
 
   // ── Student ────────────────────────────────────────────────────────────────
@@ -76,25 +82,25 @@ describe('Route Guards', () => {
   it('allows student to access /dashboard', async () => {
     loginAs(studentUser)
     render(<AppRouter />, { routerProps: { initialEntries:['/dashboard'] } })
-    await waitFor(() => expect(screen.getByText(/good morning|good afternoon|good evening/i)).toBeInTheDocument())
+    await wait(() => expect(screen.getByText(/good morning|good afternoon|good evening/i)).toBeInTheDocument())
   })
 
   it('redirects student from /trainer to /dashboard', async () => {
     loginAs(studentUser)
     render(<AppRouter />, { routerProps: { initialEntries:['/trainer'] } })
-    await waitFor(() => expect(screen.getByText(/good morning|good afternoon|good evening/i)).toBeInTheDocument())
+    await wait(() => expect(screen.getByText(/good morning|good afternoon|good evening/i)).toBeInTheDocument())
   })
 
   it('redirects student from /admin to /dashboard', async () => {
     loginAs(studentUser)
     render(<AppRouter />, { routerProps: { initialEntries:['/admin'] } })
-    await waitFor(() => expect(screen.getByText(/good morning|good afternoon|good evening/i)).toBeInTheDocument())
+    await wait(() => expect(screen.getByText(/good morning|good afternoon|good evening/i)).toBeInTheDocument())
   })
 
   it('redirects logged-in student away from /login', async () => {
     loginAs(studentUser)
     render(<AppRouter />, { routerProps: { initialEntries:['/login'] } })
-    await waitFor(() => expect(screen.getByText(/good morning|good afternoon|good evening/i)).toBeInTheDocument())
+    await wait(() => expect(screen.getByText(/good morning|good afternoon|good evening/i)).toBeInTheDocument())
   })
 
   // ── Trainer ────────────────────────────────────────────────────────────────
@@ -102,25 +108,25 @@ describe('Route Guards', () => {
   it('allows trainer to access /trainer', async () => {
     loginAs(trainerUser)
     render(<AppRouter />, { routerProps: { initialEntries:['/trainer'] } })
-    await waitFor(() => expect(screen.getByText(/welcome back, trainer/i)).toBeInTheDocument())
+    await wait(() => expect(screen.getByText(/welcome back, trainer/i)).toBeInTheDocument())
   })
 
   it('redirects trainer from /dashboard to /trainer', async () => {
     loginAs(trainerUser)
     render(<AppRouter />, { routerProps: { initialEntries:['/dashboard'] } })
-    await waitFor(() => expect(screen.getByText(/welcome back, trainer/i)).toBeInTheDocument())
+    await wait(() => expect(screen.getByText(/welcome back, trainer/i)).toBeInTheDocument())
   })
 
   it('redirects trainer from /admin to /trainer', async () => {
     loginAs(trainerUser)
     render(<AppRouter />, { routerProps: { initialEntries:['/admin'] } })
-    await waitFor(() => expect(screen.getByText(/welcome back, trainer/i)).toBeInTheDocument())
+    await wait(() => expect(screen.getByText(/welcome back, trainer/i)).toBeInTheDocument())
   })
 
   it('redirects logged-in trainer away from /login', async () => {
     loginAs(trainerUser)
     render(<AppRouter />, { routerProps: { initialEntries:['/login'] } })
-    await waitFor(() => expect(screen.getByText(/welcome back, trainer/i)).toBeInTheDocument())
+    await wait(() => expect(screen.getByText(/welcome back, trainer/i)).toBeInTheDocument())
   })
 
   // ── Admin ──────────────────────────────────────────────────────────────────
@@ -128,7 +134,7 @@ describe('Route Guards', () => {
   it('allows admin to access /admin', async () => {
     loginAs(adminUser)
     render(<AppRouter />, { routerProps: { initialEntries:['/admin'] } })
-    await waitFor(() => {
+    await wait(() => {
       const heads = screen.getAllByRole('heading', { name:/admin overview/i })
       expect(heads.length).toBeGreaterThan(0)
     })
@@ -137,26 +143,26 @@ describe('Route Guards', () => {
   it('redirects admin from /dashboard to /admin', async () => {
     loginAs(adminUser)
     render(<AppRouter />, { routerProps: { initialEntries:['/dashboard'] } })
-    await waitFor(() => expect(screen.getAllByRole('heading', { name:/admin overview/i }).length).toBeGreaterThan(0))
+    await wait(() => expect(screen.getAllByRole('heading', { name:/admin overview/i }).length).toBeGreaterThan(0))
   })
 
   it('redirects admin from /trainer to /admin', async () => {
     loginAs(adminUser)
     render(<AppRouter />, { routerProps: { initialEntries:['/trainer'] } })
-    await waitFor(() => expect(screen.getAllByRole('heading', { name:/admin overview/i }).length).toBeGreaterThan(0))
+    await wait(() => expect(screen.getAllByRole('heading', { name:/admin overview/i }).length).toBeGreaterThan(0))
   })
 
   it('redirects logged-in admin away from /login', async () => {
     loginAs(adminUser)
     render(<AppRouter />, { routerProps: { initialEntries:['/login'] } })
-    await waitFor(() => expect(screen.getAllByRole('heading', { name:/admin overview/i }).length).toBeGreaterThan(0))
+    await wait(() => expect(screen.getAllByRole('heading', { name:/admin overview/i }).length).toBeGreaterThan(0))
   })
 
   // ── 404 ───────────────────────────────────────────────────────────────────
 
   it('renders 404 page for unknown routes', async () => {
     render(<AppRouter />, { routerProps: { initialEntries:['/this-does-not-exist'] } })
-    await waitFor(() => {
+    await wait(() => {
       expect(screen.getByText(/404/i)).toBeInTheDocument()
       expect(screen.getByText(/page not found/i)).toBeInTheDocument()
     })

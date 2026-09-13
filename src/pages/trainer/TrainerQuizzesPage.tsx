@@ -29,8 +29,14 @@ export default function TrainerQuizzesPage() {
   const [description, setDescription] = useState('')
   const [timeLimit, setTimeLimit] = useState('')
   const [passingScore, setPassingScore] = useState('70')
+  // Business rule (mirrors backend MAX_QUIZ_DURATION_MINUTES = 30): no quiz may
+  // exceed 30 minutes. Enforced here for UX; the backend rejects violations authoritatively.
+  const MAX_QUIZ_MINUTES = 30
+  const [formError, setFormError] = useState('')
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestionInput[]>([])
   const [questionsNote, setQuestionsNote] = useState('')
+  // When set, the create modal edits an existing quiz instead of creating one.
+  const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null)
 
   const { data: courses } = useQuery({
     queryKey: ['trainer', 'courses'],
@@ -90,6 +96,20 @@ export default function TrainerQuizzesPage() {
     },
   })
 
+  // Edit path: PUT /quizzes/:id (trainer-only on the backend).
+  const updateMutation = useMutation({
+    mutationFn: ({ quizId, title, description, timeLimit, passingScore }: {
+      quizId: string; title: string; description?: string; timeLimit?: number; passingScore?: number
+    }) => quizzesService.update(quizId, { title, description, timeLimit, passingScore }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trainer-quizzes'] })
+      setShowCreateModal(false)
+      setEditingQuiz(null)
+      resetForm()
+      setSuccessMessage('Quiz updated successfully.')
+    },
+  })
+
   const resetForm = () => {
     setCourseId('')
     setQuizTitle('')
@@ -98,6 +118,7 @@ export default function TrainerQuizzesPage() {
     setPassingScore('70')
     setQuizQuestions([])
     setQuestionsNote('')
+    setFormError('')
   }
 
     // Which quiz (if any) currently gates each course as its prerequisite.
@@ -129,19 +150,56 @@ export default function TrainerQuizzesPage() {
   })
 
   const openCreate = () => {
+    setEditingQuiz(null)
     resetForm()
     if (courses && courses.length > 0) setCourseId(courses[0].id)
     setShowCreateModal(true)
   }
 
+  // Open the same form pre-filled to edit an existing quiz (backend PUT /quizzes/:id).
+  const openEdit = (quiz: Quiz) => {
+    setEditingQuiz(quiz)
+    setFormError('')
+    setCourseId(quiz.courseId)
+    setQuizTitle(quiz.title)
+    setDescription(quiz.description ?? '')
+    setTimeLimit(quiz.timeLimit ? String(quiz.timeLimit) : '')
+    setPassingScore(String(quiz.passingScore ?? 70))
+    setQuizQuestions([])
+    setQuestionsNote('')
+    setShowCreateModal(true)
+  }
+
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault()
+    setFormError('')
     if (!courseId || !quizTitle.trim()) return
+    // Timing rule: whole minutes, 1..30 only (backend enforces the same range).
+    let validatedTimeLimit: number | undefined
+    if (timeLimit.trim()) {
+      const n = Number(timeLimit)
+      if (!Number.isInteger(n) || n < 1 || n > MAX_QUIZ_MINUTES) {
+        setFormError(`Time limit must be a whole number between 1 and ${MAX_QUIZ_MINUTES} minutes.`)
+        return
+      }
+      validatedTimeLimit = n
+    }
+    // Edit path: update the existing quiz (its course never changes).
+    if (editingQuiz) {
+      updateMutation.mutate({
+        quizId: editingQuiz.id,
+        title: quizTitle,
+        description,
+        timeLimit: validatedTimeLimit,
+        passingScore: passingScore ? Number(passingScore) : 70,
+      })
+      return
+    }
     createMutation.mutate({
       courseId,
       title: quizTitle,
       description,
-      timeLimit: timeLimit ? Number(timeLimit) : undefined,
+      timeLimit: validatedTimeLimit,
       passingScore: passingScore ? Number(passingScore) : 70,
       maxAttempts: 1,
       shuffleQuestions: false,
@@ -246,6 +304,15 @@ export default function TrainerQuizzesPage() {
                   <Button
                     variant="ghost"
                     size="sm"
+                    onClick={() => openEdit(quiz)}
+                    title="Edit this quiz's title, description, time limit and passing score."
+                  >
+                    <ClipboardList className="w-4 h-4 text-brand-blue" aria-hidden="true" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => {
                       if (confirm('Are you sure you want to delete this quiz?')) {
                         deleteMutation.mutate(quiz.id)
@@ -263,11 +330,11 @@ export default function TrainerQuizzesPage() {
 
       {/* Create Quiz Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowCreateModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => { setShowCreateModal(false); setEditingQuiz(null) }}>
           <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Create New Quiz</h2>
-              <button onClick={() => setShowCreateModal(false)} aria-label="Close">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{editingQuiz ? 'Edit Quiz' : 'Create New Quiz'}</h2>
+              <button onClick={() => { setShowCreateModal(false); setEditingQuiz(null) }} aria-label="Close">
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
@@ -276,13 +343,15 @@ export default function TrainerQuizzesPage() {
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Course <span className="text-red-500">*</span></label>
                 <select
                   required
+                  disabled={Boolean(editingQuiz)}
                   value={courseId}
                   onChange={e => setCourseId(e.target.value)}
-                  className="mt-1 h-11 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 text-sm text-gray-900 dark:text-gray-100"
+                  className="mt-1 h-11 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3.5 text-sm text-gray-900 dark:text-gray-100 disabled:opacity-60"
                 >
                   <option value="">Select a course…</option>
                   {courses?.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
                 </select>
+                {editingQuiz && <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">A quiz's course cannot be changed.</p>}
               </div>
               <Input label="Quiz Title" required value={quizTitle} onChange={e => setQuizTitle(e.target.value)} placeholder="e.g. Algebra Quiz 1" />
               <div>
@@ -296,24 +365,39 @@ export default function TrainerQuizzesPage() {
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <Input label="Time Limit (min)" type="number" value={timeLimit} onChange={e => setTimeLimit(e.target.value)} placeholder="e.g. 30" />
+                <div>
+                  <Input
+                    label={`Time Limit (min) — 1–${MAX_QUIZ_MINUTES}`}
+                    type="number" min={1} max={MAX_QUIZ_MINUTES} step={1}
+                    value={timeLimit}
+                    onChange={e => { setTimeLimit(e.target.value); setFormError('') }}
+                    placeholder={`e.g. ${MAX_QUIZ_MINUTES}`}
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">No quiz may exceed {MAX_QUIZ_MINUTES} minutes.</p>
+                </div>
                 <Input label="Passing Score %" type="number" value={passingScore} onChange={e => setPassingScore(e.target.value)} placeholder="70" />
               </div>
 
-              <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Questions</label>
-                <div className="mt-2">
-                  <QuestionFileUpload
-                    onParsed={handleUploadedQuestions}
-                    onCleared={() => { setQuizQuestions([]); setQuestionsNote('') }}
-                  />
+              {formError && (
+                <p className="rounded-lg bg-red-50 dark:bg-red-900/30 px-3 py-2 text-sm text-red-600 dark:text-red-300" role="alert">{formError}</p>
+              )}
+
+              {!editingQuiz && (
+                <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Questions</label>
+                  <div className="mt-2">
+                    <QuestionFileUpload
+                      onParsed={handleUploadedQuestions}
+                      onCleared={() => { setQuizQuestions([]); setQuestionsNote('') }}
+                    />
+                  </div>
+                  {quizQuestions.length > 0 && (
+                    <p className="mt-2 text-xs text-brand-blue dark:text-brand-sky">
+                      {quizQuestions.length} question{quizQuestions.length === 1 ? '' : 's'} loaded — objective questions are auto-graded for students.
+                    </p>
+                  )}
                 </div>
-                {quizQuestions.length > 0 && (
-                  <p className="mt-2 text-xs text-brand-blue dark:text-brand-sky">
-                    {quizQuestions.length} question{quizQuestions.length === 1 ? '' : 's'} loaded — objective questions are auto-graded for students.
-                  </p>
-                )}
-              </div>
+              )}
 
               {questionsNote && (
                 <div className="flex items-center gap-2 text-xs text-teal dark:text-teal">
@@ -322,12 +406,16 @@ export default function TrainerQuizzesPage() {
                 </div>
               )}
 
-              <div className="flex justify-end">
-                <AiContentGenerator mode="quiz" onQuizGenerated={handleAiQuizGenerated} buttonLabel="Generate with AI" />
-              </div>
+              {!editingQuiz && (
+                <div className="flex justify-end">
+                  <AiContentGenerator mode="quiz" onQuizGenerated={handleAiQuizGenerated} buttonLabel="Generate with AI" />
+                </div>
+              )}
               <div className="flex justify-end gap-3 pt-2">
-                <Button variant="ghost" type="button" onClick={() => setShowCreateModal(false)}>Cancel</Button>
-                <Button type="submit" loading={createMutation.isPending}>Create Quiz</Button>
+                <Button variant="ghost" type="button" onClick={() => { setShowCreateModal(false); setEditingQuiz(null) }}>Cancel</Button>
+                <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>
+                  {editingQuiz ? 'Save Changes' : 'Create Quiz'}
+                </Button>
               </div>
             </form>
           </div>

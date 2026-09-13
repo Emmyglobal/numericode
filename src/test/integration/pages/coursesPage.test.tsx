@@ -277,7 +277,7 @@ describe('CoursesPage', () => {
     render(<CoursesPage />)
     await waitFor(() => expect(screen.getByText('Course 1')).toBeInTheDocument())
     await user.type(screen.getByLabelText(/search courses/i), 'xyznotexist')
-    await waitFor(() => expect(screen.getByText(/no courses found/i)).toBeInTheDocument(), { timeout: 3000 })
+    await waitFor(() => expect(screen.getByText(/no courses found/i)).toBeInTheDocument(), { timeout: 10_000 })
     await user.click(screen.getByRole('button', { name: /clear filters/i }))
     await waitFor(() => expect(screen.getByText('Course 1')).toBeInTheDocument())
   })

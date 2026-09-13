@@ -11,6 +11,8 @@ export interface AssignmentQuestion {
   correctOptionIndex?: number
   allowedFileTypes?: string[]
   relatedMaterialId?: string
+  rubric?: Record<string, number>
+  modelAnswer?: string
 }
 
 export interface AssignmentAnswer {
