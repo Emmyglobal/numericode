@@ -78,6 +78,24 @@ function detectLanguage(filename: string): string {
   return SUPPORTED_LANGUAGES[ext] || 'javascript'
 }
 
+/**
+ * Validate a filename for safety and correctness.
+ * Returns an error string if invalid, or null if valid.
+ * Prevents path traversal, empty names, and dangerous characters.
+ */
+function validateFilename(name: string, existingNames: string[]): string | null {
+  const trimmed = name.trim()
+  if (!trimmed) return 'Filename is required'
+  if (trimmed.length > 120) return 'Filename must be 120 characters or fewer'
+  if (trimmed.includes('..')) return 'Filename cannot contain ".."'
+  if (trimmed.includes('/')) return 'Filename cannot contain "/"'
+  if (trimmed.includes('\\')) return 'Filename cannot contain "\\"'
+  if (trimmed.startsWith('.')) return 'Filename cannot start with "."'
+  if (!/^[\w.\- ]+$/.test(trimmed)) return 'Filename can only contain letters, numbers, spaces, hyphens, dots, and underscores'
+  if (existingNames.some(n => n.toLowerCase() === trimmed.toLowerCase())) return 'A file with this name already exists'
+  return null
+}
+
 const configureEditor: BeforeMount = (monaco) => {
   monaco.languages.registerCompletionItemProvider('html', {
     provideCompletionItems: () => ({ suggestions: [
@@ -122,6 +140,7 @@ export function CollaborativeCodeEditor({
   const [students, setStudents] = useState<TrainerStudent[]>([])
   const [showNewFileInput, setShowNewFileInput] = useState(false)
   const [newFileName, setNewFileName] = useState('')
+  const [newFileError, setNewFileError] = useState<string | null>(null)
   const [darkEditor, setDarkEditor] = useState(true)
 
   const codeDataRef = useRef(codeData)
@@ -208,6 +227,11 @@ export function CollaborativeCodeEditor({
   }
 
   const addFile = () => {
+    const validationError = validateFilename(newFileName, codeData.files.map(f => f.name))
+    if (validationError) {
+      setNewFileError(validationError)
+      return
+    }
     const name = newFileName.trim() || 'new.js'
     const id = name.toLowerCase().replace(/[^a-z0-9.]/g, '-')
     setCodeData(prev => ({
@@ -216,6 +240,7 @@ export function CollaborativeCodeEditor({
     }))
     setActiveFileId(id)
     setNewFileName('')
+    setNewFileError(null)
     setShowNewFileInput(false)
   }
 
@@ -490,7 +515,7 @@ export function CollaborativeCodeEditor({
             >
               <FileCode className="h-3.5 w-3.5" aria-hidden="true" />
               <span>{file.name}</span>
-              {codeData.files.length > 1 && mode === 'trainer' && (
+              {codeData.files.length > 1 && (
                 <button
                   onClick={(e) => { e.stopPropagation(); removeFile(file.id) }}
                   className="ml-1 rounded p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -502,19 +527,21 @@ export function CollaborativeCodeEditor({
             </button>
           ))}
         </div>
-        {mode === 'trainer' && (
-          <div className="ml-auto pr-2">
+        <div className="ml-auto pr-2">
             {showNewFileInput ? (
               <div className="flex items-center gap-1">
                 <input
                   type="text"
                   value={newFileName}
-                  onChange={e => setNewFileName(e.target.value)}
+                  onChange={e => { setNewFileName(e.target.value); setNewFileError(null) }}
                   placeholder="filename.js"
                   className="h-7 w-28 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 text-xs text-gray-900 dark:text-gray-100"
                   onKeyDown={e => { if (e.key === 'Enter') addFile() }}
                   autoFocus
                 />
+                {newFileError && (
+                  <span className="text-xs text-red-600 dark:text-red-400" role="alert">{newFileError}</span>
+                )}
                 <button onClick={addFile} className="rounded p-1 text-green-600 hover:bg-gray-100 dark:hover:bg-gray-800" aria-label="Confirm add file">
                   <Plus className="h-3.5 w-3.5" />
                 </button>
@@ -532,7 +559,6 @@ export function CollaborativeCodeEditor({
               </button>
             )}
           </div>
-        )}
       </div>
 
       {/* Code editor area */}
