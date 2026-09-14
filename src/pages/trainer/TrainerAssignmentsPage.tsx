@@ -9,7 +9,6 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { formatDate } from '@/utils/formatDate'
 import { assignmentsService } from '@/services/assignments.service'
-import { AssignmentFormModal, type AssignmentDraftValues } from '@/features/assignments/components/AssignmentFormModal'
 import type { AssignmentSubmission } from '@/features/assignments/types'
 
 const typeLabel: Record<string, string> = {
@@ -25,36 +24,16 @@ export default function TrainerAssignmentsPage() {
   const queryClient = useQueryClient()
   const [assignmentId, setAssignmentId] = useState<string | null>(null)
   const [grades, setGrades] = useState<Record<string, { score: string; feedback: string }>>({})
-  const [showCreate, setShowCreate] = useState(false)
-  const [createError, setCreateError] = useState('')
 
   const { data: assignments, isLoading } = useQuery({
     queryKey: ['trainer', 'assignments'],
     queryFn: () => assignmentsService.getTrainer(),
   })
 
-  const { data: courses } = useQuery({
-    queryKey: ['trainer', 'courses-lite'],
-    queryFn: async () => {
-      const res = await import('@/lib/axios').then(m => m.api.get<{ data: Array<{ id: string; title: string }> }>('/trainer/courses'))
-      return res.data.data
-    },
-  })
-
   const { data: submissions, isLoading: submissionsLoading } = useQuery({
     queryKey: ['trainer', 'submissions', assignmentId],
     queryFn: () => assignmentsService.getSubmissions(assignmentId!),
     enabled: Boolean(assignmentId),
-  })
-
-  const createMutation = useMutation({
-    mutationFn: (values: AssignmentDraftValues) => assignmentsService.create(values),
-    onSuccess: () => {
-      setShowCreate(false)
-      setCreateError('')
-      queryClient.invalidateQueries({ queryKey: ['trainer', 'assignments'] })
-    },
-    onError: (err: any) => setCreateError(err?.message ?? 'Failed to create assignment.'),
   })
 
   const gradeMutation = useMutation({
@@ -78,9 +57,11 @@ export default function TrainerAssignmentsPage() {
         title="Assignments"
         subtitle="Create typed assignments (or generate with AI), review student submissions, and publish grades."
         actions={(
-          <Button onClick={() => setShowCreate(true)}>
-            <Plus className="w-4 h-4" aria-hidden="true" /> Create Assignment
-          </Button>
+          <a href="/trainer/courses">
+            <Button>
+              <Plus className="w-4 h-4" aria-hidden="true" /> Create in Course Builder
+            </Button>
+          </a>
         )}
       />
 
@@ -171,15 +152,6 @@ export default function TrainerAssignmentsPage() {
         </section>
       )}
 
-      {showCreate && (
-        <AssignmentFormModal
-          courses={courses ?? []}
-          isSubmitting={createMutation.isPending}
-          error={createError}
-          onClose={() => { setShowCreate(false); setCreateError('') }}
-          onSubmit={values => createMutation.mutate(values)}
-              />
-      )}
     </div>
   )
 }

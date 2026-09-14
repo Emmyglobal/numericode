@@ -25,7 +25,8 @@ export const assignmentsService = {
 
   // Trainer
   getTrainer: async () => { const { data } = await api.get<ApiResponse<TrainerAssignment[]>>('/trainer/assignments'); return data.data },
-  create: async (input: CreateAssignmentInput) => { const { data } = await api.post<ApiResponse<Assignment>>('/trainer/assignments', input); return data.data },
+  // Create assignment for a specific lesson. The backend route is POST /trainer/lessons/:lessonId/assignment.
+  create: async (input: CreateAssignmentInput & { lessonId: string }) => { const { lessonId, ...payload } = input; const { data } = await api.post<ApiResponse<Assignment>>(`/trainer/lessons/${lessonId}/assignment`, payload); return data.data },
   getSubmissions: async (assignmentId: string) => { const { data } = await api.get<ApiResponse<AssignmentSubmission[]>>(`/trainer/assignments/${assignmentId}/submissions`); return data.data },
   gradeSubmission: async (submissionId: string, payload: { score: number; feedback?: string }) => { const { data } = await api.patch<ApiResponse<AssignmentSubmission>>(`/trainer/submissions/${submissionId}`, payload); return data.data },
 }
