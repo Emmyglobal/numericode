@@ -3,4 +3,5 @@ Allow: /
 Disallow: /dashboard
 Disallow: /trainer
 Disallow: /admin
+Disallow: /payment/callback
 Sitemap: https://numerycode.com/sitemap.xml

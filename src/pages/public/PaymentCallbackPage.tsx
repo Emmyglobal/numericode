@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { SectionWrapper } from '@/components/shared/SectionWrapper'
 import { useAuth } from '@/hooks/useAuth'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useNoIndex } from '@/utils/structuredData'
 
 /**
  * Payment return page (Phase 16L).
@@ -17,6 +18,8 @@ import { usePageTitle } from '@/hooks/usePageTitle'
  */
 export default function PaymentCallbackPage() {
   usePageTitle('Payment status')
+  // Private post-payment route — never index it (Phase 17 SEO rule).
+  useNoIndex()
   const [params] = useSearchParams()
   const reference = params.get('reference') ?? params.get('trxref')
   const { isAuthenticated } = useAuth()
