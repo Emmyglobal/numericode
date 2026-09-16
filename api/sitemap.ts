@@ -1,15 +1,17 @@
 /**
  * Vercel serverless function — serves a canonical public sitemap at
- * https://numerycode.com/sitemap.xml (wired via the /sitemap.xml rewrite
+ * https://www.numerycode.com/sitemap.xml (wired via the /sitemap.xml rewrite
  * in vercel.json).
  *
  * Data sources (existing public APIs — no dedicated sitemap endpoint):
  *   - GET {API}/courses?limit=50&offset=…  → paginated published courses
  *   - GET {API}/courses/teachers            → active Registered Trainers
  * Both endpoints already enforce the public visibility rules (published
- * courses, active trainers only). If the live API is unreachable, we
- * gracefully serve a static-only sitemap rather than failing the XML
- * document.
+ * courses, active trainers only). Upstream calls go through fetchWithRetry
+ * (Phase 21, D1): each attempt is capped with AbortSignal.timeout and only
+ * transient failures (timeouts, network errors, 408/429/5xx) are retried.
+ * If the live API is still unreachable after that, we gracefully serve a
+ * static-only sitemap rather than failing the XML document.
  *
  * The frontend is a static Vite build on Vercel — this function is the
  * dynamic layer that keeps course/trainer URLs fresh without coupling the
@@ -17,12 +19,20 @@
  */
 import {
   buildSitemapXml,
+  fetchWithRetry,
   type SitemapUrlEntry,
   SITEMAP_SITE_URL,
   SITEMAP_MAX_URLS,
 } from '../src/utils/sitemap.ts'
 
 const COURSES_PAGE_SIZE = 50 // catalogue limit is 50 max
+
+/**
+ * Serverless-safe retry budget: bounded per-attempt timeout plus a single
+ * retry keeps the worst case (~17 s) inside typical Vercel function limits
+ * while still riding out a transient blip on the Render cold-start API.
+ */
+const UPSTREAM_FETCH_OPTIONS = { timeoutMs: 8_000, retries: 1, retryDelayMs: 250 } as const
 
 const resolveApiBase = (): string => {
   const configured = process.env.VITE_API_BASE_URL
@@ -42,7 +52,10 @@ async function fetchPublishedCourseEntries(): Promise<SitemapUrlEntry[]> {
   let total = Number.MAX_SAFE_INTEGER
 
   while (offset < total && entries.length < SITEMAP_MAX_URLS) {
-    const res = await fetch(`${apiBase}/courses?limit=${COURSES_PAGE_SIZE}&offset=${offset}`)
+    const res = await fetchWithRetry(
+      `${apiBase}/courses?limit=${COURSES_PAGE_SIZE}&offset=${offset}`,
+      UPSTREAM_FETCH_OPTIONS,
+    )
     if (!res.ok) throw new Error(`courses catalogue responded ${res.status}`)
     const payload = await res.json() as {
       data?: { id: string; updatedAt?: string; updated_at?: string }[]
@@ -70,7 +83,7 @@ async function fetchPublishedCourseEntries(): Promise<SitemapUrlEntry[]> {
  */
 async function fetchActiveTrainerEntries(): Promise<SitemapUrlEntry[]> {
   const apiBase = resolveApiBase()
-  const res = await fetch(`${apiBase}/courses/teachers`)
+  const res = await fetchWithRetry(`${apiBase}/courses/teachers`, UPSTREAM_FETCH_OPTIONS)
   if (!res.ok) throw new Error(`trainer directory responded ${res.status}`)
   const payload = await res.json() as { data?: { id: string }[] }
   return (payload.data ?? [])

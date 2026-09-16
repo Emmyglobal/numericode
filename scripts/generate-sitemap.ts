@@ -29,6 +29,7 @@ import { fileURLToPath } from 'node:url'
 
 import {
   buildSitemapXml,
+  fetchWithRetry,
   type SitemapUrlEntry,
   SITEMAP_SITE_URL,
   SITEMAP_MAX_URLS,
@@ -39,6 +40,13 @@ const PROJECT_ROOT = resolve(__dirname, '..')
 
 const COURSES_PAGE_SIZE = 50
 const OUTPUT_PATH = resolve(PROJECT_ROOT, 'public/sitemap.xml')
+
+/**
+ * Build-time retry budget: a bounded per-attempt timeout plus one retry keeps
+ * the worst case (~24 s for two endpoints × two attempts) inside CI limits
+ * while riding out transient blips on the Render cold-start API.
+ */
+const UPSTREAM_FETCH_OPTIONS = { timeoutMs: 10_000, retries: 1, retryDelayMs: 250 } as const
 
 const resolveApiBase = (): string => {
   const configured = process.env.VITE_API_BASE_URL
@@ -58,7 +66,7 @@ async function fetchPublishedCourseEntries(): Promise<SitemapUrlEntry[]> {
   while (offset < total && entries.length < SITEMAP_MAX_URLS && pageCount < MAX_PAGES) {
     pageCount += 1
     const url = `${apiBase}/courses?limit=${COURSES_PAGE_SIZE}&offset=${offset}`
-    const res = await fetch(url)
+    const res = await fetchWithRetry(url, UPSTREAM_FETCH_OPTIONS)
     if (!res.ok) {
       throw new Error(`GET /courses responded ${res.status} ${res.statusText} (${url})`)
     }
@@ -84,7 +92,7 @@ async function fetchPublishedCourseEntries(): Promise<SitemapUrlEntry[]> {
 
 async function fetchActiveTrainerEntries(): Promise<SitemapUrlEntry[]> {
   const apiBase = resolveApiBase()
-  const res = await fetch(`${apiBase}/courses/teachers`)
+  const res = await fetchWithRetry(`${apiBase}/courses/teachers`, UPSTREAM_FETCH_OPTIONS)
   if (!res.ok) {
     throw new Error(
       `GET /courses/teachers responded ${res.status} ${res.statusText}`,

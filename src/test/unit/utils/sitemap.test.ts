@@ -39,7 +39,7 @@ const PRIVATE_PREFIXES = ['/dashboard', '/trainer', '/admin', '/login', '/regist
 
 describe('sitemap constants', () => {
   it('SITEMAP_SITE_URL is the production canonical domain', () => {
-    expect(SITEMAP_SITE_URL).toBe('https://numerycode.com')
+    expect(SITEMAP_SITE_URL).toBe('https://www.numerycode.com')
   })
 
   it('SITEMAP_MAX_URLS is exactly the 50 000 protocol limit', () => {
@@ -74,10 +74,10 @@ describe('escapeXml', () => {
 describe('buildStaticOnlySitemap', () => {
   it('includes every canonical static route', () => {
     const xml = buildStaticOnlySitemap()
-    expect(xml).toContain('<loc>https://numerycode.com/</loc>')
-    expect(xml).toContain('<loc>https://numerycode.com/courses</loc>')
-    expect(xml).toContain('<loc>https://numerycode.com/trainers</loc>')
-    expect(xml).toContain('<loc>https://numerycode.com/faq</loc>')
+    expect(xml).toContain('<loc>https://www.numerycode.com/</loc>')
+    expect(xml).toContain('<loc>https://www.numerycode.com/courses</loc>')
+    expect(xml).toContain('<loc>https://www.numerycode.com/trainers</loc>')
+    expect(xml).toContain('<loc>https://www.numerycode.com/faq</loc>')
   })
 
   it('produces valid XML structure', () => {
@@ -112,9 +112,9 @@ describe('buildSitemapXml', () => {
       { type: 'course', id: 'c1' },
       { type: 'trainer', id: 't1' },
     ])
-    expect(xml).toContain('<loc>https://numerycode.com/courses/c1</loc>')
-    expect(xml).toContain('<loc>https://numerycode.com/trainers/t1</loc>')
-    expect(xml).toContain('<loc>https://numerycode.com/</loc>')
+    expect(xml).toContain('<loc>https://www.numerycode.com/courses/c1</loc>')
+    expect(xml).toContain('<loc>https://www.numerycode.com/trainers/t1</loc>')
+    expect(xml).toContain('<loc>https://www.numerycode.com/</loc>')
   })
 
   it('produces valid XML for mixed URL types', () => {
@@ -140,7 +140,7 @@ describe('buildSitemapXml', () => {
     const xml = buildSitemapXml([{ type: 'course', id: 'a&b<c>' }])
     const locs = extractLocs(xml)
     const courseUrl = locs.find(l => l.includes('/courses/'))
-    expect(courseUrl).toBe('https://numerycode.com/courses/a&amp;b&lt;c&gt;')
+    expect(courseUrl).toBe('https://www.numerycode.com/courses/a&amp;b&lt;c&gt;')
   })
 
   it('deduplicates identical URLs', () => {
@@ -247,7 +247,7 @@ describe('buildSitemapXml', () => {
     ])
     const locs = extractLocs(xml)
     expect(locs.length).toBeGreaterThan(0)
-    expect(locs.every(l => l.startsWith('https://numerycode.com/'))).toBe(true)
+    expect(locs.every(l => l.startsWith('https://www.numerycode.com/'))).toBe(true)
   })
 })
 
@@ -285,9 +285,9 @@ describe('sitemap handler contract', () => {
     expect(res.statusCode).toBe(200)
     expect(res.end).toHaveBeenCalledTimes(1)
     const body = res.end.mock.calls[0][0]
-    expect(body).toContain('<loc>https://numerycode.com/courses/course-123</loc>')
+    expect(body).toContain('<loc>https://www.numerycode.com/courses/course-123</loc>')
     expect(body).toContain('<lastmod>2024-01-15</lastmod>')
-    expect(body).toContain('<loc>https://numerycode.com/trainers/trainer-456</loc>')
+    expect(body).toContain('<loc>https://www.numerycode.com/trainers/trainer-456</loc>')
   })
 
   it('falls back to the static sitemap without throwing when the API fails', async () => {
@@ -302,7 +302,7 @@ describe('sitemap handler contract', () => {
     await expect(sitemapHandler({}, res as any)).resolves.toBeUndefined()
     expect(res.statusCode).toBe(200)
     const body = res.end.mock.calls[0][0]
-    expect(body).toContain('<loc>https://numerycode.com/</loc>')
+    expect(body).toContain('<loc>https://www.numerycode.com/</loc>')
     expect(body).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
   })
 })
@@ -323,7 +323,7 @@ describe('sitemap file output (build script)', () => {
     expect(isWellFormedSitemap(xml)).toBe(true)
     const locs = extractLocs(xml)
     expect(locs.length).toBeGreaterThan(0)
-    expect(locs.every(l => l.startsWith('https://numerycode.com'))).toBe(true)
+    expect(locs.every(l => l.startsWith('https://www.numerycode.com'))).toBe(true)
   })
 
   it('public/robots.txt references the production sitemap URL', () => {
@@ -335,7 +335,7 @@ describe('sitemap file output (build script)', () => {
       expect.assertions(0)
       return
     }
-    expect(content).toMatch(/Sitemap:\s*https:\/\/numerycode\.com\/sitemap\.xml/)
+    expect(content).toMatch(/Sitemap:\s*https:\/\/www\.numerycode\.com\/sitemap\.xml/)
   })
 })
 
