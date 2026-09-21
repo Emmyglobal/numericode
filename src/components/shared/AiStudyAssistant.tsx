@@ -104,7 +104,7 @@ export function AiStudyAssistant() {
           role="dialog"
           aria-modal="false"
           aria-label="NumeryCode AI chat"
-          className="absolute bottom-16 right-0 box-border h-[520px] w-[calc(100vw-2rem)] max-h-[75vh] max-w-[26rem] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-surface-dark sm:max-w-sm sm:rounded-3xl md:max-w-md"
+          className="absolute bottom-16 right-0 flex h-[520px] min-h-0 w-[calc(100vw-2rem)] max-h-[75vh] max-w-[26rem] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-surface-dark sm:max-w-sm sm:rounded-3xl md:max-w-md"
         >
           <ChatHeader
             title="NumeryCode AI"
@@ -117,7 +117,7 @@ export function AiStudyAssistant() {
             role="log"
             aria-live="polite"
             aria-label="Chat messages"
-            className="flex-1 space-y-1 overflow-y-auto p-4"
+            className="min-h-0 flex-1 space-y-1 overflow-y-auto p-4"
           >
             {messages.length === 0 && !error && !isLoading && <EmptyState onPrompt={sendMessage} />}
             <MessageList messages={messages} />
