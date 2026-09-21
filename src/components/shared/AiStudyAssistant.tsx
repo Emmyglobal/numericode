@@ -258,7 +258,7 @@ function TypingIndicator() {
           <span className="ai-typing-dot inline-block h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 dark:bg-slate-500" />
         </span>
       </div>
-    </li>
+    </div>
   )
 }
 
@@ -278,7 +278,7 @@ function ErrorBanner({ message, onRetry }: { message: string; onRetry: () => voi
           Retry
         </button>
       </div>
-    </li>
+    </div>
   )
 }
 
@@ -333,4 +333,3 @@ function ChatInput({
     </form>
   )
 }
-
