@@ -3,7 +3,26 @@ export type Level   = 'beginner' | 'intermediate' | 'advanced'
 export type CourseAccessLevel = 'free' | 'premium'
 export interface Instructor { id: string; name: string; bio: string; avatarUrl?: string; credentials: string[] }
 export interface Resource   { id: string; title: string; type: 'pdf' | 'video' | 'link' | 'file'; url: string }
-export interface Lesson     { id: string; title: string; content?: string; duration: number; isCompleted: boolean; resources: Resource[] }
+export type SlideType = 'title' | 'objectives' | 'content' | 'example' | 'code'
+  | 'callout' | 'try-it' | 'mistakes' | 'knowledge-check' | 'summary' | 'assignment'
+export interface SlideCallout { type: 'tip' | 'warning' | 'note'; title?: string; content: string }
+export interface SlideExample { title?: string; content: string; code?: string; language?: string }
+export interface SlideTryIt { task: string; steps: string[]; starter?: string; expected?: string }
+export interface SlideCheck { question: string; options: string[]; correctIndex: number; explanation?: string }
+export interface LessonSlide {
+  id: string
+  type: SlideType
+  title?: string
+  content?: string
+  items?: string[]
+  code?: string
+  language?: string
+  callout?: SlideCallout
+  example?: SlideExample
+  tryIt?: SlideTryIt
+  question?: SlideCheck
+}
+export interface Lesson     { id: string; title: string; content?: string; duration: number; isCompleted: boolean; resources: Resource[]; slides?: LessonSlide[] }
 export interface Module     { id: string; title: string; lessons: Lesson[] }
 export interface LiveClass  { id: string; title: string; date: string; duration: number; meetUrl: string; status: 'upcoming'|'live'|'past' }
 /**
