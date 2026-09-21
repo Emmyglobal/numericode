@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import type { ComponentProps, ReactNode } from 'react'
+import type { ComponentProps } from 'react'
 import ReactMarkdown from 'react-markdown'
+import type { Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
@@ -62,7 +63,7 @@ function ReactNodeToString(node: unknown): string {
 /** Props for custom react-markdown element overrides (includes mdast `node`). */
 type MdProps<T extends keyof HTMLElementTagNameMap> = ComponentProps<T> & { node?: unknown }
 
-const components = {
+const components: Components = {
   pre: ({ children, className, ...props }: ComponentProps<'pre'>) => {
     const { language, code } = extractCode(children)
     const { copied, copy } = useCopier()
@@ -94,7 +95,7 @@ const components = {
     )
   },
   code: ({ node, className, children, ...props }: MdProps<'code'>) => {
-    const isBlock = Boolean(className) && /^language-/.test(className)
+    const isBlock = Boolean(className) && /^language-/.test(className ?? '')
     return (
       <code
         {...props}
@@ -196,13 +197,15 @@ const HEADING_STYLES: Record<HeadingLevel, string> = {
   5: 'mt-3 mb-1 text-sm font-bold text-slate-800 dark:text-slate-100',
   6: 'mt-3 mb-1 text-sm font-bold text-slate-800 dark:text-slate-100',
 }
+type HeadingProps = ComponentProps<'h1'> & { node?: unknown }
+
 function Heading({ level }: { level: HeadingLevel }) {
   const Tag = `h${level}` as const
   return ({
     children,
     className,
     ...props
-  }: { children?: ReactNode; className?: string; [k: string]: unknown }) => (
+  }: HeadingProps) => (
     <Tag className={cn(HEADING_STYLES[level], className)} {...props}>
       {children}
     </Tag>
@@ -230,4 +233,3 @@ export function AiMarkdown({ markdown }: AiMarkdownProps) {
 }
 
 export default AiMarkdown
-
