@@ -16,6 +16,7 @@ vi.mock('@/services/courses.service', () => ({
     getById: vi.fn(),
     requestCourse: vi.fn(),
     getTrainerProfile: vi.fn(),
+    getAccess: vi.fn(),
   },
 }))
 
@@ -105,6 +106,9 @@ beforeEach(() => {
   vi.mocked(coursesService.getById).mockResolvedValue(course)
   vi.mocked(coursesService.getTrainerProfile).mockResolvedValue(trainerProfile)
   vi.mocked(coursesService.requestCourse).mockResolvedValue({ id: 'c1', status: 'enrolled' })
+  vi.mocked(coursesService.getAccess).mockResolvedValue({
+    courseId: 'c1', accessLevel: 'free', hasAccess: false, isEnrolled: false, entitledBy: null, premiumEnabled: false,
+  })
   vi.mocked(dashboardService.getMyCourses).mockResolvedValue([])
   vi.mocked(dashboardService.getSubscription).mockResolvedValue({ isActive: false, status: 'inactive' })
   vi.mocked(dashboardService.createCheckoutIntent).mockResolvedValue({ id: 'co1' })
@@ -240,6 +244,34 @@ describe('CourseDetailPage', () => {
 
     await waitFor(() => expect(screen.getAllByText(/you are enrolled/i).length).toBeGreaterThan(0))
     expect(paymentsService.initiate).toHaveBeenCalledWith('c1')
+  })
+
+  it('does not ask a student with a verified payment to pay again', async () => {
+    useAuthStore.setState({ user: student, token: 'tok', isAuthenticated: true })
+    vi.mocked(coursesService.getById).mockResolvedValue({ ...course, accessLevel: 'premium', priceCents: 250000, currency: 'NGN' })
+    // The backend says: verified payment for this course, enrollment repaired.
+    vi.mocked(coursesService.getAccess).mockResolvedValue({
+      courseId: 'c1', accessLevel: 'premium', hasAccess: true, isEnrolled: true, entitledBy: 'payment', premiumEnabled: true,
+    })
+    renderPage()
+    await waitFor(() => expect(screen.getAllByRole('link', { name: /continue learning/i }).length).toBeGreaterThan(0))
+    expect(screen.queryByRole('button', { name: /pay .* enroll/i })).not.toBeInTheDocument()
+    expect(paymentsService.initiate).not.toHaveBeenCalled()
+  })
+
+  it('shows Start Learning (no checkout) for a student with an active subscription', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState({ user: student, token: 'tok', isAuthenticated: true })
+    vi.mocked(coursesService.getById).mockResolvedValue({ ...course, accessLevel: 'premium', priceCents: 250000, currency: 'NGN' })
+    vi.mocked(coursesService.getAccess).mockResolvedValue({
+      courseId: 'c1', accessLevel: 'premium', hasAccess: true, isEnrolled: false, entitledBy: 'subscription', premiumEnabled: true,
+    })
+    renderPage()
+    await waitFor(() => expect(screen.getAllByRole('button', { name: /start learning/i }).length).toBeGreaterThan(0))
+    expect(screen.queryByRole('button', { name: /pay .* enroll/i })).not.toBeInTheDocument()
+    await user.click(screen.getAllByRole('button', { name: /start learning/i })[0])
+    await waitFor(() => expect(coursesService.requestCourse).toHaveBeenCalledWith('c1'))
+    expect(paymentsService.initiate).not.toHaveBeenCalled()
   })
 
   it('shows Continue Learning for an already-enrolled student without re-enrolling', async () => {

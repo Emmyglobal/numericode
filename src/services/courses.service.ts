@@ -12,6 +12,15 @@ export interface PublicTrainerProfile {
 export interface AvailableCourseForEnrollment { id: string; title: string; subject: string; level: string; instructorName: string; instructorId: string }
 export interface TrainerSessionInput { courseId: string; title: string; date: string; duration: number; meetUrl?: string; sessionType?: 'group' | 'individual'; studentIds?: string[]; extensionMinutes?: number }
 export interface EnrollResult { enrolledCourses: string[]; count: number }
+/** Server-authoritative entitlement answer for one course (GET /courses/:id/access). */
+export interface CourseAccess {
+  courseId: string
+  accessLevel: string
+  hasAccess: boolean
+  isEnrolled: boolean
+  entitledBy: 'subscription' | 'payment' | null
+  premiumEnabled: boolean
+}
 export interface CourseListParams {
   subject?: string
   q?: string
@@ -47,6 +56,10 @@ export const coursesService = {
   },
   getById:  async (id: string) => { const { data } = await api.get<ApiResponse<Course>>(`/courses/${id}`); return data.data },
   requestCourse: async (id: string) => { const { data } = await api.post<ApiResponse<{ id: string; status: string }>>(`/courses/${id}/request`); return data.data },
+  /** Which courses the student may open right now: an ACTIVE Premium subscription
+      OR a VERIFIED payment for the course (the backend decides; a bare enrollment
+      row is never access). Verified payers with a missing enrollment get it repaired. */
+  getAccess: async (id: string) => { const { data } = await api.get<ApiResponse<CourseAccess>>(`/courses/${id}/access`); return data.data },
   getAvailableTeachers: async () => { const { data } = await api.get<ApiResponse<AvailableTeacher[]>>('/courses/teachers'); return data.data },
   getTrainerProfile: async (id: string) => { const { data } = await api.get<ApiResponse<PublicTrainerProfile>>(`/courses/teachers/${id}`); return data.data },
   getAvailableForEnrollment: async (teacherId?: string) => { const { data } = await api.get<ApiResponse<AvailableCourseForEnrollment[]>>('/courses/available-for-enrollment', { params: teacherId ? { teacherId } : {} }); return data.data },

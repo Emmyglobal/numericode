@@ -196,13 +196,23 @@ export default function CourseDetailPage() {
     queryFn: () => dashboardService.getMyCourses() as Promise<Array<{ id: string }>>,
     enabled: isStudent,
   })
-  const isEnrolled = Boolean(isStudent && myCoursesQuery.data?.some(c => c.id === id))
 
-  const { data: subscription } = useQuery({
-    queryKey: ['subscription'],
-    queryFn: () => dashboardService.getSubscription(),
-    enabled: isStudent,
+  // Entitlement for THIS course comes from the backend only: an ACTIVE Premium
+  // subscription OR a VERIFIED payment for this exact course. The answer also
+  // repairs a missing enrolment row for verified payers, so a student who has
+  // already paid is never sent back into checkout.
+  const accessQuery = useQuery({
+    queryKey: ['course-access', id],
+    queryFn: () => coursesService.getAccess(id),
+    enabled: isStudent && Boolean(id),
+    retry: false,
   })
+  const hasAccess = Boolean(accessQuery.data?.hasAccess)
+
+  // A repaired enrolment from the access endpoint counts as enrolled too.
+  const isEnrolled = Boolean(
+    isStudent && (myCoursesQuery.data?.some(c => c.id === id) || accessQuery.data?.isEnrolled)
+  )
 
   const requestMutation = useMutation({ mutationFn: () => coursesService.requestCourse(id) })
   // Phase 16: premium checkout goes through the backend, which is authoritative
@@ -300,7 +310,16 @@ export default function CourseDetailPage() {
         </Link>
       )
     }
-    if (isPremium && !subscription?.isActive) {
+    if (isPremium && !hasAccess) {
+      // Entitlement is still being confirmed — never flash a checkout at a
+      // student who may already have paid for (or subscribed to) this course.
+      if (accessQuery.isPending) {
+        return (
+          <Button size={size} className="w-full" disabled>
+            Checking your access…
+          </Button>
+        )
+      }
       if (!hasPrice) {
         // Premium course with no purchasable price — never fake a checkout.
         return (
@@ -328,11 +347,13 @@ export default function CourseDetailPage() {
       ? 'Enrolment is available for student accounts.'
       : isEnrolled
         ? 'You are enrolled in this course.'
-        : isPremium && !subscription?.isActive
-          ? hasPrice
-            ? 'You will be redirected to our secure payment provider. Access unlocks only after the payment is verified.'
-            : 'Premium access for this course is being set up — please check back soon.'
-          : 'Enrol now — you will get access to every lesson in this course.'
+        : isPremium && hasAccess
+          ? 'Your access to this course is already verified — enrol now to start learning.'
+          : isPremium && !hasAccess
+            ? hasPrice
+              ? 'You will be redirected to our secure payment provider. Access unlocks only after the payment is verified.'
+              : 'Premium access for this course is being set up — please check back soon.'
+            : 'Enrol now — you will get access to every lesson in this course.'
 
   return (
     <div className="pb-24 lg:pb-0">
