@@ -61,6 +61,9 @@ export default function RegisterPage() {
   const [error,  setError] = useState('')
   const [pendingMessage, setPendingMessage] = useState('')
   const [pendingRole, setPendingRole] = useState('')
+  const [pendingEmail, setPendingEmail] = useState('')
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle')
+  const [resendError, setResendError] = useState('')
   const [teachers, setTeachers] = useState<AvailableTeacher[]>([])
   const [teachersError, setTeachersError] = useState('')
   const [policyAccepted, setPolicyAccepted] = useState(false)
@@ -113,12 +116,28 @@ export default function RegisterPage() {
       if (isPendingApproval(res)) {
         setPendingMessage(res.message)
         setPendingRole(data.role)
+        setPendingEmail(data.email)
+        // Remember the address so PendingApprovalPage can offer a real resend.
+        localStorage.setItem('pendingApprovalEmail', data.email)
         return
       }
       login(res.user as AuthUserWithRole, res.token)
       navigate(data.role === 'trainer' ? '/trainer' : '/dashboard')
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Registration failed')
+    }
+  }
+
+  const handleResendVerification = async () => {
+    if (!pendingEmail || resendState === 'sending') return
+    setResendState('sending')
+    setResendError('')
+    try {
+      await authService.resendVerification(pendingEmail)
+      setResendState('sent')
+    } catch {
+      setResendState('idle')
+      setResendError('Could not resend the verification email right now. Please try again shortly.')
     }
   }
 
@@ -129,11 +148,33 @@ export default function RegisterPage() {
           <Clock3 className="w-7 h-7 text-brand-blue" aria-hidden="true" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Account created — pending approval</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Account created — check your inbox</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{pendingMessage}</p>
         </div>
+        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/40 p-4 space-y-3 text-left">
+          <p className="text-xs text-gray-600 dark:text-gray-300">
+            Can't find the verification email? Check your spam folder, or send it again to{' '}
+            <span className="font-semibold">{pendingEmail}</span>.
+          </p>
+          {resendError && <p className="text-xs text-red-600 dark:text-red-400" role="alert">{resendError}</p>}
+          {resendState === 'sent' ? (
+            <p className="text-xs font-medium text-green-600 dark:text-green-400">
+              Verification email sent — please check your inbox.
+            </p>
+          ) : (
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={resendState === 'sending'}
+              onClick={handleResendVerification}
+              className="w-full"
+            >
+              Resend verification email
+            </Button>
+          )}
+        </div>
         <p className="text-xs text-gray-400 dark:text-gray-500">
-          You'll be able to log in as soon as an admin approves your {pendingRole === 'trainer' ? 'Trainer' : 'Student'} account. This is usually quick.
+          You'll be able to log in as soon as an admin approves your {pendingRole === 'trainer' ? 'Trainer' : 'Student'} account and your email address is verified. This is usually quick.
         </p>
         <Link to="/login" className="block">
           <Button variant="secondary" className="w-full">Back to Log In</Button>

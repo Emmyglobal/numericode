@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Mail, Clock, CheckCircle } from 'lucide-react'
+import { authService } from '@/services/auth.service'
 
 export default function PendingApprovalPage() {
   const [email, setEmail] = useState('')
   const [countdown, setCountdown] = useState(30)
+  const [resending, setResending] = useState(false)
+  const [resendMessage, setResendMessage] = useState('')
 
   useEffect(() => {
     // Get email from localStorage if available
@@ -25,10 +28,20 @@ export default function PendingApprovalPage() {
     return () => clearInterval(timer)
   }, [])
 
-  const handleResendEmail = () => {
-    // In a real app, call API to resend approval email
-    alert('Approval email has been resent!')
-    setCountdown(30)
+  const handleResendEmail = async () => {
+    if (!email || resending || countdown > 0) return
+    setResending(true)
+    setResendMessage('')
+    try {
+      // Real API call — re-sends the email-verification link for this address.
+      await authService.resendVerification(email)
+      setResendMessage('Verification email sent — please check your inbox.')
+      setCountdown(30)
+    } catch {
+      setResendMessage('Could not resend the email right now. Please try again shortly.')
+    } finally {
+      setResending(false)
+    }
   }
 
   return (
@@ -54,12 +67,13 @@ export default function PendingApprovalPage() {
                 Check your email
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                We've sent a confirmation email to{' '}
+                We've sent a verification link to{' '}
                 {email ? (
                   <span className="font-semibold">{email}</span>
                 ) : (
                   'your registered email address'
                 )}
+                . Click the link in that email to verify your address.
               </p>
             </div>
           </div>
@@ -71,25 +85,30 @@ export default function PendingApprovalPage() {
                 What happens next?
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                An administrator will review your registration and approve your account. 
-                You'll receive an email once your account is approved.
+                First, verify your email address via the link we sent. Then an administrator will review your
+                registration — you'll be able to log in once your account is approved and your email is verified.
               </p>
             </div>
           </div>
 
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-              Didn't receive the email? Check your spam folder or resend.
+              Didn't receive the verification email? Check your spam folder or resend it.
             </p>
             <button
               onClick={handleResendEmail}
-              disabled={countdown > 0}
+              disabled={countdown > 0 || resending || !email}
               className="w-full px-4 py-2 bg-brand-blue text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
               {countdown > 0
                 ? `Resend email (${countdown}s)`
-                : 'Resend approval email'}
+                : resending
+                  ? 'Sending…'
+                  : 'Resend verification email'}
             </button>
+            {resendMessage && (
+              <p className="mt-2 text-xs text-gray-600 dark:text-gray-400" role="status">{resendMessage}</p>
+            )}
           </div>
 
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">

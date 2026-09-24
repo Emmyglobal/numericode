@@ -13,8 +13,13 @@ export interface RegisterPayload {
 }
 export interface AuthResponse { user: AuthUser & { role: 'student' | 'trainer' | 'admin' }; token: string }
 
-/** Returned instead of AuthResponse when a trainer registration is created but awaiting admin approval. */
-export interface PendingApprovalResponse { pendingApproval: true; message: string }
+/** Returned instead of AuthResponse when a registration is created but awaiting admin approval. */
+export interface PendingApprovalResponse {
+  pendingApproval: true
+  message: string
+  /** True when the registration verification email was dispatched to the user. */
+  verificationEmailSent?: boolean
+}
 
 export function isPendingApproval(res: AuthResponse | PendingApprovalResponse): res is PendingApprovalResponse {
   return 'pendingApproval' in res

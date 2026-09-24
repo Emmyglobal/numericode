@@ -33,6 +33,16 @@ export const authService = {
     const { data } = await api.post<ApiResponse<{ message: string }>>('/auth/activate-account', p)
     return data.data || data
   },
+  /** Verifies an email address with the single-use token from the emailed link. */
+  verifyEmail: async (p: { token: string }) => {
+    const { data } = await api.post<ApiResponse<{ message: string }>>('/auth/verify-email', p)
+    return data.data || data
+  },
+  /** Re-sends the registration verification email (generic response by design). */
+  resendVerification: async (email: string) => {
+    const { data } = await api.post<ApiResponse<{ message: string }>>('/auth/resend-verification', { email })
+    return data
+  },
 
   // ─── Google OAuth ───────────────────────────────────────────────────────────
   /** Fetches the Google OAuth consent URL from the backend. */

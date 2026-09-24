@@ -56,7 +56,7 @@ export default function AdminUsersPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'stats'] })
       setSuccessMessage(
-        variables.status === 'active' ? 'User approved/activated. They can now log in.' : 'User suspended.'
+        variables.status === 'active' ? 'User approved. They can log in once their email address is verified.' : 'User suspended.'
       )
     },
   })
