@@ -220,6 +220,28 @@ describe('CourseDetailPage', () => {
     await waitFor(() => expect(paymentsService.initiate).toHaveBeenCalledWith('c1'))
   })
 
+  it('updates the enrolment state when checkout repairs an orphaned verified payment', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState({ user: student, token: 'tok', isAuthenticated: true })
+    vi.mocked(coursesService.getById).mockResolvedValue({ ...course, accessLevel: 'premium', priceCents: 250000, currency: 'NGN' })
+    vi.mocked(dashboardService.getMyCourses)
+      .mockResolvedValueOnce([])
+      .mockResolvedValue([{ id: 'c1' }])
+    vi.mocked(paymentsService.initiate).mockResolvedValue({
+      enrollmentGranted: true,
+      alreadyHasAccess: true,
+      courseId: 'c1',
+      courseTitle: course.title,
+    })
+
+    renderPage()
+    await waitFor(() => expect(screen.getAllByRole('button', { name: /pay .* enroll/i }).length).toBeGreaterThan(0))
+    await user.click(screen.getAllByRole('button', { name: /pay .* enroll/i })[0])
+
+    await waitFor(() => expect(screen.getAllByText(/you are enrolled/i).length).toBeGreaterThan(0))
+    expect(paymentsService.initiate).toHaveBeenCalledWith('c1')
+  })
+
   it('shows Continue Learning for an already-enrolled student without re-enrolling', async () => {
     useAuthStore.setState({ user: student, token: 'tok', isAuthenticated: true })
     vi.mocked(dashboardService.getMyCourses).mockResolvedValue([{ id: 'c1' }])

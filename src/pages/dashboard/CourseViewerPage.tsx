@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import { isAxiosError } from 'axios'
 import { CheckCircle, BookOpen, ChevronLeft, ChevronRight, Download, Menu, X, Trophy, Crown, Lock, MinusCircle } from 'lucide-react'
 import { dashboardService } from '@/services/dashboard.service'
-import { paymentsService } from '@/services/payments.service'
+import { paymentsService, type InitiatePaymentResult } from '@/services/payments.service'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -62,14 +62,7 @@ async function downloadLessonResource(r: { title: string; url: string; type: str
 interface PaymentRequiredStateProps {
   courseId: string
   courseTitle: string
-        paymentMutation: UseMutationResult<InitiatePaymentResult, Error, void>
-}
-interface InitiatePaymentResult {
-  reference: string
-  authorizationUrl: string
-  amountSubunits: number
-  currency: string
-  courseTitle: string
+  paymentMutation: UseMutationResult<InitiatePaymentResult, Error, void, unknown>
 }
 
 function PaymentRequiredState({ courseId, courseTitle, paymentMutation }: PaymentRequiredStateProps) {

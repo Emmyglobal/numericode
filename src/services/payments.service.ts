@@ -8,11 +8,16 @@ import type { ApiResponse } from '@/types/api.types'
 //   3. asks the backend for the verified status on return.
 
 export interface InitiatePaymentResult {
-  reference: string
-  authorizationUrl: string
-  amountSubunits: number
-  currency: string
-  courseTitle: string
+  /** Present when a new Paystack checkout was created. */
+  reference?: string
+  authorizationUrl?: string
+  amountSubunits?: number
+  currency?: string
+  courseTitle?: string
+  /** Present when an existing verified payment was repaired. */
+  enrollmentGranted?: boolean
+  alreadyHasAccess?: boolean
+  courseId?: string
 }
 
 export type PaymentStatusValue = 'pending' | 'verified' | 'failed' | 'abandoned' | 'refunded' | 'disputed'

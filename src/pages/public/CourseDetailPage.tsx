@@ -1,6 +1,6 @@
 import { useId, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   AlertCircle, ArrowRight, BookOpen, CheckCircle, ChevronDown, ChevronRight,
   ClipboardList, Clock, Crown, ExternalLink, GraduationCap, Video,
@@ -118,6 +118,7 @@ function CourseDetailSkeleton() {
 export default function CourseDetailPage() {
   const { id = '' } = useParams<{ id: string }>()
   const { user, isAuthenticated } = useAuth()
+  const queryClient = useQueryClient()
   const isStudent = isAuthenticated && user?.role === 'student'
 
   // ── Course (public detail endpoint: published courses only) ────────────────
@@ -210,7 +211,19 @@ export default function CourseDetailPage() {
   const paymentMutation = useMutation({
     mutationFn: () => paymentsService.initiate(id),
     onSuccess: (result) => {
-      if (result.authorizationUrl) window.location.assign(result.authorizationUrl)
+      if (result.authorizationUrl) {
+        window.location.assign(result.authorizationUrl)
+        return
+      }
+      // A verified payment can already exist while its enrollment insert was
+      // interrupted. The API repairs that row and returns this marker; update
+      // the local enrolment state so the user is not sent back to checkout.
+      if (result.enrollmentGranted && result.courseId) {
+        queryClient.setQueryData<Array<{ id: string }>>(['dashboard-my-courses'], (current = []) =>
+          current.some((course) => course.id === result.courseId) ? current : [...current, { id: result.courseId! }],
+        )
+        queryClient.invalidateQueries({ queryKey: ['dashboard-my-courses'] })
+      }
     },
   })
 
