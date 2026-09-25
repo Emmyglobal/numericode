@@ -9,7 +9,16 @@ export interface PublicTrainerProfile {
       so shared CourseCard components can render them directly. */
   courses: CourseSummary[]
 }
-export interface AvailableCourseForEnrollment { id: string; title: string; subject: string; level: string; instructorName: string; instructorId: string }
+export interface AvailableCourseForEnrollment {
+  id: string; title: string; subject: string; level: string
+  instructorName: string; instructorId: string
+  /** Premium metadata — lets the dashboard offer a direct payment action
+      instead of the free-course bulk-enrol checkbox (Phase 21). */
+  accessLevel?: 'free' | 'premium' | string
+  priceCents?: number
+  currency?: string
+  premiumEnabled?: boolean
+}
 export interface TrainerSessionInput { courseId: string; title: string; date: string; duration: number; meetUrl?: string; sessionType?: 'group' | 'individual'; studentIds?: string[]; extensionMinutes?: number }
 export interface EnrollResult { enrolledCourses: string[]; count: number }
 /** Server-authoritative entitlement answer for one course (GET /courses/:id/access). */

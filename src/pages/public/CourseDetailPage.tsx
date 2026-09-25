@@ -7,7 +7,6 @@ import {
 } from 'lucide-react'
 import { coursesService } from '@/services/courses.service'
 import { dashboardService } from '@/services/dashboard.service'
-import { paymentsService } from '@/services/payments.service'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
@@ -19,6 +18,7 @@ import { formatDuration } from '@/utils/formatDuration'
 import { formatCoursePrice } from '@/utils/formatPrice'
 import { cn } from '@/utils/classNames'
 import { useAuth } from '@/hooks/useAuth'
+import { usePayForCourse } from '@/hooks/usePayForCourse'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useJsonLd } from '@/utils/structuredData'
 import type { Subject, Level, Module } from '@/features/courses/types'
@@ -215,25 +215,18 @@ export default function CourseDetailPage() {
   )
 
   const requestMutation = useMutation({ mutationFn: () => coursesService.requestCourse(id) })
-  // Phase 16: premium checkout goes through the backend, which is authoritative
-  // for price/currency. On success we redirect to the provider's hosted page.
-  // The return page (/payment/callback) asks the BACKEND for verified status.
-  const paymentMutation = useMutation({
-    mutationFn: () => paymentsService.initiate(id),
-    onSuccess: (result) => {
-      if (result.authorizationUrl) {
-        window.location.assign(result.authorizationUrl)
-        return
-      }
-      // A verified payment can already exist while its enrollment insert was
-      // interrupted. The API repairs that row and returns this marker; update
-      // the local enrolment state so the user is not sent back to checkout.
-      if (result.enrollmentGranted && result.courseId) {
-        queryClient.setQueryData<Array<{ id: string }>>(['dashboard-my-courses'], (current = []) =>
-          current.some((course) => course.id === result.courseId) ? current : [...current, { id: result.courseId! }],
-        )
-        queryClient.invalidateQueries({ queryKey: ['dashboard-my-courses'] })
-      }
+  // Phase 16/21: premium checkout goes through the backend, which is
+  // authoritative for price/currency and selects the active provider
+  // (PAYMENT_PROVIDER). On success the hook redirects to the provider's hosted
+  // page; the return page (/payment/callback) asks the BACKEND for verified
+  // status — the redirect URL alone is never trusted.
+  const paymentMutation = usePayForCourse(id ?? '', {
+    onEnrollmentGranted: (courseId) => {
+      // A verified payment already existed and the API repaired the enrolment;
+      // reflect it locally so the CTA flips without waiting for the refetch.
+      queryClient.setQueryData<Array<{ id: string }>>(['dashboard-my-courses'], (current = []) =>
+        current.some((course) => course.id === courseId) ? current : [...current, { id: courseId }],
+      )
     },
   })
 

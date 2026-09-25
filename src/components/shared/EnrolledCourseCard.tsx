@@ -8,8 +8,8 @@ import { Markdown } from '@/components/ui/Markdown'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { cn } from '@/utils/classNames'
 import { dashboardService } from '@/services/dashboard.service'
-import { paymentsService } from '@/services/payments.service'
 import { formatCoursePrice } from '@/utils/formatPrice'
+import { usePayForCourse } from '@/hooks/usePayForCourse'
 import type { EnrolledCourse } from '@/features/courses/types'
 
 /** Slim circular progress indicator — WorldQuant-style course progress. */
@@ -87,16 +87,12 @@ export function EnrolledCourseCard({ course }: EnrolledCourseCardProps) {
     : removeMutation.error
 
   // "Complete Payment" — premium checkout goes through the EXISTING backend
-  // Paystack flow (server-authoritative price/currency). This only STARTS
-  // checkout and redirects to the provider; payment success is never decided by
-  // the frontend. After checkout, the return page polls the backend for the
-  // verified state before the course unlocks.
-  const paymentMutation = useMutation({
-    mutationFn: () => paymentsService.initiate(course.id),
-    onSuccess: (result) => {
-      if (result.authorizationUrl) window.location.assign(result.authorizationUrl)
-    },
-  })
+  // flow (server-authoritative price/currency; the active provider is selected
+  // server-side via PAYMENT_PROVIDER). This only STARTS checkout and redirects
+  // to the provider; payment success is never decided by the frontend. After
+  // checkout, the return page polls the backend for the verified state before
+  // the course unlocks.
+  const paymentMutation = usePayForCourse(course.id)
   const paymentError = paymentMutation.error instanceof Error
     ? paymentMutation.error.message
     : paymentMutation.error

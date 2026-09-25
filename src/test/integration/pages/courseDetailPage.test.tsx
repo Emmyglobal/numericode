@@ -414,4 +414,50 @@ describe('CourseDetailPage', () => {
     await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument())
     expect(screen.queryByText('More courses from this Registered Trainer')).not.toBeInTheDocument()
   })
+
+  it('redirects to the provider checkout URL returned by the backend (provider-neutral)', async () => {
+    const user = userEvent.setup()
+    const assign = vi.fn()
+    const original = window.location
+    const target = window as unknown as Record<string, unknown>
+    // jsdom exposes location as an unforgeable getter in some versions — try the
+    // standard replacement first, then fall back to delete + assign.
+    try {
+      Object.defineProperty(target, 'location', { configurable: true, writable: true, value: { ...original, assign } })
+    } catch {
+      delete target.location
+      target.location = { ...original, assign }
+    }
+    try {
+      useAuthStore.setState({ user: student, token: 'tok', isAuthenticated: true })
+      vi.mocked(coursesService.getById).mockResolvedValue({ ...course, accessLevel: 'premium', priceCents: 250000, currency: 'NGN' })
+      // Flutterwave / any provider: the backend returns the redirect URL here.
+      vi.mocked(paymentsService.initiate).mockResolvedValue({
+        provider: 'flutterwave',
+        reference: 'NCP-1',
+        checkoutUrl: 'https://checkout.flutterwave.com/v3/hosted/pay/abc',
+      })
+      renderPage()
+      await waitFor(() => expect(screen.getAllByRole('button', { name: /pay .* enroll/i }).length).toBeGreaterThan(0))
+      await user.click(screen.getAllByRole('button', { name: /pay .* enroll/i })[0])
+      await waitFor(() => expect(assign).toHaveBeenCalledWith('https://checkout.flutterwave.com/v3/hosted/pay/abc'))
+    } finally {
+      target.location = original
+    }
+  })
+
+  it('prevents duplicate checkout requests while the first is pending', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState({ user: student, token: 'tok', isAuthenticated: true })
+    vi.mocked(coursesService.getById).mockResolvedValue({ ...course, accessLevel: 'premium', priceCents: 250000, currency: 'NGN' })
+    // Never resolves — the button must stay locked (loading) so a second click
+    // cannot start a second checkout.
+    vi.mocked(paymentsService.initiate).mockImplementation(() => new Promise<never>(() => {}))
+    renderPage()
+    await waitFor(() => expect(screen.getAllByRole('button', { name: /pay .* enroll/i }).length).toBeGreaterThan(0))
+    const payButton = screen.getAllByRole('button', { name: /pay .* enroll/i })[0]
+    await user.click(payButton)
+    await user.click(payButton)
+    expect(paymentsService.initiate).toHaveBeenCalledTimes(1)
+  })
 })

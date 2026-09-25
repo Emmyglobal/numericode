@@ -4,7 +4,8 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import { isAxiosError } from 'axios'
 import { CheckCircle, BookOpen, ChevronLeft, ChevronRight, Download, Menu, X, Trophy, Crown, Lock, MinusCircle } from 'lucide-react'
 import { dashboardService } from '@/services/dashboard.service'
-import { paymentsService, type InitiatePaymentResult } from '@/services/payments.service'
+import type { InitiatePaymentResult } from '@/services/payments.service'
+import { usePayForCourse } from '@/hooks/usePayForCourse'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -146,18 +147,12 @@ export default function CourseViewerPage() {
   const queryClient = useQueryClient()
 
   // "Complete Payment" — premium checkout goes through the EXISTING backend
-  // Paystack flow (server-authoritative price/currency). This only STARTS
-  // checkout and redirects to the provider; payment success is never decided by
-  // the frontend. After checkout, the return page polls the backend for the
-  // verified state before the course unlocks.
-    const paymentMutation = useMutation({
-    mutationFn: () => paymentsService.initiate(id!),
-    onSuccess: (result) => {
-      if (result?.authorizationUrl) {
-        window.location.assign(result.authorizationUrl)
-      }
-    },
-  })
+  // flow (server-authoritative price/currency; the active provider is chosen
+  // server-side via PAYMENT_PROVIDER). This only STARTS checkout and redirects
+  // to the provider; payment success is never decided by the frontend. After
+  // checkout, the return page polls the backend for the verified state before
+  // the course unlocks.
+  const paymentMutation = usePayForCourse(id ?? '')
 
 
   const { data: course, isLoading, isError, error, refetch } = useQuery({

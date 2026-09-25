@@ -1,5 +1,6 @@
+import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertCircle, CheckCircle, Clock, ChevronRight, Loader2 } from 'lucide-react'
 import { paymentsService } from '@/services/payments.service'
 import { Button } from '@/components/ui/Button'
@@ -21,8 +22,11 @@ export default function PaymentCallbackPage() {
   // Private post-payment route — never index it (Phase 17 SEO rule).
   useNoIndex()
   const [params] = useSearchParams()
-  const reference = params.get('reference') ?? params.get('trxref')
+  // Paystack returns `reference`/`trxref`; Flutterwave returns `tx_ref`.
+  // Query params only tell us WHAT to check — never that the payment succeeded.
+  const reference = params.get('reference') ?? params.get('trxref') ?? params.get('tx_ref')
   const { isAuthenticated } = useAuth()
+  const queryClient = useQueryClient()
 
   const statusQuery = useQuery({
     queryKey: ['payment-status', reference],
@@ -35,6 +39,18 @@ export default function PaymentCallbackPage() {
     },
     retry: 1,
   })
+
+  // Once the BACKEND confirms the payment, refresh every consumer of enrolment
+  // state so the course page and dashboard unlock immediately (by the time this
+  // status is served the backend has already applied the payment + enrolment).
+  const verifiedCourseId = statusQuery.data?.status === 'verified' ? statusQuery.data.course?.id ?? null : null
+  useEffect(() => {
+    if (!verifiedCourseId) return
+    queryClient.invalidateQueries({ queryKey: ['course-access', verifiedCourseId] })
+    queryClient.invalidateQueries({ queryKey: ['dashboard-my-courses'] })
+    queryClient.invalidateQueries({ queryKey: ['dashboard', 'courses'] })
+    queryClient.invalidateQueries({ queryKey: ['availableForEnrollment'] })
+  }, [verifiedCourseId, queryClient])
 
   return (
     <SectionWrapper className="py-20">
@@ -83,16 +99,16 @@ export default function PaymentCallbackPage() {
         {reference && isAuthenticated && statusQuery.data && statusQuery.data.status === 'verified' && (
           <>
             <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" aria-hidden="true" />
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Payment confirmed</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Payment successful</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               {statusQuery.data.enrollmentGranted
-                ? <>You now have full access to <strong>{statusQuery.data.course?.title}</strong>.</>
+                ? <>You&rsquo;re enrolled — you now have full access to <strong>{statusQuery.data.course?.title}</strong>.</>
                 : 'Your payment is confirmed — enrolment is being finalised. Refresh in a moment.'}
             </p>
             {statusQuery.data.enrollmentGranted && statusQuery.data.course && (
               <Link to={`/dashboard/courses/${statusQuery.data.course.id}`} className="inline-flex">
                 <Button>
-                  Go to your course <ChevronRight className="w-4 h-4" aria-hidden="true" />
+                  Start Course <ChevronRight className="w-4 h-4" aria-hidden="true" />
                 </Button>
               </Link>
             )}
@@ -115,14 +131,14 @@ export default function PaymentCallbackPage() {
           <>
             <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" aria-hidden="true" />
             <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              {statusQuery.data.status === 'abandoned' ? 'Payment not completed' : 'Payment failed'}
+              {statusQuery.data.status === 'abandoned' ? 'Payment cancelled' : 'Payment failed'}
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-              {statusQuery.data.failureReason ?? 'No charge was confirmed for this payment. You have not been enrolled.'}
+              {statusQuery.data.failureReason ?? 'No charge was confirmed for this payment. You have not been enrolled — you can try again from the course page.'}
             </p>
             <div className="flex justify-center gap-3">
               {statusQuery.data.course && (
-                <Link to={`/courses/${statusQuery.data.course.id}`}><Button>Back to course</Button></Link>
+                <Link to={`/courses/${statusQuery.data.course.id}`}><Button>Try Payment Again</Button></Link>
               )}
               <Link to="/courses"><Button variant="secondary">Browse courses</Button></Link>
             </div>

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import MyCoursesPage from '@/pages/dashboard/MyCoursesPage'
 import { dashboardService } from '@/services/dashboard.service'
 import { coursesService } from '@/services/courses.service'
+import { paymentsService } from '@/services/payments.service'
 
 vi.mock('@/services/dashboard.service', () => ({
   dashboardService: {
@@ -18,6 +19,13 @@ vi.mock('@/services/courses.service', () => ({
   coursesService: {
     getAvailableTeachers: vi.fn(),
     getAvailableForEnrollment: vi.fn(),
+  },
+}))
+
+vi.mock('@/services/payments.service', () => ({
+  paymentsService: {
+    initiate: vi.fn(),
+    getStatus: vi.fn(),
   },
 }))
 
@@ -184,5 +192,22 @@ it('Confirm removes the course, refetches My Courses and clears the Continue Lea
       expect(screen.getByText(/removal subject to purchase\/refund policy/i)).toBeInTheDocument()
     })
     expect(screen.queryByRole('button', { name: /remove course/i })).not.toBeInTheDocument()
+  })
+
+  it('premium available courses offer a Pay CTA instead of the bulk-enrol checkbox (no dashboard dead-end)', async () => {
+    const user = userEvent.setup()
+    vi.mocked(coursesService.getAvailableForEnrollment).mockResolvedValue([
+      {
+        id: 'p1', title: 'Premium Algebra', subject: 'mathematics', level: 'advanced',
+        instructorName: 'Emmanuel Nwafor', instructorId: 'i1',
+        accessLevel: 'premium', priceCents: 250000, currency: 'NGN', premiumEnabled: true,
+      },
+    ])
+    renderPage()
+    await waitFor(() => expect(screen.getByRole('button', { name: /pay .* enroll/i })).toBeInTheDocument())
+    // Premium courses never render the bulk-enrol checkbox (that call would 403).
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /pay .* enroll/i }))
+    await waitFor(() => expect(paymentsService.initiate).toHaveBeenCalledWith('p1'))
   })
 })

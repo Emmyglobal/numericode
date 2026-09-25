@@ -1,10 +1,12 @@
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { BookOpen, Check, GraduationCap, PlayCircle, Search } from 'lucide-react'
+import { BookOpen, Check, Crown, GraduationCap, PlayCircle, Search } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { dashboardService } from '@/services/dashboard.service'
 import { coursesService, type AvailableCourseForEnrollment } from '@/services/courses.service'
+import { usePayForCourse } from '@/hooks/usePayForCourse'
+import { formatCoursePrice } from '@/utils/formatPrice'
 import { EnrolledCourseCard } from '@/components/shared/EnrolledCourseCard'
 import { CourseCardSkeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -13,6 +15,47 @@ import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Alert'
 import { cn } from '@/utils/classNames'
 import type { EnrolledCourse } from '@/features/courses/types'
+
+/**
+ * Premium course option for the "Enrol in a New Course" list.
+ *
+ * The bulk free-enrol endpoint must NOT be used for premium courses (the backend
+ * rejects it with "An active Premium subscription or verified payment is
+ * required…" — the original dead-end). Premium courses therefore offer the
+ * provider-neutral payment action instead of the checkbox, so the dashboard
+ * never strands a paying student.
+ */
+function PremiumEnrollmentOption({ course }: { course: AvailableCourseForEnrollment }) {
+  const paymentMutation = usePayForCourse(course.id)
+  const price = formatCoursePrice(course.priceCents ?? 0, course.currency ?? 'NGN')
+  const purchasable = Boolean(course.premiumEnabled) && typeof course.priceCents === 'number' && course.priceCents > 0
+
+  return (
+    <div className="flex items-start gap-3 rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50/60 dark:bg-amber-900/10 p-3.5">
+      <span className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-semibold text-amber-950">
+        <Crown className="h-3 w-3" aria-hidden /> Premium
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-gray-900 dark:text-white">{course.title}</p>
+        <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+          {course.level.charAt(0).toUpperCase() + course.level.slice(1)} · {course.instructorName} · {price}
+        </p>
+        {paymentMutation.isError && (
+          <p role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">{(paymentMutation.error as Error).message}</p>
+        )}
+        <div className="mt-2">
+          {purchasable ? (
+            <Button size="sm" loading={paymentMutation.isPending} onClick={() => paymentMutation.mutate()}>
+              Pay {price} &amp; Enroll
+            </Button>
+          ) : (
+            <Button size="sm" disabled>Enrolment opening soon</Button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function MyCoursesPage() {
   usePageTitle('My Courses')
@@ -209,6 +252,12 @@ export default function MyCoursesPage() {
                   </h3>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {courses.map(course => {
+                      // Premium courses can never be granted by the bulk (free)
+                      // enrol call — offer the payment action instead of a
+                      // checkbox that would dead-end on the backend 403.
+                      if (course.accessLevel === 'premium') {
+                        return <PremiumEnrollmentOption key={course.id} course={course} />
+                      }
                       const isSelected = selectedCourseIds.includes(course.id)
                       return (
                         <label

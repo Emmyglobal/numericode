@@ -1,16 +1,22 @@
 import { api } from '@/lib/axios'
 import type { ApiResponse } from '@/types/api.types'
 
-// ─── Payments service (Phase 16 — Paystack premium-course checkout) ───────────
+// ─── Payments service (Phase 16/21 — provider-neutral premium checkout) ───────
 // The frontend NEVER decides payment success. It only:
-//   1. asks the backend to initialize checkout (server-authoritative price),
+//   1. asks the backend to initialize checkout (server-authoritative price; the
+//      backend selects the active provider via PAYMENT_PROVIDER),
 //   2. redirects the browser to the provider's authorization URL,
 //   3. asks the backend for the verified status on return.
 
 export interface InitiatePaymentResult {
-  /** Present when a new Paystack checkout was created. */
+  /** Present when a new provider checkout was created. */
   reference?: string
+  /** Provider-neutral redirect URL (Flutterwave Standard / Paystack both return it). */
+  checkoutUrl?: string
+  /** Legacy alias of checkoutUrl — kept so older callers keep working. */
   authorizationUrl?: string
+  /** Which provider created this checkout ('paystack' | 'flutterwave'). */
+  provider?: string
   amountSubunits?: number
   currency?: string
   courseTitle?: string
@@ -23,6 +29,7 @@ export interface InitiatePaymentResult {
 export type PaymentStatusValue = 'pending' | 'verified' | 'failed' | 'abandoned' | 'refunded' | 'disputed'
 
 export interface PaymentStatusResult {
+  provider?: string
   reference: string
   status: PaymentStatusValue
   amountSubunits: number
