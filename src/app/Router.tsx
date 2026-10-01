@@ -78,6 +78,7 @@ const AdminAnnouncements = lazy(() => import('@/pages/admin/AdminAnnouncementsPa
 const AdminAnalytics     = lazy(() => import('@/pages/admin/AdminAnalyticsPage'))
 const AdminResources     = lazy(() => import('@/pages/admin/AdminResourcesPage'))
 const AdminSettings      = lazy(() => import('@/pages/admin/AdminSettingsPage'))
+const AdminTestimonials  = lazy(() => import('@/pages/admin/AdminTestimonialsPage'))
 // System
 const NotFoundPage       = lazy(() => import('@/pages/system/NotFoundPage'))
 
@@ -206,6 +207,7 @@ export function AppRouter() {
             <Route path="/admin/analytics"     element={<AdminAnalytics />} />
             <Route path="/admin/resources"     element={<AdminResources />} />
             <Route path="/admin/settings"      element={<AdminSettings />} />
+            <Route path="/admin/testimonials" element={<AdminTestimonials />} />
           </Route>
         </Route>
 

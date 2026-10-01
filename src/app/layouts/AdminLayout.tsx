@@ -10,6 +10,7 @@ const titles: Record<string, string> = {
   '/admin': 'Admin Overview', '/admin/users': 'User Management',
   '/admin/courses': 'Course Management', '/admin/announcements': 'Announcements',
   '/admin/analytics': 'Analytics', '/admin/settings': 'Settings',
+  '/admin/testimonials': 'Testimonials',
 }
 
 export default function AdminLayout() {

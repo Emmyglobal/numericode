@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Users, BookOpen, Bell, BarChart3, Settings, GraduationCap, LogOut, X, Shield, CreditCard } from 'lucide-react'
+import { LayoutDashboard, Users, BookOpen, Bell, BarChart3, Settings, GraduationCap, LogOut, X, Shield, CreditCard, MessageSquareQuote } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUIStore } from '@/store/uiStore'
 import { cn } from '@/utils/classNames'
@@ -11,6 +11,7 @@ const navItems = [
   { to: '/admin/payments',      icon: CreditCard,      label: 'Payments',       end: false },
   { to: '/admin/announcements', icon: Bell,            label: 'Announcements',  end: false },
   { to: '/admin/analytics',     icon: BarChart3,       label: 'Analytics',      end: false },
+  { to: '/admin/testimonials',  icon: MessageSquareQuote, label: 'Testimonials', end: false },
   { to: '/admin/settings',      icon: Settings,        label: 'Settings',       end: false },
 ]
 

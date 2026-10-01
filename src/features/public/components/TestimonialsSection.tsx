@@ -4,7 +4,8 @@ import { MessageSquareQuote, CheckCircle2, Clock3 } from 'lucide-react'
 import { SectionWrapper } from '@/components/shared/SectionWrapper'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { testimonialsService, type SubmitTestimonialInput } from '@/services/testimonials.service'
+import { testimonialsService, type SubmitTestimonialInput, type MyTestimonial } from '@/services/testimonials.service'
+import { useAuth } from '@/hooks/useAuth'
 
 const inputCls = 'w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-surface-dark px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue'
 
@@ -14,10 +15,20 @@ export function TestimonialsSection() {
   const [consent, setConsent] = useState(false)
   const [error, setError] = useState('')
   const queryClient = useQueryClient()
+  const { isAuthenticated } = useAuth()
 
   const { data: testimonials = [], isLoading } = useQuery({
     queryKey: ['public-testimonials'],
     queryFn: () => testimonialsService.list(),
+  })
+
+  // A submitted testimonial stays hidden from the public list until a moderator
+  // approves it. Showing the learner their own submission's status stops it
+  // looking like their message was lost.
+  const { data: myTestimonials = [] } = useQuery({
+    queryKey: ['my-testimonials'],
+    queryFn: () => testimonialsService.listMine(),
+    enabled: isAuthenticated,
   })
 
   const submitMutation = useMutation({
@@ -28,6 +39,8 @@ export function TestimonialsSection() {
       setOpen(false)
       // Refresh testimonials list to show the newly submitted testimonial
       queryClient.invalidateQueries({ queryKey: ['public-testimonials'] })
+      // Refresh the learner's own submissions so the pending status appears.
+      queryClient.invalidateQueries({ queryKey: ['my-testimonials'] })
     },
     onError: (e: Error) => setError(e.message || 'Something went wrong. Please try again.'),
   })
@@ -49,6 +62,22 @@ export function TestimonialsSection() {
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">What Our Learners Say</h2>
         <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">Real experiences from the NumeryCode community. Every story is verified, consented and reviewed before it appears here.</p>
       </div>
+
+      {myTestimonials.length > 0 && (
+        <div className="max-w-xl mx-auto mb-8 space-y-2">
+          {myTestimonials.slice(0, 2).map((m: MyTestimonial) => (
+            <div key={m.id} className="rounded-xl border border-brand-light dark:border-blue-800 bg-brand-light/30 dark:bg-blue-900/10 p-4 text-left">
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">Your testimonial</p>
+              <p className="text-xs text-gray-600 dark:text-gray-300">“{m.message}”</p>
+              <p className="mt-1 text-xs font-medium text-brand-blue dark:text-blue-300">
+                {m.status === 'pending' && 'Awaiting review — it will appear here once our team approves it.'}
+                {m.status === 'approved' && 'Published — you can see it in the stories below.'}
+                {m.status === 'rejected' && 'Not published. Please contact us if you think this was a mistake.'}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-44 w-full" />)}</div>
